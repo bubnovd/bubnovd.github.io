@@ -37,5 +37,4 @@ I'm can:
 {{ .Summary }}
 
 [About]({{< ref "/about/index.md" >}} "About Us")
-
-{{< ref path="en-initpost.md" lang="en" >}}
+.
