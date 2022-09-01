@@ -1,0 +1,9 @@
+baseURL: 'https://bubnovd.github.io/'
+languageCode: 'en-us'
+title: 'Bubnovd'
+theme: "terminal"
+
+disqusShortname: bubnovd-github-io
+
+params:
+  themeColor: "blue"
