@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bubnovd</title><link>https://bubnovd.github.io/</link><description>Recent content on Bubnovd</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 30 Aug 2022 05:05:22 +0000</lastBuildDate><atom:link href="https://bubnovd.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Initpost</title><link>https://bubnovd.github.io/posts/initpost/</link><pubDate>Tue, 30 Aug 2022 05:05:22 +0000</pubDate><guid>https://bubnovd.github.io/posts/initpost/</guid><description>Init Hi! I&amp;rsquo;m an init post for this blog I&amp;rsquo;m can:
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bubnovd</title><link>https://bubnovd.github.io/</link><description>Recent content on Bubnovd</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 02 Sep 2022 04:02:52 +0000</lastBuildDate><atom:link href="https://bubnovd.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Initpost</title><link>https://bubnovd.github.io/posts/initpost/</link><pubDate>Fri, 02 Sep 2022 04:02:52 +0000</pubDate><guid>https://bubnovd.github.io/posts/initpost/</guid><description>Init Hi! I&amp;rsquo;m an init post for this blog I&amp;rsquo;m can:
 show lists show some &amp;lt;code&amp;gt;
 And something else 1 2 3 4 А ещё я умею писать по-русски
 Summary {{ .Summary }}
-About .</description><content>&lt;h1 id="init">Init&lt;/h1>
+.</description><content>&lt;h1 id="init">Init&lt;/h1>
 &lt;p>Hi! I&amp;rsquo;m an init post for this blog
 I&amp;rsquo;m can:&lt;/p>
 &lt;ul>
@@ -41,6 +41,5 @@ viewBox="0 0 144 121"
 &lt;p>А ещё я умею писать по-русски&lt;/p>
 &lt;h4 id="summary">Summary&lt;/h4>
 &lt;p>{{ .Summary }}&lt;/p>
-&lt;p>&lt;a href="https://bubnovd.github.io/about/" title="About Us">About&lt;/a>
-.&lt;/p></content></item><item><title/><link>https://bubnovd.github.io/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://bubnovd.github.io/about/</guid><description>About this blog Hi! My name is Dima and I am an IT engineer</description><content>&lt;h1 id="about-this-blog">About this blog&lt;/h1>
+&lt;p>.&lt;/p></content></item><item><title/><link>https://bubnovd.github.io/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://bubnovd.github.io/about/</guid><description>About this blog Hi! My name is Dima and I am an IT engineer</description><content>&lt;h1 id="about-this-blog">About this blog&lt;/h1>
 &lt;p>Hi! My name is Dima and I am an IT engineer&lt;/p></content></item></channel></rss>
