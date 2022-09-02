@@ -1,16 +1,17 @@
 +++
 title = "Initpost"
-date = "2022-08-30T05:05:22Z"
-author = "dbubnov"
+date = "2022-09-02T04:02:52Z"
+author = ""
 authorTwitter = "" #do not include @
 cover = ""
-tags = ["tag1", ""]
-keywords = ["keyword1", ""]
-description = "post for test hugo"
+tags = ["", ""]
+keywords = ["", ""]
+description = ""
 showFullContent = false
 readingTime = true
 hideComments = false
 +++
+
 # Init
 Hi! I'm an init post for this blog
 I'm can:
@@ -36,5 +37,4 @@ I'm can:
 #### Summary
 {{ .Summary }}
 
-[About]({{< ref "/about/index.md" >}} "About Us")
 .
