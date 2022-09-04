@@ -1,1 +1,136 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>delay-threshold on Админская фамилия</title><link>https://bubnovd.net/tags/delay-threshold/</link><description>Recent content in delay-threshold on Админская фамилия</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 18 Jul 2017 04:02:00 +0000</lastBuildDate><atom:link href="https://bubnovd.net/tags/delay-threshold/index.xml" rel="self" type="application/rss+xml"/><item><title>DHCP Failover with RouterOS</title><link>https://bubnovd.net/blogger/dhcp-failover-with-routeros/</link><pubDate>Tue, 18 Jul 2017 04:02:00 +0000</pubDate><guid>https://bubnovd.net/blogger/dhcp-failover-with-routeros/</guid><description/><content>&lt;!-- raw HTML omitted --></content></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>delay-threshold on Админская фамилия</title><link>https://bubnovd.net/tags/delay-threshold/</link><description>Recent content in delay-threshold on Админская фамилия</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 18 Jul 2017 04:02:00 +0000</lastBuildDate><atom:link href="https://bubnovd.net/tags/delay-threshold/index.xml" rel="self" type="application/rss+xml"/><item><title>DHCP Failover with RouterOS</title><link>https://bubnovd.net/blogger/dhcp-failover-with-routeros/</link><pubDate>Tue, 18 Jul 2017 04:02:00 +0000</pubDate><guid>https://bubnovd.net/blogger/dhcp-failover-with-routeros/</guid><description>DHCP сервер - одна из наиболее критичных служб сетевой инфраструктуры. Он обычно прост в настройке и не привлекает к себе внимание до того момента пока в сети не начинаются непонятные моменты: машины не получают адреса или получают, но совсем не те, которые хотел бы администратор. Вследствие чего сеть просто перестает работать.
+В этой статье попробуем создать отказоустойчивый DHCP сервер на Mikrotik RouterOS.
+Для понимания работы системы системы нужно сначала понять принцип работы самого протокола.</description><content>&lt;p>DHCP сервер - одна из наиболее критичных служб сетевой инфраструктуры. Он обычно прост в настройке и не привлекает к себе внимание до того момента пока в сети не начинаются непонятные моменты: машины не получают адреса или получают, но совсем не те, которые хотел бы администратор. Вследствие чего сеть просто перестает работать.&lt;/p>
+&lt;p>В этой статье попробуем создать отказоустойчивый DHCP сервер на Mikrotik RouterOS.&lt;/p>
+&lt;p>Для понимания работы системы системы нужно сначала понять принцип работы самого протокола. Тем, кто и так это знает, следующий пункт можно не читать.&lt;/p>
+&lt;p>Принцип работы протокола DHCP&lt;/p>
+&lt;p>При включении хоста, его DHCP клиент производит broadcast рассылку DHCPDISCOVER на адрес 255.255.255.255, в которой указывает свой MAC адрес в качестве адреса отправителя. В ней хост пытается найти DHCP сервер в своем сегменте. Этот пакет долетит до всех хостов в сети.&lt;/p>
+&lt;p>&lt;img src="https://lh5.googleusercontent.com/FLQXFQ4smFlKp4wSlevig0hsrerw5L2tuhm9PTfMXVH-IzvJPOhnFZwe3bnnnv6_oACwLttU3Hjac8ZIqeU-KzKjjq0t6RTvbTjl8CvTkJ7d4FmBc70T0K0ZdMWZsL0Ogyw-06k4" alt="">&lt;/p>
+&lt;p>Здесь нас интересует поле Client MAC Address. Именно ему будет отвечать сервер.&lt;/p>
+&lt;p>&lt;img src="https://lh4.googleusercontent.com/C7LoJViNL1dB8hi_9s4TI1BQ8ENn2hDovEzt_8KPZlmAE-AU80OKOlNZvZIAwkVc_z_sglQKArzx5VOsy6SRIeZlB7YROODP-mh23Yn3F6h82uXk9nhNgGA9i8xVhp58wzXRwizC" alt="">&lt;/p>
+&lt;p>Когда этот пакет долетает до DHCP сервера, тот отвечает на запрос пакетом DHCPOFFER, в котором сообщает свой IP адрес, предполагаемый адрес клиента и другие параметры, такие как адреса DNS серверов, NTP, WINS и другие.&lt;/p>
+&lt;p>&lt;img src="https://lh6.googleusercontent.com/DGU4rHi7rxu6aq7CmgAI4lzGfUeTIZBeXbsUTIfMImjyS2qz6wEuU1qRKhIg_qvGSJD4zfkBqJJ1BGQ8R8PGRbUFrrSOxZbxqBqOD1-H6Om7lh62_9EwSDTOh4WRlyiFVR1HJnNF" alt="">&lt;/p>
+&lt;p>Важным параметром здесь является параметр Lease Time: это время в секундах, на которое сервер выдает клиенту адрес. По истечении этого времени клиент должен запросить аренду снова. Как это происходит рассмотрим чуть ниже.&lt;/p>
+&lt;p>&lt;img src="https://lh6.googleusercontent.com/5WPoG5iHXhViRGe-mAkgLJOj9ps46kCXrtv5dZqWbwaOx_mY4G8prFhQACA8sHxbr21Bla8dRm3AuCcpK4IBOn-fq0KQZsOL7DPtNUnCcH854uIzf3-macyWzK0iiGRuvPAORMz3" alt="">&lt;/p>
+&lt;p>Затем клиент обрабатывает OFFER и посылает на широковещательный адрес 255.255.255.255 DHCPREQUEST, где спрашивает разрешение у сервера использовать предложенный им (сервером) адрес и сообщает другим серверам о том, что выбран нужный сервер и адрес. Этот пакет долетит до всех хостов в сети.&lt;/p>
+&lt;p>&lt;img src="https://lh4.googleusercontent.com/J03-xD-gVzhwCbwYr0Y-HD56P6WqWK09Z0Qka8kJFeRPHXsI-jI2aEFcED2R_AlSxDXK2vdsYBxIF42QX4_0A8cCBufTI2PD4qkFiOt7PXscFEjRz_ObRNLD4fEfixjCoBd-1WDg" alt="">&lt;/p>
+&lt;p>В поле Requested IP Address клиент запашивает IP адрес, который он хочет использовать.&lt;/p>
+&lt;p>&lt;img src="https://lh3.googleusercontent.com/khxjYfCdC5vqDPE671oKgQrcEjnp2hC3WOOqMeYnsmIVsnwB8Vti2THDS9ubgVzg4mdiOcyVoUaajqAowux-3kWWOmYCgNL3iEIk-eNHRdC20r63PmCIqQq7WWiBiUnqhbWTT6QW" alt="">&lt;/p>
+&lt;p>В ответ сервер отвечает пакетом DHCPACK, в котором подтверждает использование выбранного адреса.&lt;/p>
+&lt;p>&lt;img src="https://lh4.googleusercontent.com/u_QQIwZtbcRNkzw4TG-FlN5ItsiMMS4E0I8aSaIDcEffTdMGWpBTgFpIq7Og-ehCC9-f--2VKDlMVJAyYueUpMkuo2_yHMffVHrp5cpAAxb7ha7KzhvX8k-cH2O7noo-m-t-O4m-" alt="">&lt;/p>
+&lt;p>Этот пакет отсылается уже с IP адреса сервера на IP адрес клиента.&lt;/p>
+&lt;p>&lt;img src="https://lh6.googleusercontent.com/NTA4SrQH4Q-9sInK5by84eeYLgeGmRxp4UFvHYHAB3GJXnI6Vfac5DztkX9EK-i4nQWtHHbq1C1gL7ixzo1W2U670lOWZ-xWrE9SNiF6wTtSwuTH6NnNjMyzqnmcsr40pOY0p1ST" alt="">&lt;/p>
+&lt;p>Весь процесс выглядит так:&lt;/p>
+&lt;p>&lt;img src="https://lh4.googleusercontent.com/FRRIxGH_CY_p_vnxHAbq_NJcl1CNiYS5k7z6aAnCE8sY_75cZkhhkaaS7BG1-aCo8BPtuwtHc4dE8PE6AVpTA-LsqQ3OfBdaRDpVXmbEbEx1_F6Ld9E1ekJSEOoWdPUjfb_lxmVm" alt="">&lt;/p>
+&lt;p>По истечении половины Lease Time клиент отсылает серверу пакет DHCPREQUEST, в котором просит продлить время аренды на Lease Time, на что сервер должен ответить DHCPACK, если разрешает клиенту использовать запрошенный адрес. Или DHCPNACK, если не разрешает. Процесс повторяется через каждую половину Lease Time.&lt;/p>
+&lt;p>В случае, если сервер не подтвердит использование этого адреса, клиент ждет ещё половину Lease Time и начинает процесс самого начала: освобождает свой адрес и ищет DHCP сервер, с помощью пакета DHCPDISCOVER.&lt;/p>
+&lt;p>&lt;strong>Настройка отказоустойчивости DHCP в Mikrtoik&lt;/strong>&lt;/p>
+&lt;p>О настройке DHCP сервера и клиента в Mikrotik RouterOS сказано немало. В том числе, в курсе &lt;a href="http://www.bubnovd.net/2017/11/MTCNA.html">Mikrotik Certified Network Associate - MTCNA&lt;/a>. Здесь не будем рассматривать типичную настройку, а коснемся некоторых нюансов для обеспечения отказоустойчивости.&lt;/p>
+&lt;p>Чтобы обеспечить отказоустойчивость сервиса DHCP можно просто развернуть в одной сети несколько DHCP серверов. Тогда клиент будет получать адрес от того сервера, который первым ответит на DISCOVER. Но тут возникает проблема: несколько клиентов могут получить один и тот же адрес и никто из них не сможет нормально работать.&lt;/p>
+&lt;p>Выход напрашивается такой: раздавать адреса из разных пулов. К примеру, один сервер будет раздавать адреса из пула 192.168.0.0/25, а второй - из пула 192.168.0.128/25. Тогда мы покрываем работоспособность всей сети 192.168.0.0/24. Но что произойдет, если один из DHCP серверов откажется работать? Тогда работать будет лишь одна часть сети - 192.168.0.0/25 или 192.168.0.128/25. Полной отказоустойчивости не получим.&lt;/p>
+&lt;p>На помощь приходит параметр Delay Threshold. В &lt;a href="https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server#General">wiki Mikrotik&lt;/a> сказано:&lt;/p>
+&lt;p>Если поле secs в DHCP пакете меньше, чем параметр delay-threshold, то пакет игнорируется DHCP сервером. Если параметр установлен в none - все пакеты будут обрабатываться.&lt;/p>
+&lt;p>В пакетах DHCPREQUEST и DHCPDISCOVER есть поле Seconds, описывающее время, прошедшее с момента начала активности клиента.&lt;/p>
+&lt;p>&lt;img src="https://lh6.googleusercontent.com/LXrNEPHdW9C1DJs_2tN-oXfLcIM-yvH6rqqHNz6Qi8s-jBzXG6m3F-2YgP_vmaT_jZ1Qhp8tER93lRzRbzjXM3CylN2lqnXhM4vw9F1SpsvSDje3rs7oYpdmnsNJIYvq5YOdgAsR" alt="">&lt;/p>
+&lt;p>Дело в том, что при отсутствии ответа от сервера, клиент не успокаивается на одном запросе. Он будет слать запросы к серверу с экспоненциальным ростом задержки, чтобы не зафлудить своими сообщениями сеть и при этом ещё пытаться получить DHCPACK или DHCPOFFER.&lt;/p>
+&lt;p>Так вот параметр delay-threshold проверяет поле seconds elapsed пакета DHCPREQUEST, и если количество секунд, указанное в этом поле меньше значения delay-threshold, то сервер просто игнорирует такие пакеты. А если больше, то отвечает на них.&lt;/p>
+&lt;p>Если установить у DHCP сервера delay-threshold=30, то клиент сможет получить DHCPOFFER, а следом за ним и свой адрес в DHCPACK, только по истечении 30 секунд после первого запроса.&lt;/p>
+&lt;p>Тут стоит заметить, что  в RouterOS 6.39.2, на которой я провожу эксперименты, delay-threshold влияет только на пакеты DHCPDISCOVER.&lt;/p>
+&lt;p>Значит, можно разместить в одной сети два абсолютно идентичных DHCP сервера, указав у них разные параметры delay-threshold. У одного выставим в none, у второго в 10 секунд. Это значит, что первый сервер будет обрабатывать все запросы, а если он перестанет отвечать, то каждый запрос, “протухший” на 10 секунд будет обработан вторым сервером.&lt;/p>
+&lt;p>Если быть точнее, то произойдет следующее:&lt;/p>
+&lt;p>&lt;img src="https://lh3.googleusercontent.com/4DxDHor-mRhcuUGCOaaEQ5xhXSYN86AFmGFzhOX6SKsM68-R-jL9znRIGM2OHSxRqfbMC9gW1dJV0ipmdxQ4ca1NbuynHZQkw32d_Ri9VtPJmjQpWrQoCqQakO70yrR8L1cV2c93" alt="DHCP_failover1.png">&lt;/p>
+&lt;ol>
+&lt;li>Client &amp;mdash;&amp;gt; DHCPDISCOVER  &amp;mdash;&amp;gt; broadcast&lt;/li>
+&lt;/ol>
+&lt;p>Этот пакет долетит до обоих серверов, но так как seconds elapsed=0, то ответит только тот сервер, у которого delay-threshold=none&lt;/p>
+&lt;ol start="2">
+&lt;li>
+&lt;p>Server1 &amp;mdash;&amp;gt; DHCPOFFER &amp;mdash;&amp;gt; broadcast&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Client &amp;mdash;&amp;gt; DHCPREQUEST &amp;mdash;&amp;gt; broadcast&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Server1 &amp;mdash;&amp;gt; DHCPACK &amp;mdash;&amp;gt; client&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;p>Прошло lease-time/2. Server1 ещё жив&lt;/p>
+&lt;ol start="5">
+&lt;li>&lt;img src="https://lh3.googleusercontent.com/JGUgXmTYEXthDwlaSjwtLdaXINRf6_BdaSHpEtJvcWfqv6_XQ6XB7nZbqUWZ4Eeq2dcMRMgM5_14rdyQBmIu68XERE6XLwRKFpenm09eeQZ-ZC9JMJK43dozvAC6uUK_RVpmS0-b" alt="DHCP_failover2.png">Client &amp;mdash;&amp;gt; DHCPREQUEST &amp;mdash;&amp;gt; server1&lt;/li>
+&lt;/ol>
+&lt;p>Время аренды адреса продлилось до lease-time&lt;/p>
+&lt;ol start="6">
+&lt;li>Server1 &amp;mdash;&amp;gt; DHCPACK &amp;mdash;&amp;gt; client&lt;/li>
+&lt;/ol>
+&lt;p>Где-то в этом промежутке сервер умер&lt;/p>
+&lt;p>Прошло lease-time/2.&lt;/p>
+&lt;ol start="7">
+&lt;li>Client &amp;mdash;&amp;gt; DHCPREQUEST &amp;mdash;&amp;gt; server1&lt;/li>
+&lt;/ol>
+&lt;p>Этот пакет server1 не получит, потому что он умер. А до второго сервера пакет не долетит, так как предназначался первому и в dst-addr пакета указан только адрес server1&lt;/p>
+&lt;p>Через несколько миллисекунд&lt;/p>
+&lt;ol start="8">
+&lt;li>Client &amp;mdash;&amp;gt; DHCPREQUEST &amp;mdash;&amp;gt; server1&lt;/li>
+&lt;/ol>
+&lt;p>Прошло ещё какое-то время и клиент сделал ещё несколько DHCPREQUEST’ов.&lt;/p>
+&lt;p>Прошло ещё lease-time/2 после пункта 7&lt;/p>
+&lt;ol start="9">
+&lt;li>Client &amp;mdash;&amp;gt; DHCPDISCOVER &amp;mdash;&amp;gt; broadcast&lt;/li>
+&lt;/ol>
+&lt;p>Этот пакет не долетит до мертвого server1, но долетит до живого server2. Но обработан им не будет, так как elapsed seconds&amp;lt;10&lt;/p>
+&lt;p>Ещё несколько пакетов DHCPDISCOVER ждет такая же судьба, как и 9. Пока не пройдет 10 секунд с пункта 9&lt;/p>
+&lt;ol start="10">
+&lt;li>&lt;img src="https://lh5.googleusercontent.com/ahXK8wH_iRUoSkFtdNJqtK4sOtrjNkzW24S_fO52hWf59jtBQgj09xNdX7ipirT8hgmUZ-BMMXAAvBo0b3JUDv4okxq_vTLQcmOidZTsgKd8awiUfCweCD3cYpH4zisU1ZrIa4Mg" alt="DHCP_failover3.png">Client &amp;mdash;&amp;gt; DHCPDISCOVER &amp;mdash;&amp;gt; broadcast&lt;/li>
+&lt;/ol>
+&lt;p>В этом пакете elapsed seconds=&amp;gt;10, а значит, его обработает server2&lt;/p>
+&lt;ol start="11">
+&lt;li>
+&lt;p>Server2 &amp;mdash;&amp;gt; DHCPOFFER &amp;mdash;&amp;gt; client&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Client &amp;mdash;&amp;gt; DHCPREQUEST &amp;mdash;&amp;gt; broadcast&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Server2 &amp;mdash;&amp;gt; DHCPACK &amp;mdash;&amp;gt; client&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;p>        И всё по новой&lt;/p>
+&lt;p>Чего мы добились?&lt;/p>
+&lt;p>Если перестает отвечать один из серверов, то его обязанности берет на себя резервный сервер и продолжает поддерживать работу сети. При этом адреса, полученные клиентами, останутся при них, потому что протокол позволяет клиентам запрашивать определенный адрес, который обычно остается за интерфейсом.&lt;/p>
+&lt;p>Но что произойдет, если первый сервер вернется в работу? Клиенты продолжат работать со вторым, так как именно он отвечал им в DHCPACK. Казалось бы, такая ситуация нас вполне устраивает. Если бы не статические записи в таблице Leases, которые, как правило выдаются серверам или важным пользователям, чтобы применять к ним правила фаервола или шейпинга.&lt;/p>
+&lt;p>Допустим, первый сервер отказал ночью. Пользователи пришли на работу, включили компьютеры. А те начали запрашивать адреса у DHCP сервера. Но дизайнер может прийти раньше директора и получить у нового сервера VIP адрес. Ведь новый сервер ещё ничего не знает о статических записях. А директор в свою очередь, получит адрес секретарши, к IP адресу которой привязаны самые жесткие ограничения.&lt;/p>
+&lt;p>Значит, необходимо как-то синхронизировать базы данных DHCP серверов. В этом нам помогут замечательные скрипты RouterOS.&lt;/p>
+&lt;p>Основный сервер должен выгружать список адресов для аренды в файл:&lt;/p>
+&lt;pre tabindex="0">&lt;code>if (\[:len \[/file find name=leases.rsc\]\]&amp;gt;0) do={/file remove leases.rsc}
+/ip dhcp-server lease export file=leases.rsc
+&lt;/code>&lt;/pre>&lt;p>Вводим этот скрипт в планировщик. Выполняем задачу с нужной нам периодичностью.&lt;/p>
+&lt;p>На этом же роутере создадим группу FTP с правами ftp, read. И пользователя с таким же именем. Он будет нужен, чтобы резервный сервер мог скачать список leases.rsc&lt;/p>
+&lt;p>На резервном сервере в планировщик внесем скрипт, который скачивает список с основного сервера, чистит список адресов и импортирует его из файла.&lt;/p>
+&lt;pre tabindex="0">&lt;code>if (\[:len \[/file find name=leases.rsc\]\]&amp;gt;0) do={/file remove leases.rsc}
+/tool fetch mode=ftp address=192.168.1.1 src-path=leases.rsc user=FTP password=http://bubnovd.net
+if (\[:len \[/file find name=leases.rsc\]\]&amp;gt;0) do={
+    foreach i in=\[/ip dhcp-server lease find \] do={
+        /ip dhcp-server lease remove $i
+    };
+    import leases.rsc;
+}
+&lt;/code>&lt;/pre>&lt;p>Теперь списки адресов будут синхронизироваться между серверами с той периодичностью, которая будет указана в планировщике. Я не рекомендую делать это слишком часто, так как любая запись на флеш роутера приближает её на шаг ближе к смерти.&lt;/p>
+&lt;p>Казалось бы задача выполнена. Служба DHCP зарезервирована. Сервера обмениваются информацией о статических записях. При поломке одного из серверов, всю работу берет на себя второй. После выключения хоста или при новом запросе  DHCPDISCOVERY, хост переключается на основной сервер.&lt;/p>
+&lt;p>Осталось одно маленькое неудобство. Скрипт, написанный ранее, синхронизирует записи server1 с server2. То есть, основная актуальная копия БД находится на одном сервере и все изменения, проделанные на server2 не будут реплицированы на server1. А вручную перебивать записи - не наш путь.&lt;/p>
+&lt;p>Можно, конечно, залить точно такой же скрипт на второй сервер и настроить их совместную работу. Но мы пойдем по другому пути.&lt;/p>
+&lt;p>Сделаем так, чтобы при включении в работу основного сервера, все клиенты в кратчайшее время перебрасывались на него и использовали актуальную версию базы адресов.&lt;/p>
+&lt;p>Этот метод не описан в RFC, и, вполне возможно, противоречит ему. Используйте на свой страх и риск!!! У меня работает =)&lt;/p>
+&lt;p>Для этого необходимо обмануть клиентов, указав в качестве src-addr DHCP сервера, адрес server1 даже если пакет улетает с server2. Тогда при операции DHCPREQUEST клиент будет всегда обращаться к server1. А если он не отвечает, то по истечении lease-time, будет инициирован DHCPDISCOVERY, на который после 10 секунд ответит второй - бэкапный сервер. И все клиенты будут возвращаться с бэкапного сервера на основной по истечении lease-time/2. И наоборот после lease-time.&lt;/p>
+&lt;p>В этом нам поможет параметр src-address. На резервном сервере укажем в качестве src-address адрес первого сервера и наслаждаемся отказоустойчивостью!&lt;/p>
+&lt;p>На этом всё! Служба DHCP зарезервирована. При отказе любого из DHCP серверов сеть продолжает работать, статические записи аренды синхронизируются. Конечно, тут мы не решили проблему отказа шлюза, но это не входило в тему поста. Поговорим об этом в следующих постах.&lt;/p>
+&lt;p>Приходите ко мне на &lt;a href="http://mikrotik-ninja.ru/">курсы по Mikrotik&lt;/a>!&lt;/p>
+&lt;p>Дополнения.&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>В ходе тестирования этого решения было замечено, что некоторые клиенты (телефоны Yealink) иногда в пакетах DHCPREQUEST указывают значение seconds elapsed=100. Благодаря чему могут получить адрес с резервного сервера, при живом основном. Лечится ребутом девайса.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>На резервный сервер неплохо было бы прикрутить оповещение админа о том, что он начал выдавать адреса. Ведь если резервный начал выдавать адреса, значит основной не работает и его кто-то должен починить. Оповестить админа можно с помощью логов, отправленных на syslog сервер и обработанных должным образом, либо с помощью скрипта в lease-script. Первый способ мне кажется более предпочтительным и правильным.&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>UPD: 18 июля был опубликован этот пост, а 25 на хабре вышла интересная статья об атаке на  DHCP с изложением принципов работы&lt;/p></content></item></channel></rss>
