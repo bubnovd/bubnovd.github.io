@@ -1,9 +1,12 @@
-baseURL: 'https://bubnovd.github.io/'
+baseURL: 'https://bubnovd.net/'
 languageCode: 'en-us'
-title: 'Bubnovd'
+title: 'Админская фамилия'
 theme: "terminal"
 
 disqusShortname: bubnovd-github-io
 
 params:
   themeColor: "blue"
+  readingTime: true
+
+
