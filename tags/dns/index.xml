@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>DNS on Bubnovd</title><link>https://bubnovd.github.io/tags/dns/</link><description>Recent content in DNS on Bubnovd</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 03 Sep 2014 01:32:00 +0000</lastBuildDate><atom:link href="https://bubnovd.github.io/tags/dns/index.xml" rel="self" type="application/rss+xml"/><item><title>Сервис для инспекции ваших DNS серверов.</title><link>https://bubnovd.github.io/blogger/%D1%81%D0%B5%D1%80%D0%B2%D0%B8%D1%81-%D0%B4%D0%BB%D1%8F-%D0%B8%D0%BD%D1%81%D0%BF%D0%B5%D0%BA%D1%86%D0%B8%D0%B8-%D0%B2%D0%B0%D1%88%D0%B8%D1%85-dns-%D1%81%D0%B5%D1%80%D0%B2%D0%B5%D1%80%D0%BE%D0%B2./</link><pubDate>Wed, 03 Sep 2014 01:32:00 +0000</pubDate><guid>https://bubnovd.github.io/blogger/%D1%81%D0%B5%D1%80%D0%B2%D0%B8%D1%81-%D0%B4%D0%BB%D1%8F-%D0%B8%D0%BD%D1%81%D0%BF%D0%B5%D0%BA%D1%86%D0%B8%D0%B8-%D0%B2%D0%B0%D1%88%D0%B8%D1%85-dns-%D1%81%D0%B5%D1%80%D0%B2%D0%B5%D1%80%D0%BE%D0%B2./</guid><description>Собственно, сабж. Покажет все сильные и слабые стороны ваших серверов для разрешения имен. И ещё, закройте udp 53 снаружи.</description><content>&lt;p>Собственно, &lt;!-- raw HTML omitted -->сабж&lt;!-- raw HTML omitted -->. Покажет все сильные и слабые стороны ваших серверов для разрешения имен. И ещё, закройте udp 53 снаружи.&lt;/p></content></item><item><title>Автоопределение прокси в домене Windows</title><link>https://bubnovd.github.io/blogger/%D0%B0%D0%B2%D1%82%D0%BE%D0%BE%D0%BF%D1%80%D0%B5%D0%B4%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D1%80%D0%BE%D0%BA%D1%81%D0%B8-%D0%B2-%D0%B4%D0%BE%D0%BC%D0%B5%D0%BD%D0%B5-windows/</link><pubDate>Fri, 13 Sep 2013 04:39:00 +0000</pubDate><guid>https://bubnovd.github.io/blogger/%D0%B0%D0%B2%D1%82%D0%BE%D0%BE%D0%BF%D1%80%D0%B5%D0%B4%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D1%80%D0%BE%D0%BA%D1%81%D0%B8-%D0%B2-%D0%B4%D0%BE%D0%BC%D0%B5%D0%BD%D0%B5-windows/</guid><description>Автоматизация - дело хорошее. И автоматизирование всего и вся поможет улучшить жизнь системного администратора если не в текущий момент, то в обозримом будущем точно. Для этого решил я настроить автоконфигурирование настроек прокси-сервера на клиентских машинах.
+Имеется апдейт!
+Как прокси мы используем Usergate (будь он неладен. На человеческие прокси пока не могу уломать начальство). В нем есть свой DHCP сервер с нужной нам функцией. Но в качестве DHCP мы используем стандартные средства Windows Server, поэтому простой вариант с одной галочкой нам не подходит.</description><content>&lt;p>Автоматизация - дело хорошее. И автоматизирование всего и вся поможет улучшить жизнь системного администратора если не в текущий момент, то в обозримом будущем точно. Для этого решил я настроить автоконфигурирование настроек прокси-сервера на клиентских машинах.&lt;br>
+Имеется апдейт!&lt;/p>
+&lt;p>Как прокси мы используем Usergate (будь он неладен. На человеческие прокси пока не могу уломать начальство). В нем есть свой DHCP сервер с нужной нам функцией. Но в качестве DHCP мы используем стандартные средства Windows Server, поэтому простой вариант с одной галочкой нам не подходит.&lt;br>
+ Тут нам на помощь приходит протокол автонастройки прокси (&lt;a href="https://en.wikipedia.org/wiki/Web_Proxy_Autodiscovery_Protocol">WPAD&lt;/a>). Смысл его работы в следующем:&lt;/p>
+&lt;ol>
+&lt;li>Клиент ищет в сети сервер с именем wpad.domain.local (domain.local тут - имя нашего домена), если такой сервер не находится клиент идет выше - wpad.local (в этом кстати заключается брешь этого протокола, о которой говорили на одной из blackhat-конференций).&lt;/li>
+&lt;li>Если сервер найден, клиент пытается прочитать файл wpad.dat, лежащий в корневом каталоге.&lt;/li>
+&lt;li>Из этого файла берутся настройки, исходя из которых клиент понимает, в каких случаях нужно идти в сеть через прокси, а в каких напрямую.&lt;/li>
+&lt;/ol>
+&lt;p>Пример простейшего файла wpad.dat:&lt;/p>
+&lt;pre tabindex="0">&lt;code>function FindProxyForURL(url, host)
+{
+    return &amp;#34;PROXY 192.168.0.254:3128&amp;#34;;
+}
+&lt;/code>&lt;/pre>&lt;p>Здесь мы видим, что в качестве адреса прокси-сервера клиенты получают &lt;code>192.168.0.254:3128&lt;/code>. Настройки можно кастомизировать, у файла может быть огромное количество опций. Их вы можете найти в &lt;a href="http://www.google.ru/search?q=wpad+example">поисковике&lt;/a>.&lt;/p>
+&lt;p>Итак, будем считать, что файл настроек создан. Нужно положить его в корневую директорию веб-сервера и настроить сам веб-сервер, чтобы он умел отдавать этот файл. У нас используется Apache под виндой, поэтому привожу его конфигурацию: в httpd.conf в секции &lt;code>&amp;lt;IfModule mime\_module&amp;gt;&lt;/code> нужно добавить строку &lt;code>AddType application/x-ns-proxy-autoconfig .dat&lt;/code>&lt;/p>
+&lt;p>Следующий этап - настройка DNS-сервера. Нужно внести запись типа CNAME в зону прямого просмотра, указывающую, что под именем &lt;code>wpad.domain.local&lt;/code> будет пониматься ваш веб-сервер. На этом натыкаемся на проблему - винда не разрешает использовать имя wpad. Об этом вам ничего не скажет, но найти сервер по имени wpad в сети вы не сможете. Нужно выполнить в командной строке &lt;code>dnscmd /config /enableglobalqueryblocklist 0&lt;/code> (подробнее &lt;a href="http://technet.microsoft.com/ru-ru/library/cc441517.aspx">здесь&lt;/a>).&lt;/p>
+&lt;p>Очищаем кэш ДНС или просто идем курить пить кофе. Выставляем в браузере автонастройку прокси-сервера и получаем счастье. Теперь, если изменится адрес или порт прокси, или просто добавится сервер, на который нужно ходить в обход прокси, то настройки делаются в одном месте, а до клиентов доходят сами.&lt;/p>
+&lt;p>Спасибо &lt;a href="http://it-blojek.ru/19/">ит-бложику&lt;/a> за наводку.&lt;/p>
+&lt;p>UPD 24.12.2013&lt;br>
+Описание параметров в файле wpad.dat производится на языке JavaScript, т.е. можно построить довольно сложную конфигурацию. Вот пример моего файла, проверяющего соответствие IP-адресов и закомментированными сообщениями для дебага (строки, начинающиеся с var и ниже проверяют, находится ли адрес в диапазоне 192.168.100.65 - 192.168.100.240):&lt;/p>
+&lt;pre tabindex="0">&lt;code>function FindProxyForURL(url, host)
+{
+// If specific URL needs to bypass proxy, send traffic direct.
+if (shExpMatch(host,&amp;#34;\*subd.domain.local\*&amp;#34;) ||
+shExpMatch(host,&amp;#34;\*subd.domain1.local\*&amp;#34;) ||
+shExpMatch(host,&amp;#34;192.168.\*&amp;#34;) ||
+shExpMatch(host,&amp;#34;127.\*&amp;#34;) ||
+dnsDomainIs(host,&amp;#34;.subd.domain.local&amp;#34;) ||
+dnsDomainIs(host,&amp;#34;.subd.domain1.local&amp;#34;) ||
+isPlainHostName(host))
+return &amp;#34;DIRECT&amp;#34;;
+// All other traffic uses below proxies, in fail-over order.
+//debug=&amp;#34;host=&amp;#34; + host + &amp;#34;\\n&amp;#34; + &amp;#34;url=&amp;#34; + url + &amp;#34;\\n&amp;#34; + &amp;#34;MyIP=&amp;#34; + myIpAddress() +  &amp;#34;\\n&amp;#34;;
+var myip = myIpAddress();  // Set a variable for the local IP address.
+var myAddrArray = myip.split(&amp;#34;.&amp;#34;);  // Split that IP address var into an array.
+var mysubnet3=parseInt(myAddrArray\[2\]);  // Convert array element #2 into a number and store it in a new variable
+var mysubnet4=parseInt(myAddrArray\[3\]);
+//debug += &amp;#34;Subnet=&amp;#34; + mysubnet3 + &amp;#34;.&amp;#34; + mysubnet4 + &amp;#34;\\n&amp;#34;;
+if ((mysubnet3 == 100) &amp;amp;&amp;amp; (mysubnet4 &amp;gt;=65) &amp;amp;&amp;amp; (mysubnet4 &amp;lt;= 240)) {
+return &amp;#34;PROXY 192.168.100.14:8080&amp;#34;;}
+else {
+return &amp;#34;DIRECT&amp;#34;;}
+}
+&lt;/code>&lt;/pre>&lt;p>В качестве веб-сервера для этой системы очень удобно использовать &lt;code>tinyhttpd&lt;/code>, если нет уже работающих серверов. tynihttpd очень маленький и удобный, не нужно делать ничего лишнего - только &lt;code>index.html&lt;/code>, &lt;code>wpad.dat&lt;/code> и запустить экзешник из cmd.&lt;br>
+Ещё DNS сервер Windows не дает разрешить доменные имена wpad и isatap, поэтому с ним нужно поколдовать: в командной строке пишем &lt;code>dnscmd /config /globalqueryblocklist&lt;/code> и будет счастье.&lt;/p>
+&lt;p>&lt;code>**UPD 01.09.2014**&lt;/code>&lt;br>
+&lt;code>**[Здесь](https://securelist.ru/analysis/obzor/242/pac-fajl-avtokonfiguratsii-problem/) интересная статейка по этой теме.**&lt;/code>&lt;br>
+&lt;code>**UPD 08.08.2016**&lt;/code>&lt;br>
+&lt;strong>&lt;a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/pbp-final-with-update.pdf">О безопасности при использовании WPAD&lt;/a>&lt;/strong>&lt;/p></content></item></channel></rss>

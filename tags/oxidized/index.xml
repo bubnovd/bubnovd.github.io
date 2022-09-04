@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>oxidized on Bubnovd</title><link>https://bubnovd.github.io/tags/oxidized/</link><description>Recent content in oxidized on Bubnovd</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 12 Oct 2017 09:16:00 +0000</lastBuildDate><atom:link href="https://bubnovd.github.io/tags/oxidized/index.xml" rel="self" type="application/rss+xml"/><item><title>Система управления конфигурациями Oxidized</title><link>https://bubnovd.github.io/blogger/%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0-%D1%83%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F-%D0%BA%D0%BE%D0%BD%D1%84%D0%B8%D0%B3%D1%83%D1%80%D0%B0%D1%86%D0%B8%D1%8F%D0%BC%D0%B8-oxidized/</link><pubDate>Thu, 12 Oct 2017 09:16:00 +0000</pubDate><guid>https://bubnovd.github.io/blogger/%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0-%D1%83%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F-%D0%BA%D0%BE%D0%BD%D1%84%D0%B8%D0%B3%D1%83%D1%80%D0%B0%D1%86%D0%B8%D1%8F%D0%BC%D0%B8-oxidized/</guid><description>Резервное копирование - важная составляющая стабильной работы инфраструктуры. Каждый подходит к вопросу резервного копирования со своими взглядами. Сетевое оборудование также нуждается в постоянном бэкапе конфигураций. Но в силу того, что сети редко бывают моновендорными и найти один метод управления для всей сети часто невозможно, резервное копирование сетевых устройств часто вводит в замешательство администраторов.
+Для автоматизации резервного копирования конфигураций сетевого оборудования инженеры часто применяют системы контроля версий. Такой подход позволяет не только всегда иметь актуальную копию конфигурации, но и оперативно находить изменения в настройках, которые могли привести к неправильной работе сети.</description><content>&lt;p>Резервное копирование  - важная составляющая стабильной работы инфраструктуры. Каждый подходит к вопросу резервного копирования со своими взглядами. Сетевое оборудование также нуждается в постоянном бэкапе конфигураций. Но в силу того, что сети редко бывают моновендорными и найти один метод управления для всей сети часто невозможно,  резервное копирование сетевых устройств часто вводит в замешательство администраторов.&lt;/p>
+&lt;p>Для автоматизации резервного копирования конфигураций сетевого оборудования инженеры часто применяют системы контроля версий. Такой подход позволяет не только всегда иметь актуальную копию конфигурации, но и оперативно находить изменения в настройках, которые могли привести к неправильной работе сети.&lt;/p>
+&lt;p>Во время подготовки к выступлению на &lt;a href="https://mum.mikrotik.com/presentations/RU17M/presentation_4655_1508211463.pdf">MUM&lt;/a> &lt;a href="https://www.youtube.com/watch?v=9Ceti-EQpU4">2017&lt;/a> я изучил несколько систем, позволяющих автоматизировать резервное копирование в git.  &lt;/p>
+&lt;h2 id="unimus">Unimus&lt;/h2>
+&lt;p>Разработана Tomas Kirnak - моим коллегой - тренером Mikrotik из США. Система писалась исходя из потребностей Томаса для его сети из 1500 RouterOS и других устройств. На тему управления этим парком Томас &lt;a href="https://mum.mikrotik.com/presentations/US17/presentation_4529_1496842532.pdf">докладывал на МУМе.&lt;/a>&lt;/p>
+&lt;p>&lt;a href="https://unimus.net/">Unimus&lt;/a> инсталлируется на Windows, *nix, имеется  portable версия для Windows. Устанавливать я не пробовал, но portable версию запустил. Все заработало без особых телодвижений, открылся приятный веб интерфейс. Поддерживается работа с 58 вендорами, бэкапит в git&lt;/p>
+&lt;p>&lt;img src="https://unimus.net/images/features/2.gif" alt="Картинки по запросу unimus backup">&lt;/p>
+&lt;p>Система простая, удобная и, главное, работающая. За что автор и просит денег.&lt;/p>
+&lt;p>&lt;img src="https://lh6.googleusercontent.com/vz8EnqRnYlbPMLv2nNfHAG_W75lAlXyZQu7pFM8Fuw2XfIjdjE7LxUy1f65zJ17L07qw9pDfimm6xtbte03tLGVcdB9uiiE7LpRhBELWl25eOht-_iFcWBXE6H7CGLs3VXOeaMCR668" alt="">&lt;/p>
+&lt;h2 id="oxidized">Oxidized&lt;/h2>
+&lt;p>Аналогичная предыдущей система. Менее приятный интерфейс, что не мешает выполнять oxidized свою основную функцию. Поддерживается 91 вендор, среди которых Cisco, Juniper, Mikrotik, D-Link, Cumulus Linux, pfSense.&lt;/p>
+&lt;p>На русском языке информацию об oxidized я не нашел. Поэтому постараюсь восполнить этот пробел.&lt;/p>
+&lt;p>&lt;a href="https://github.com/ytti/oxidized">Oxidized&lt;/a>  создавался как альтернатива RANCID двумя разработчиками: &lt;a href="mailto:saku@ytti.fi">Saku Ytti&lt;/a> и &lt;a href="mailto:sam@arahant.net">Samer Abdel-Hafez&lt;/a>. Кстати, парням нужен разработчик на Ruby для помощи в разработке. Явное преимущество над RANCID - удобный веб-интерфейс, взглянуть на него можно по ссылке: &lt;a href="https://oxidized.arahant.net/nodes">https://oxidized.arahant.net/nodes&lt;/a>.&lt;/p>
+&lt;p>&lt;img src="https://lh5.googleusercontent.com/i4WqEIrZdR5CCY2GXkF7pTAeA3eV2bx_bypxi05WaoQDxlv23UBHzZxRjf9X_SAT4hBdken7fUMJM2Z4dMDczRCKTLakIytFqVR9oaVzNTkMAjTcDWzS1X5FgAQYkASNnHksm1R2" alt="">&lt;/p>
+&lt;p>В основном окне можно увидеть список устройств и сравнить их бэкапы. Хорошая фича системы - поиск по конфигурациям в верхнем правом углу. Например, можно найти конфиги всех точек доступа с SSID=bubnovd.net. Веб интерфейс очень быстрый! Работая с более, чем 300 девайсами, я не заметил сколь-нибудь заметных задержек.&lt;/p>
+&lt;p>Провалившись в меню девайса, открывается список различных версий конфига этого устройства.&lt;/p>
+&lt;p>&lt;img src="https://lh3.googleusercontent.com/TXmPlQCSYOYAmxOnAm4wXPyOInaaq9pHvNkHojzOkXItsebPm0x3kGgJ2vTVu-zI6QWst5A1mIy5uimpGWFvPXWE23p1dHn0s9iNprGg_W_UnpYr1g3Y1lU8u13-M36ygCJYcTZi" alt="">&lt;/p>
+&lt;p>Каждую версию можно сравнить с другой и увидеть что именно происходило с устройством между этими версиями.&lt;/p>
+&lt;p>&lt;img src="https://lh4.googleusercontent.com/8szHMyR4qd4AeCde6ump-XxqECBNRJx6-RWpIEa36czdIqNhd86cHLHIFXar6PvgqnllZaADdI95IMZ-kpFpeHlZiCfcWnIgInbIs8koBh31MP3HzkV_LO6DjXpGgqWogxHoLSlZ" alt="">&lt;/p>
+&lt;p>На вкладке stats отображается результат резервного копирования.&lt;/p>
+&lt;p>&lt;img src="https://lh5.googleusercontent.com/j0RKpoOYBBqFjRDsom5WakOsJb15ajrwrqgHUvKCOOTaYcVIE_-Mz-P3a2-Nonlng_OpHipdBcLSWvED5dtTy7SxRf0WFVhqDgCmK35bZ51LRvsZ79F9KKCgz5bEpZ-W_RIQI5mH" alt="">&lt;/p>
+&lt;p>Можно увидеть сколько попыток бэкапа были неудачными, сколько времени занимает процесс бэкапа, время последнего удачного и неудачного бэкапов.&lt;/p>
+&lt;h3 id="установка">Установка&lt;/h3>
+&lt;p>Я опишу установку на Debian. Установку ОС и её первичную настройку описывать не буду, благо всё уже &lt;a href="http://www.bubnovd.net/2011/03/debian.html">много&lt;/a>  &lt;a href="http://www.bubnovd.net/2011/08/linux-server-2-iptables.html">раз&lt;/a>   &lt;a href="http://www.bubnovd.net/2013/02/lvm.html">сделано&lt;/a>. Всё делал по &lt;a href="https://github.com/ytti/oxidized#debian">инструкции&lt;/a>.&lt;/p>
+&lt;pre tabindex="0">&lt;code>apt install ruby ruby-dev libsqlite3-dev libssl-dev pkg-config cmake libssh2-1-dev
+gem install oxidized oxidized-script oxidized-web
+&lt;/code>&lt;/pre>&lt;p>Установка не вызывает вопросов, всё проходит стандартно. В описании системы не очень понятно что и как делать дальше. Я постараюсь объяснить.&lt;/p>
+&lt;h3 id="конфигурация">Конфигурация&lt;/h3>
+&lt;p>Запускать oxidized с правами суперпользователя - не самая лучшая идея. Поэтому создадим пользователя oxidized, с правами которого будет запускаться система бэкапа:&lt;/p>
+&lt;p>&lt;code>useradd oxidized&lt;/code>&lt;/p>
+&lt;p>Создадим для нового пользователя домашний каталог, в котором будут лежать конфигурационные файлы, список устройств и база git:&lt;/p>
+&lt;p>&lt;code>mkdir /home/oxidized&lt;/code>&lt;/p>
+&lt;p>И дадим права на этот каталог юзеру oxidized:&lt;/p>
+&lt;p>&lt;code>chown oxidized:oxidized /home/oxidized&lt;/code>&lt;/p>
+&lt;p>Первый запуск создаст все необходимые файлы и каталоги. Не забыли, что запускать надо под специальным пользователем?&lt;/p>
+&lt;p>su - oxidized&lt;/p>
+&lt;p>oxidized&lt;/p>
+&lt;p>Создался каталог &lt;code>/home/oxidized/.config/oxidized&lt;/code>, в котором находится всё, что нужно для дальнейшей настройки. Основные настройки системы хранятся в файле config в формате YAML. Он состоит из нескольких частей:&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>Input&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Output&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Source&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Основные настройки&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>Привожу свой конфиг:&lt;/p>
+&lt;pre tabindex="0">&lt;code>bubnov@oxidized:~$ cat /home/oxidized/.config/oxidized/config
+\---
+//пользователь и пароль, от которых система будет коннектиться к девайсам
+username: oxidized
+password: p@ssw0rd
+//вендор. Я указывал вендора для каждого устройства в файле router.db. Но можно выставить и здесь
+model: junos
+//Периодичность снятия бэкапа в секундах
+interval: 3600
+use\_syslog: false
+debug: false
+threads: 30
+//таймаут сессии. Многие устройства не успевают выгрузить конфигурацию в дефолтные 20 секунд. Приходится увеличивать
+timeout: 140
+//количество попыток снять бэкап с каждого устройства, после чего считается, что бэкап сделать не удалось
+retries: 3
+prompt: !ruby/regexp /^(\[\\w.@-\]+\[#&amp;gt;\]\\s?)$/
+//IP адрес и порт, на котором будет работать REST API (веб интерфейс по простому)
+rest: 127.0.0.1:8888
+next\_adds\_job: false
+Vars:
+//позволяет исключить из бэкапа критичную информацию, такую как snmp-community, ключи шифрования и т.п.
+ remove\_secret: true
+groups: {}
+models: {}
+pid: &amp;#34;/home/oxidized/.config/oxidized/pid&amp;#34;
+log: &amp;#34;/home/oxidized/.config/oxidized/log&amp;#34;
+//тип подключения к управляемым устройствам
+input:
+ default: ssh
+ debug: false
+ ssh:
+    secure: false
+//где хранится конфигурации (git, text, ...) и настройки хранилища
+output:
+ default: git
+ git:
+    user: oxidized
+    email: admin@bubnovd.net
+    repo: &amp;#34;/home/oxidized/.config/oxidized/devices.git&amp;#34;
+//откуда берется информация о бэкапящихся девайсах
+source:
+ default: csv
+ csv:
+    file: &amp;#34;/home/oxidized/.config/oxidized/router.db&amp;#34;
+    delimiter: !ruby/regexp /:/
+    map:
+     name: 0
+     model: 1
+     ip: 2
+model\_map:
+ cisco: ios
+ juniper: junos
+&lt;/code>&lt;/pre>&lt;p>Из важного здесь:&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>Логин и пароль пользователя на устройствах, под именем которого будет делаться бэкап. Я рекомендую создать на всех девайсах специального пользователя с ограниченными правами, позволяющими бэкапить. К примеру, на RouterOS это группа read&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Разделы input, output, source. В них указывается как подключаться к устройствам, где взять их список и куда выгружать бэкап&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Адрес и порт REST API. Чуть позже я объясню, почему он должен быть 127.0.0.1:8888&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>В разделе source указано, что информацию о девайсах нужно брать из CSV файла, путь к нему и порядок полей в нем. В моем случае формат такой: &lt;code>имя\_устройства:модель:ip&lt;/code>&lt;/p>
+&lt;p>Сам файл router.db:&lt;/p>
+&lt;pre tabindex="0">&lt;code>RB128:routeros:192.168.3.128
+RB121:routeros:192.168.3.1:oxidized:drugoi\_password
+sw11:dlink:192.168.3.11:::2222
+&lt;/code>&lt;/pre>&lt;p>В первой строке указан роутер Mikrotik, о чем говорит поле routeros, с адресом 192.168.3.128 и называться в oxidized он будет RB128. Логин и пароль для подключения будет браться из файла config. Второе устройство RB121 имеет другую учетную запись, параметры которой указаны после IP адреса - логин:пароль. А третий девайс производства D-Link, с логином/паролем из файла config, но SSH на порту 2222.&lt;/p>
+&lt;p>Стоит сказать, что устройства можно группировать по вендору или учетным записям. Об этом можно почитать в &lt;a href="https://github.com/ytti/oxidized/blob/master/docs/Configuration.md">официальной документации&lt;/a>.&lt;/p>
+&lt;p>&lt;strong>Авторизация&lt;/strong>&lt;/p>
+&lt;p>На этом этапе уже можно запускать систему и набрав в браузере &lt;a href="http://localhost:8888/">http://localhost:8888&lt;/a> увидеть её интерфейс. Но у oxidized есть большой недостаток: нет аутентификации в системе. То есть любой может открыть в браузере веб-интерфейс и увидеть все конфиги ваших сетевых устройств. Разработчик занимается только системой бэкапа и смежные фичи внедрять пока не планирует.&lt;/p>
+&lt;p>Обойдем этот недостаток с помощью Reverse-proxy.&lt;/p>
+&lt;p>Ставим nginx:&lt;/p>
+&lt;p>&lt;code>apt install nginx&lt;/code>&lt;/p>
+&lt;p>И настраиваем его на работу как реверс прокси:&lt;/p>
+&lt;pre tabindex="0">&lt;code>nano etc/nginx/sites-available/default
+auth\_basic “Username and Password Required”;
+auth\_basic\_user\_file /etc/nginx/.htpasswd;
+location / {
+  proxy\_set\_header Host $host;
+  proxy\_set\_header X-Real-IP $remote\_addr;
+  proxy\_set\_header X-Forwarded-For $proxy\_add\_x\_forwarded\_for;
+  proxy\_pass http://127.0.0.1:8888;
+}
+&lt;/code>&lt;/pre>&lt;p>И создаем юзера и пароль:&lt;/p>
+&lt;p>&lt;code>sudo htpasswd /etc/nginx/.htpasswd username&lt;/code>&lt;/p>
+&lt;p>Теперь nginx будет работать на стандартном порту (или на том, который вы укажете в его настройках), при обращении к нему будет происходить авторизация и пользователь будет перенаправлен на адрес proxy_pass (127.0.0.1:8888 в нашем случае).&lt;/p>
+&lt;p>Хочу обратить ваше внимание на опцию remove_secrets в конфиге. Она удаляет критичную информацию из бэкапа, такую как SNMP-community, ключи шифрования, ключи Wi-Fi. Например, Mikrotik RouterOS в дефолте умеет скрывать эти данные, если экспорт выполнять с опцией hide-sensitive. Oxidized же может исключать эти данные из конфигов любого вендора.&lt;/p>
+&lt;p>Узнать что именно удаляется из конфига, можно посмотрев в описание вашего вендора в &lt;a href="https://github.com/ytti/oxidized/blob/master/lib/oxidized/model/">списке&lt;/a>. Например, для Cicso:&lt;/p>
+&lt;p>&lt;img src="https://lh5.googleusercontent.com/-WEhbGXGjlGVfV9lp2Sn-BLIPNBUEe2n6npRplCIgHLW8uBAlV2mT7bpABaLhqYshhXin6veWhKWQbzt5cXbCPUwzXHb03JTYGTkguJPyYM4SRZeZBw0QdErHg5C2UZGLWmp9q3W" alt="">&lt;/p>
+&lt;p>Для того, чтобы oxidized стартовал как служба, сделайте следующее:&lt;/p>
+&lt;pre tabindex="0">&lt;code>sudo cp /usr/local/share/gems/gems/oxidized-0.19.0/extra/oxidized.service /lib/systemd/system/
+sudo systemctl enable oxidized.service
+sudo systemctl start oxidized
+&lt;/code>&lt;/pre>&lt;p>Я же просто прописал в crontab запуск после ребута:&lt;/p>
+&lt;pre tabindex="0">&lt;code>sudo -u oxidized crontab -l
+@reboot /usr/local/bin/oxidized
+&lt;/code>&lt;/pre>&lt;p>Для подготовки к посту использовались следующие материалы:&lt;/p>
+&lt;p>&lt;a href="https://github.com/ytti/oxidized#installation">https://github.com/ytti/oxidized#installation&lt;/a>&lt;br>
+&lt;a href="https://unimus.net/">https://unimus.net/&lt;/a>&lt;/p>
+&lt;p>&lt;a href="https://neckercube.com/index.php/2017/05/04/how-to-install-oxidized-for-network-configuration-backup/">https://neckercube.com/index.php/2017/05/04/how-to-install-oxidized-for-network-configuration-backup/&lt;/a>&lt;/p>
+&lt;p>&lt;a href="http://packetpushers.net/install-oxidized-network-configuration-backup/">http://packetpushers.net/install-oxidized-network-configuration-backup/&lt;/a>&lt;/p>
+&lt;p>&lt;a href="http://www.whoopis.com/core/oxidized-quickstart-tutoria.html">http://www.whoopis.com/core/oxidized-quickstart-tutoria.html&lt;/a>&lt;/p>
+&lt;p>&lt;a href="https://log.cyconet.org/2016/01/29/oxidized-silly-attempt-at-really-awesome-new-cisco-config-differ/">https://log.cyconet.org/2016/01/29/oxidized-silly-attempt-at-really-awesome-new-cisco-config-differ/&lt;/a>&lt;/p>
+&lt;p>&lt;a href="http://shairosenfeld.blogspot.ru/2011/03/authorization-header-in-nginx-for.html">http://shairosenfeld.blogspot.ru/2011/03/authorization-header-in-nginx-for.html&lt;/a>&lt;/p>
+&lt;p>&lt;a href="https://community.openhab.org/t/using-nginx-reverse-proxy-authentication-and-https/14542">https://community.openhab.org/t/using-nginx-reverse-proxy-authentication-and-https/14542&lt;/a>&lt;/p>
+&lt;p>Надеюсь, эта статья поможет вам в настройке резервного копирования. Любые вопросы вы можете задать в комментариях к статье. Я постараюсь на них ответить.&lt;/p></content></item></channel></rss>
