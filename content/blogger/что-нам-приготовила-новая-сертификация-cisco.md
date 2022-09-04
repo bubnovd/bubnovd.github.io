@@ -1,0 +1,12 @@
++++
+title = "Что нам приготовила новая сертификация Cisco"
+date = 2019-06-11T23:21:00Z
+updated = 2019-06-11T23:21:40Z
+tags = ["ccnp", "Certification", "cisco", "devnet", "ccna"]
+blogimport = true 
+[author]
+	name = "devi1"
+	uri = "https://www.blogger.com/profile/05777499482649623616"
++++
+
+Как трубят во все сетевые каналы и чатики, в Сан Диего объявили новую программу сертификации Cisco. Я тоже немного почитал об этом&nbsp; и спешу потрубить и в своем блоге.<br /><br />Итак:<br /><br /><ul><li>Появился новый трек DevNet - все эти ваши ансиблы, пайтоны, software defined everything и сетевики не нужны</li><li>Исчез трек Routing &amp; Switching, вместо него теперь:</li><li>Новый трек Enterprise</li><li>CCNA теперь един, он включает в себя такие темы:</li><li>&nbsp; &nbsp; &nbsp; - Network Fundamentals</li><li>&nbsp; &nbsp; &nbsp; - Network Access</li><li>&nbsp; &nbsp; &nbsp; - IP Connectivity</li><li>&nbsp; &nbsp; &nbsp; - IP Services</li><li>&nbsp; &nbsp; &nbsp; - Security Fundamentals</li><li>&nbsp; &nbsp; &nbsp; - Automation and Programmability</li><li>&nbsp;Для сдачи CCNP больше не нужен CCNA</li><li>Новая политика вступит в силу 24 февраля 2020</li><li>Если вы сейчас готовитесь к одному из экзаменов - смело продолжайте! У Вас есть 8 месяцев, чтобы сдать его. С новой политикой CCNA вам сделают новый, а вот с CCNP я толком не понял - то ли его продлят, то ли со скидками дадут сдать новый</li></ul><br /><br />&nbsp;Есть мнение, что "старые" сертификаты будут более ценными на рынке, чем новые, в которых "всего по-маленьку"<br /><br />Ссылоньки:<br /><a href="https://www.cisco.com/c/en/us/training-events/training-certifications/certifications/associate/ccna.html" target="_blank">Про новый CCNA</a>, <a href="https://www.cisco.com/c/dam/en_us/training-events/le31/le46/cln/marketing/exam-topics/200-301-CCNA.pdf" target="_blank">темы CCNA</a>, <a href="https://www.cisco.com/c/dam/en_us/training-events/training-certification-faqs.pdf" target="_blank">FAQ по новой сертификации</a><br /><br />Спасибо Иннокентию Солнцеву из networkeducation.ru за разжевывание некоторых моментов!<br /><br />Если вы уже видели этот пост в <a href="https://t.me/mikrotikninja" target="_blank">Telegram</a>, <a href="https://vk.com/mikrotikninja" target="_blank">VK</a> или <a href="https://www.facebook.com/groups/mikrotikninja/" target="_blank">FB</a>, то знайте:&nbsp; я его не украл - это мои каналы
