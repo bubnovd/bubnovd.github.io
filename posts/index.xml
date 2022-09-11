@@ -45,5 +45,6 @@
 &lt;li>Возможно, появится раздел о путешествиях и походах&lt;/li>
 &lt;li>Добавить английскую версию блога&lt;/li>
 &lt;li>&lt;input disabled="" type="checkbox"> Добавить секцию со ссылками на &lt;a href="https://bubnovd.net/blogger">blogger&lt;/a> на главную&lt;/li>
-&lt;li>&lt;input disabled="" type="checkbox"> Добавить верификацию поддомена&lt;/li>
+&lt;li>[ x ] Добавить верификацию поддомена&lt;/li>
+&lt;li>&lt;input disabled="" type="checkbox"> Прикрутить RSS&lt;/li>
 &lt;/ul></content></item></channel></rss>
