@@ -1,0 +1,193 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:site_name" content="Админская фамилия"><meta property="og:type" content="article"><meta property="og:image" content="https://bubnovd.net//img/aksai.jpg"><meta property="twitter:image" content="https://bubnovd.net//img/aksai.jpg"><meta name=title content="Самый полный мануал по резервированию интернета на Mikrotik RouterOS"><meta property="og:title" content="Самый полный мануал по резервированию интернета на Mikrotik RouterOS"><meta property="twitter:title" content="Самый полный мануал по резервированию интернета на Mikrotik RouterOS"><meta name=description content="My blog about IT"><meta property="og:description" content="My blog about IT"><meta property="twitter:description" content="My blog about IT"><meta property="twitter:card" content="summary"><meta name=keyword content><link rel="shortcut icon" href=/img/favicon.ico><title>Самый полный мануал по резервированию интернета на Mikrotik RouterOS |</title><link rel=canonical href=/blogger/%D1%81%D0%B0%D0%BC%D1%8B%D0%B9-%D0%BF%D0%BE%D0%BB%D0%BD%D1%8B%D0%B9-%D0%BC%D0%B0%D0%BD%D1%83%D0%B0%D0%BB-%D0%BF%D0%BE-%D1%80%D0%B5%D0%B7%D0%B5%D1%80%D0%B2%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8E-%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82%D0%B0-%D0%BD%D0%B0-mikrotik-routeros/><link rel=stylesheet href=/css/bootstrap.min.css><link rel=stylesheet href=/css/hugo-theme-cleanwhite.min.css><link rel=stylesheet href=/css/zanshang.css><link href=https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@5.15.1/css/all.css rel=stylesheet type=text/css><script src=/js/jquery.min.js></script>
+<script src=/js/bootstrap.min.js></script>
+<script src=/js/hux-blog.min.js></script>
+<script src=/js/lazysizes.min.js></script></head><nav class="navbar navbar-default navbar-custom navbar-fixed-top"><div class=container-fluid><div class="navbar-header page-scroll"><button type=button class=navbar-toggle>
+<span class=sr-only>Toggle navigation</span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+<span class=icon-bar></span></button>
+<a class=navbar-brand href=/>Админская фамилия</a></div><div id=huxblog_navbar><div class=navbar-collapse><ul class="nav navbar-nav navbar-right"><li><a href=/>All Posts</a></li><li><a href=/archive/>Archive</a></li><li><a href=/search><i class="fa fa-search"></i></a></li></ul></div></div></div></nav><script>var $body=document.body,$toggle=document.querySelector(".navbar-toggle"),$navbar=document.querySelector("#huxblog_navbar"),$collapse=document.querySelector(".navbar-collapse");$toggle.addEventListener("click",handleMagic);function handleMagic(){$navbar.className.indexOf("in")>0?($navbar.className=" ",setTimeout(function(){$navbar.className.indexOf("in")<0&&($collapse.style.height="0px")},400)):($collapse.style.height="auto",$navbar.className+=" in")}</script><style type=text/css>header.intro-header{background-image:url(/img/aksai.jpg)}</style><header class=intro-header><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class=post-heading><div class=tags><a class=tag href=/tags/routeros title=routeros>routeros</a>
+<a class=tag href=/tags/mikrotik title=Mikrotik>Mikrotik</a>
+<a class=tag href=/tags/script title=script>script</a>
+<a class=tag href=/tags/failover title=failover>failover</a></div><h1>Самый полный мануал по резервированию интернета на Mikrotik RouterOS</h1><h2 class=subheading></h2><span class=meta>Posted by
+map[name:devi1 uri:https://www.blogger.com/profile/05777499482649623616]
+on
+Thursday, March 5, 2015</span></div></div></div></div></header><article><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+post-container"><p>В сети много мануалов по фэйловеру на RouterOS и подобрать нужный под конкретные цели иногда проблематично. В ходе своих экспериментов я выяснил, что наиболее универсальным является <a href=http://wiki.mikrotik.com/wiki/Advanced_Routing_Failover_without_Scripting>этот</a> способ. Но у меня возникло несколько вопросов, ответы на которые я пока не нашел.</p><pre tabindex=0><code>/ip route  
+add dst-address=**Host1** gateway=GW1 scope=**10**  
+add dst-address=**Host2** gateway=GW2 scope=**10**
+</code></pre><pre tabindex=0><code>/ip route  
+add distance=1 gateway=**Host1** routing-mark=ISP1 check-gateway=ping  
+add distance=2 gateway=**Host2** routing-mark=ISP1 check-gateway=ping
+</code></pre><pre tabindex=0><code>/ip route  
+add distance=1 gateway=**Host2** routing-mark=ISP2 check-gateway=ping  
+add distance=2 gateway=**Host1** routing-mark=ISP2 check-gateway=ping
+</code></pre><p>Я делаю немного по-другому: первые две строки точно такие же, а дальше:</p><pre tabindex=0><code>/ip route  
+add distance=1 gateway=**Host1** check-gateway=ping  
+add distance=2 gateway=**Host2** check-gateway=ping
+</code></pre><pre tabindex=0><code>/ip route  
+add distance=1 gateway=**GW1** routing-mark=ISP1  
+add distance=1 gateway=GW**2** routing-mark=ISP2
+</code></pre><p>В первом варианте мне непонятно зачем пускать трафик, маркированный ISP1 по второму каналу и аналогично с ISP2. Чтобы не рвалась сессия? Она все равно рвется. В общем, я делаю по своему варианту.</p><p>Как оно работает?<br><code>add dst-address=Host1 gateway=GW1 scope=10</code> указываем, что трафик до Host1 будет ходить через провайдера ISP1. Аналогично со вторым.</p><p><code>add distance=1 gateway=Host1 check-gateway=ping</code> указывает шлюзом по умолчанию Host1. Тем самым создается рекурсивный маршрут через GW1. Проверяется доступность Host1 пингом. Если Host1 доступен, то шлюз - GW1, если не доступен, но доступен Host2, трафик идет через GW2.</p><p>Маркировка маршрутов необходима для того, чтобы трафик, пришедший в один из интерфейсов не улетел во второй, если метрика второго ниже. Маркировка создается в таблице Mangle фаервола:</p><pre tabindex=0><code>add chain=prerouting in-interface=ISP1-int action=mark-connection new-connection-mark=ISP1 passthrough=yes   
+add chain=prerouting connection-mark=ISP1 action=mark-routing new-routing-mark=ISP1  
+add chain=output connection-mark=ISP1 action=mark-routing new-routing-mark=ISP1  
+</code></pre><p>Так же по второму провайдеру.</p><p>Эта схема прекрасно работает при статическом IP. Но как быть с DHCP, PPP и т.д. А всё просто - в настройках DHCP/PPP-клиента отключаем Add Default Route. И добавляем необходимый маршрут руками. Единственная проблема - адрес шлюза может смениться. В таком случае необходимо применение скриптов. Я написал небольшой скрипт для работы с USB-модемом, который проверяет правильный ли шлюз указан в строке <code>8.8.4.4 gw GW2</code>. PPP-интерфейс в моем случае называется <code>modem</code>.</p><pre tabindex=0><code>:local testIP 8.8.4.4/32  
+:local modemGW \[/ip address get \[find interface=&#34;modem&#34;\] network\]  
+if ($modemGW!=(\[/ip route get \[find dst-address=$testIP\] gateway\])) do={  
+\[/ip route set \[find dst-address=$testIP\] gateway $modemGW\]}  
+</code></pre><p>В Scheduler добавляем расписание для этого скрипта, чтобы выполнялся раз в минуту. На основе моего скрипта можно создать свой для любого другого типа подключения.<br>Для нетерпеливых привожу полный список команд, необходимый для настройки модема в качестве резервного канала. Всё, что вам нужно - просто скопировать текст и вставить его в терминал. Основной придется отмаркировать и прописать в маршрутизации руками:</p><pre tabindex=0><code>/ip firewall mangle  
+add chain=input in-interface=modem action=mark-connection new-connection-mark=modem  
+add chain=output connection-mark=modem action=mark-routing new-routing-mark=modem  
+/ip route  
+add dst-address=8.8.4.4/32 gateway=\[/ip address get \[find interface=&#34;modem&#34;\] network\] distance=1 scope=10  
+add distance=2 gateway=8.8.4.4 scope=10 check-gateway=ping  
+add dst-address=0.0.0.0/0 gateway=\[/ip address get \[find interface=&#34;modem&#34;\] network\] distance=1 scope=10 routing-mark=modem  
+/interface ppp-client set modem dial-on-demand=no add-default-route=no  
+/system script  
+add name=modemGW source=&#34;:local testIP 8.8.4.4/32\\r\\n:local modemGW \[/ip address get \[find interface=\\&#34;modem\\&#34;\] network\]\\r\\nif (\\$modemGW!=(\[/ip route get \[find dst-address=\\$testIP\] gateway\])) do={\\r\\n\[/ip route set \[find dst-address=\\$testIP\] gateway \\$modemGW\]}&#34;  
+/system scheduler  
+add name=checkGW interval=00:01:00 on-event=modemGW  
+</code></pre><p>Есть ещё один способ фэйловера. Делается он только с помощью скриптов. Полное его описание <a href=http://habrahabr.ru/post/141785/>здесь</a>. Ниже скрипт для его мгновенного создания:</p><pre tabindex=0><code>/system script  
+add name=SetGlobalParameters source=&#34;#Main interface name\\r\\n:global MainIf \[/interface get \[find comment~\\&#34;MainINT\\&#34;\] name\]\\r\\n#Reserve interface name\\r\\n:global RsrvIf \[/interface get \[find comment~\\&#34;RsrvINT\\&#34;\] name\]\\r\\n#Main interface ip address\\r\\n:global MainIfAddress \\&#34;\\&#34;\\r\\n#Reserve interface ip address\\r\\n:global RsrvIfAddress \\&#34;\\&#34;&#34;  
+add name=DefineMainIfIp source=&#34;:global MainIf\\r\\n:global MainIfAddress \\&#34;\\&#34;\\r\\n:set MainIfAddress \[/ip address get \[find interface=$MainIf\] address\]&#34;  
+add name=DefineReservedIfIp source=&#34;:global RsrvIf\\r\\n:global RsrvIfAddress \\&#34;\\&#34;\\r\\n:set RsrvIfAddress \[/ip address get \[find interface=$RsrvIf\] address\]&#34;  
+add name=ConnectionCheck source=&#34;:global MainIf\\r\\n:global RsrvIf\\r\\n:global MainIfAddress\\r\\n:global RsrvIfAddress\\r\\n\\r\\n:local PingCount 3\\r\\n\\r\\n#yandex DNS\\r\\n:local PingTarget1 77.88.8.8\\r\\n\\r\\n#OpenDNS\\r\\n:local PingTarget2 208.67.222.222\\r\\n\\r\\n#google dns\\r\\n:local PingTarget3 8.8.8.8\\r\\n\\r\\n#Check main internet connection\\r\\n\\r\\n:local MainIfInetOk false;\\r\\n\\r\\nif (\\$MainIfAddress=\\&#34;\\&#34;) do={delay 5}\\r\\n\\r\\nif (\\$MainIfAddress!=\\&#34;\\&#34;) do={\\r\\n\\r\\n:local PingResult1 \[/ping \\$PingTarget1 count=\\$PingCount interface=\\$MainIf\]\\r\\n:local PingResult2 \[/ping \\$PingTarget2 count=\\$PingCount interface=\\$MainIf\]\\r\\n:local PingResult3 \[/ping \\$PingTarget3 count=\\$PingCount interface=\\$MainIf\]\\r\\n:set MainIfInetOk ((\\$PingResult1 + \\$PingResult2 + \\$PingResult3) &gt;= (2 \* \\$PingCount))\\r\\n}\\r\\n\\r\\n#Check reserved internet connection\\r\\n:local RsrvIfInetOk false;\\r\\n\\r\\nif (\\$RsrvIfAddress=\\&#34;\\&#34;) do={delay 5}\\r\\n\\r\\nif (\\$RsrvIfAddress!=\\&#34;\\&#34;) do={\\r\\n:local PingResult1 \[/ping \\$PingTarget1 count=\\$PingCount interface=\\$RsrvIf\]\\r\\n\\r\\n:local PingResult2 \[/ping \\$PingTarget2 count=\\$PingCount interface=\\$RsrvIf\]\\r\\n:local PingResult3 \[/ping \\$PingTarget3 count=\\$PingCount interface=\\$RsrvIf\]\\r\\n\\r\\n:set RsrvIfInetOk ((\\$PingResult1 + \\$PingResult2 + \\$PingResult3) &gt;=(2 \* \\$PingCount))\\r\\n}\\r\\n\\r\\n:put \\&#34;MainIfInetOk=\\$MainIfInetOk\\&#34;\\r\\n:put \\&#34;RsrvIfInetOk=\\$RsrvIfInetOk\\&#34;\\r\\n\\r\\nif (!\\$MainIfInetOk) do={\\r\\n/log error \\&#34;Main internet connection error\\&#34;\\r\\n}\\r\\n\\r\\nif (!\\$RsrvIfInetOk) do={\\r\\n/log error \\&#34;Reserve internet connection error\\&#34;\\r\\n}\\r\\n\\r\\n:local MainGWDistance \[/ip route get \[find comment~\\&#34;MainGW\\&#34;\] distance\]\\r\\n:local RsrvGWDistance \[/ip route get \[find comment~\\&#34;RsrvGW\\&#34;\] distance\]\\r\\n:put \\&#34;MainGWDistance=\\$MainGWDistance\\&#34;\\r\\n:put \\&#34;RsrvGWDistance=\\$RsrvGWDistance\\&#34;\\r\\n\\r\\n#SetUp gateways\\r\\nif (\\$MainIfInetOk &amp;&amp; (\\$MainGWDistance &gt;= \\$RsrvGWDistance)) do={\\r\\n/ip route set \[find comment~\\&#34;MainGW\\&#34;\] distance=1\\r\\n/ip route set \[find comment~\\&#34;RsrvGW\\&#34;\] distance=2\\r\\n/log info \\&#34;Switch to main internet connection\\&#34;\\r\\n}\\r\\n\\r\\nif (!\\$MainIfInetOk &amp;&amp; \\$RsrvIfInetOk &amp;&amp; (\\$MainGWDistance &lt;= \\$RsrvGWDistance)) do={\\r\\n/ip route set \[find comment~\\&#34;MainGW\\&#34;\] distance=2\\r\\n/ip route set \[find comment~\\&#34;RsrvGW\\&#34;\] distance=1\\r\\n/log warning \\&#34;Switch to reserve internet connection\\&#34;\\r\\n}&#34;  
+run SetGlobalParameters  
+/system scheduler  
+add name=SetGlobalParameters start-time=startup on-event=SetGlobalParameters  
+add name=DefineMainIfIp interval=00:00:27 on-event=DefineMainIfIp  
+add name=DefineReservedIfIp interval=00:00:27 on-event=DefineReservedIfIp  
+add name=ConnectionCheck interval=00:01:00 on-event=ConnectionCheck
+</code></pre><hr><ul class=pager><li class=previous><a href=/blogger/routeros-failover-links/ data-toggle=tooltip data-placement=top title="RouterOS failover links">&larr;
+Previous Post</a></li><li class=next><a href=/blogger/%D0%BE%D0%B1%D1%8A%D0%B5%D0%B4%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BE%D0%B4%D0%B8%D0%BD%D0%B0%D0%BA%D0%BE%D0%B2%D1%8B%D1%85-%D0%BF%D0%BE%D0%B4%D1%81%D0%B5%D1%82%D0%B5%D0%B9-%D0%B2-routeros/ data-toggle=tooltip data-placement=top title="Объединение одинаковых подсетей в RouterOS">Next
+Post &rarr;</a></li></ul><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//bubnovd-github-io.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="col-lg-2 col-lg-offset-0
+visible-lg-block
+sidebar-container
+catalog-container"><div class=side-catalog><hr class="hidden-sm hidden-xs"><h5><a class=catalog-toggle href=#>CATALOG</a></h5><ul class=catalog-body></ul></div></div><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+sidebar-container"><section><hr class="hidden-sm hidden-xs"><h5><a href=/tags/>FEATURED TAGS</a></h5><div class=tags><a href=/tags/#sysadminka title=#sysadminka>#sysadminka</a>
+<a href=/tags/1%D1%81 title=1с>1с</a>
+<a href=/tags/about title=about>about</a>
+<a href=/tags/active-directory title=active-directory>active-directory</a>
+<a href=/tags/ad title=ad>ad</a>
+<a href=/tags/asterisk title=asterisk>asterisk</a>
+<a href=/tags/bandwidth title=bandwidth>bandwidth</a>
+<a href=/tags/best-practice title=best-practice>best-practice</a>
+<a href=/tags/bgp title=bgp>bgp</a>
+<a href=/tags/books title=books>books</a>
+<a href=/tags/certification title=certification>certification</a>
+<a href=/tags/cisco title=cisco>cisco</a>
+<a href=/tags/cmd title=cmd>cmd</a>
+<a href=/tags/cureit title=cureit>cureit</a>
+<a href=/tags/d-link title=d-link>d-link</a>
+<a href=/tags/ddos title=ddos>ddos</a>
+<a href=/tags/debian title=debian>debian</a>
+<a href=/tags/dhcp title=dhcp>dhcp</a>
+<a href=/tags/dns title=dns>dns</a>
+<a href=/tags/dpi title=dpi>dpi</a>
+<a href=/tags/dr.web title=dr.web>dr.web</a>
+<a href=/tags/eoip title=eoip>eoip</a>
+<a href=/tags/failover title=failover>failover</a>
+<a href=/tags/firewall title=firewall>firewall</a>
+<a href=/tags/freebsd title=freebsd>freebsd</a>
+<a href=/tags/groups title=groups>groups</a>
+<a href=/tags/hack title=hack>hack</a>
+<a href=/tags/hardware title=hardware>hardware</a>
+<a href=/tags/hdd title=hdd>hdd</a>
+<a href=/tags/hyper-v title=hyper-v>hyper-v</a>
+<a href=/tags/internet title=internet>internet</a>
+<a href=/tags/ip-%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD%D0%B8%D1%8F title=ip-телефония>ip-телефония</a>
+<a href=/tags/iptables title=iptables>iptables</a>
+<a href=/tags/iso/osi title=iso/osi>iso/osi</a>
+<a href=/tags/keepass title=keepass>keepass</a>
+<a href=/tags/l2 title=l2>l2</a>
+<a href=/tags/link title=link>link</a>
+<a href=/tags/links title=links>links</a>
+<a href=/tags/linux title=linux>linux</a>
+<a href=/tags/linux-firewalls title=linux-firewalls>linux-firewalls</a>
+<a href=/tags/linux-server title=linux-server>linux-server</a>
+<a href=/tags/microsoft title=microsoft>microsoft</a>
+<a href=/tags/midnightcommander title=midnightcommander>midnightcommander</a>
+<a href=/tags/mikrotik title=mikrotik>mikrotik</a>
+<a href=/tags/monitoring title=monitoring>monitoring</a>
+<a href=/tags/mpls title=mpls>mpls</a>
+<a href=/tags/ms title=ms>ms</a>
+<a href=/tags/mss title=mss>mss</a>
+<a href=/tags/mtcna title=mtcna>mtcna</a>
+<a href=/tags/mtcre title=mtcre>mtcre</a>
+<a href=/tags/mtu title=mtu>mtu</a>
+<a href=/tags/mum title=mum>mum</a>
+<a href=/tags/mva title=mva>mva</a>
+<a href=/tags/open-source title=open-source>open-source</a>
+<a href=/tags/oreilly title=oreilly>oreilly</a>
+<a href=/tags/ospf title=ospf>ospf</a>
+<a href=/tags/password title=password>password</a>
+<a href=/tags/powershell title=powershell>powershell</a>
+<a href=/tags/pptp title=pptp>pptp</a>
+<a href=/tags/presentation title=presentation>presentation</a>
+<a href=/tags/python title=python>python</a>
+<a href=/tags/qos title=qos>qos</a>
+<a href=/tags/raid title=raid>raid</a>
+<a href=/tags/rdp title=rdp>rdp</a>
+<a href=/tags/routerboard title=routerboard>routerboard</a>
+<a href=/tags/routeros title=routeros>routeros</a>
+<a href=/tags/routing title=routing>routing</a>
+<a href=/tags/script title=script>script</a>
+<a href=/tags/sdn title=sdn>sdn</a>
+<a href=/tags/security title=security>security</a>
+<a href=/tags/server title=server>server</a>
+<a href=/tags/snmp title=snmp>snmp</a>
+<a href=/tags/snmpv3 title=snmpv3>snmpv3</a>
+<a href=/tags/ssh title=ssh>ssh</a>
+<a href=/tags/ssl title=ssl>ssl</a>
+<a href=/tags/tcp/ip title=tcp/ip>tcp/ip</a>
+<a href=/tags/terminal title=terminal>terminal</a>
+<a href=/tags/the-dude title=the-dude>the-dude</a>
+<a href=/tags/ubuntu title=ubuntu>ubuntu</a>
+<a href=/tags/vpn title=vpn>vpn</a>
+<a href=/tags/webmin title=webmin>webmin</a>
+<a href=/tags/wi-fi title=wi-fi>wi-fi</a>
+<a href=/tags/wifi title=wifi>wifi</a>
+<a href=/tags/windows title=windows>windows</a>
+<a href=/tags/%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=автоматизация>автоматизация</a>
+<a href=/tags/%D0%B0%D0%BD%D1%82%D0%B8%D0%B2%D0%B8%D1%80%D1%83%D1%81-%D0%BA%D0%B0%D1%81%D0%BF%D0%B5%D1%80%D1%81%D0%BA%D0%BE%D0%B3%D0%BE title=антивирус-касперского>антивирус-касперского</a>
+<a href=/tags/%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=безопасность>безопасность</a>
+<a href=/tags/%D0%B1%D0%BB%D0%BE%D0%B3 title=блог>блог</a>
+<a href=/tags/%D0%B2%D0%B8%D1%80%D1%82%D1%83%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=виртуализация>виртуализация</a>
+<a href=/tags/%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D1%8B title=группы>группы</a>
+<a href=/tags/%D0%B4%D0%BB%D1%8F-%D1%87%D0%B0%D0%B9%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2 title=для-чайников>для-чайников</a>
+<a href=/tags/%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C title=жизнь>жизнь</a>
+<a href=/tags/%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD title=закон>закон</a>
+<a href=/tags/%D0%B8%D0%B1 title=иб>иб</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BD%D0%BE%D0%B5 title=интересное>интересное</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82 title=интернет>интернет</a>
+<a href=/tags/%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=информационная-безопасность>информационная-безопасность</a>
+<a href=/tags/%D0%B8%D1%81%D0%BF%D0%B4%D0%BD title=испдн>испдн</a>
+<a href=/tags/%D0%BA%D0%BD%D0%B8%D0%B3%D0%B8 title=книги>книги</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%82%D0%BE%D1%80 title=коммутатор>коммутатор</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%86%D0%B8%D1%8F title=коммутация>коммутация</a>
+<a href=/tags/%D0%BA%D1%83%D1%80%D1%81%D1%8B title=курсы>курсы</a>
+<a href=/tags/%D0%BB%D0%B8%D0%BD%D1%83%D0%BA%D1%81 title=линукс>линукс</a>
+<a href=/tags/%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0 title=настройка>настройка</a>
+<a href=/tags/%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5 title=обучение>обучение</a>
+<a href=/tags/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=оптимизация>оптимизация</a>
+<a href=/tags/%D0%BE%D1%84%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B title=официальные-документы>официальные-документы</a>
+<a href=/tags/%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C title=пароль>пароль</a>
+<a href=/tags/%D0%BF%D0%B4%D0%BD title=пдн>пдн</a>
+<a href=/tags/%D0%BF%D0%BE%D0%BB%D0%B5%D0%B7%D0%BD%D0%BE%D0%B5 title=полезное>полезное</a>
+<a href=/tags/%D0%BF%D1%80%D0%B8%D0%BA%D0%B0%D0%B7 title=приказ>приказ</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=производительность>производительность</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D1%84%D0%B5%D1%81%D1%81%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%BC title=профессионализм>профессионализм</a>
+<a href=/tags/%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0 title=работа>работа</a>
+<a href=/tags/%D1%81%D0%B5%D1%80%D1%82%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F title=сертификация>сертификация</a>
+<a href=/tags/%D1%81%D0%B5%D1%82%D1%8C title=сеть>сеть</a>
+<a href=/tags/%D1%81%D0%BA%D0%B7%D0%B8 title=скзи>скзи</a>
+<a href=/tags/%D1%81%D0%BA%D0%BE%D1%80%D0%BE%D1%81%D1%82%D1%8C title=скорость>скорость</a>
+<a href=/tags/%D1%81%D0%BA%D1%80%D0%B8%D0%BF%D1%82 title=скрипт>скрипт</a>
+<a href=/tags/%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B8 title=ссылки>ссылки</a>
+<a href=/tags/%D1%82%D1%83%D1%80%D0%B8%D0%B7%D0%BC title=туризм>туризм</a>
+<a href=/tags/%D1%86%D0%BE%D0%B4 title=цод>цод</a>
+<a href=/tags/%D1%87%D0%B5%D0%BB%D1%8F%D0%B1%D0%B8%D0%BD%D1%81%D0%BA title=челябинск>челябинск</a>
+<a href=/tags/%D1%8E%D0%B7%D0%B2%D0%B5%D1%80%D0%B8 title=юзвери>юзвери</a></div></section></div></div></div></article><footer><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center"></ul><p class="copyright text-muted">Copyright &copy; Админская фамилия 2022<br><a href=https://themes.gohugo.io/hugo-theme-cleanwhite>CleanWhite Hugo Theme</a> by <a href=https://zhaohuabing.com>Huabing</a> |
+<iframe style=margin-left:2px;margin-bottom:-5px frameborder=0 scrolling=0 width=100px height=20px src="https://ghbtns.com/github-btn.html?user=zhaohuabing&repo=hugo-theme-cleanwhite&type=star&count=true"></iframe></p></div></div></div></footer><script>function loadAsync(e,t){var s=document,o="script",n=s.createElement(o),i=s.getElementsByTagName(o)[0];n.src=e,t&&n.addEventListener("load",function(e){t(null,e)},!1),i.parentNode.insertBefore(n,i)}</script><script>$("#tag_cloud").length!==0&&loadAsync("/js/jquery.tagcloud.js",function(){$.fn.tagcloud.defaults={color:{start:"#bbbbee",end:"#0085a1"}},$("#tag_cloud a").tagcloud()})</script><script>loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js",function(){var e=document.querySelector("nav");e&&FastClick.attach(e)})</script><script type=text/javascript>function generateCatalog(e){_containerSelector="div.post-container";var t,n,s,o,i,a=$(_containerSelector),r=a.find("h1,h2,h3,h4,h5,h6");return $(e).html(""),r.each(function(){t=$(this).prop("tagName").toLowerCase(),o="#"+$(this).prop("id"),n=$(this).text(),i=$('<a href="'+o+'" rel="nofollow">'+n+"</a>"),s=$('<li class="'+t+'_nav"></li>').append(i),$(e).append(s)}),!0}generateCatalog(".catalog-body"),$(".catalog-toggle").click(function(e){e.preventDefault(),$(".side-catalog").toggleClass("fold")}),loadAsync("/js/jquery.nav.js",function(){$(".catalog-body").onePageNav({currentClass:"active",changeHash:!1,easing:"swing",filter:"",scrollSpeed:700,scrollOffset:0,scrollThreshold:.2,begin:null,end:null,scrollChange:null,padding:80})})</script></body></html>

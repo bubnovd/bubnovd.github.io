@@ -1,0 +1,149 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:site_name" content="Админская фамилия"><meta property="og:type" content="article"><meta property="og:image" content="https://bubnovd.net//img/aksai.jpg"><meta property="twitter:image" content="https://bubnovd.net//img/aksai.jpg"><meta name=title content="О безопасных каналах для юных админов"><meta property="og:title" content="О безопасных каналах для юных админов"><meta property="twitter:title" content="О безопасных каналах для юных админов"><meta name=description content="My blog about IT"><meta property="og:description" content="My blog about IT"><meta property="twitter:description" content="My blog about IT"><meta property="twitter:card" content="summary"><meta name=keyword content><link rel="shortcut icon" href=/img/favicon.ico><title>О безопасных каналах для юных админов |</title><link rel=canonical href=/blogger/%D0%BE-%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D1%8B%D1%85-%D0%BA%D0%B0%D0%BD%D0%B0%D0%BB%D0%B0%D1%85-%D0%B4%D0%BB%D1%8F-%D1%8E%D0%BD%D1%8B%D1%85-%D0%B0%D0%B4%D0%BC%D0%B8%D0%BD%D0%BE%D0%B2/><link rel=stylesheet href=/css/bootstrap.min.css><link rel=stylesheet href=/css/hugo-theme-cleanwhite.min.css><link rel=stylesheet href=/css/zanshang.css><link href=https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@5.15.1/css/all.css rel=stylesheet type=text/css><script src=/js/jquery.min.js></script>
+<script src=/js/bootstrap.min.js></script>
+<script src=/js/hux-blog.min.js></script>
+<script src=/js/lazysizes.min.js></script></head><nav class="navbar navbar-default navbar-custom navbar-fixed-top"><div class=container-fluid><div class="navbar-header page-scroll"><button type=button class=navbar-toggle>
+<span class=sr-only>Toggle navigation</span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+<span class=icon-bar></span></button>
+<a class=navbar-brand href=/>Админская фамилия</a></div><div id=huxblog_navbar><div class=navbar-collapse><ul class="nav navbar-nav navbar-right"><li><a href=/>All Posts</a></li><li><a href=/archive/>Archive</a></li><li><a href=/search><i class="fa fa-search"></i></a></li></ul></div></div></div></nav><script>var $body=document.body,$toggle=document.querySelector(".navbar-toggle"),$navbar=document.querySelector("#huxblog_navbar"),$collapse=document.querySelector(".navbar-collapse");$toggle.addEventListener("click",handleMagic);function handleMagic(){$navbar.className.indexOf("in")>0?($navbar.className=" ",setTimeout(function(){$navbar.className.indexOf("in")<0&&($collapse.style.height="0px")},400)):($collapse.style.height="auto",$navbar.className+=" in")}</script><style type=text/css>header.intro-header{background-image:url(/img/aksai.jpg)}</style><header class=intro-header><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class=post-heading><div class=tags><a class=tag href=/tags/ssh title=ssh>ssh</a>
+<a class=tag href=/tags/security title=security>security</a>
+<a class=tag href=/tags/vpn title=VPN>VPN</a>
+<a class=tag href=/tags/ssl title=SSL>SSL</a>
+<a class=tag href=/tags/https title=https>https</a></div><h1>О безопасных каналах для юных админов</h1><h2 class=subheading></h2><span class=meta>Posted by
+map[name:devi1 uri:https://www.blogger.com/profile/05777499482649623616]
+on
+Friday, August 23, 2013</span></div></div></div></div></header><article><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+post-container"><p>Написано по-русски и понятно даже для неподготовленного пользователя.</p><p>Параллельно с развитием технологий защиты интернет-трафика от несанкционированного доступа развиваются и технологии перехвата защищенного трафика. Перехватить и изучить незашифрованный трафик пользователя уже давно не составляет труда даже для рядового юзера. Практически каждому известно слово «сниффер». Теоретически, защищенные <a href=http://ru.wikipedia.org/wiki/SSL>SSL</a>/<a href=http://ru.wikipedia.org/wiki/TLS>TSL</a>-соединения перехватить обычными средствами невозможно. Но так ли это?</p><p>На самом деле — не совсем так. Да, зашифрованный трафик теоретически невозможно расшифровать, хотя опять таки теоретически при очень большой необходимости и желании, и такой трафик можно расшифровать, подобрав ключ. Однако для этого нужны такие затраты ресурсов, что актуальность взлома сохраняется только, наверное, на правительственном или военном уровне :)</p><p>При работе по защищенному соединению (самый просто пример — <a href=http://habrahabr.ru/blogs/infosecurity/44818/>HTTPS</a>) весь трафик между взаимодействующими точками в сети шифруется на стороне отправителя и дешифруется на стороне получателя. Шифруется трафик, идущий в обоих направлениях. Для того, чтобы его зашифровать и расшифровать нужна пара ключей (ассиметричное шифрование). Публичный ключ служит для зашифрования и передается получателю данных, а приватный — для дешифрования, он остается у отправителя. Таким образом, узлы, между которыми устанавливается SSL-соединение, обмениваются публичными ключами. Далее, для повышения производительности формируется единый ключ, который пересылается уже в зашифрованном виде и используется как для шифрации, так и для дешифрации на обеих сторонах (симметричное шифрование).</p><p>А как они это делают? Обычно — по тому же каналу, по которому далее будет идти защищенный трафик. Причем обмен ключами происходит в открытом режиме. В случае HTTPS ключ сервера связан с сертификатом, который пользователю предлагается просмотреть и принять. И вот этот сертификат как раз и может перехватить любой промежуточный сервер, на пути которого идет сертификат в открытом виде (прокси, роутер).</p><p>Чтобы далее «читать» весь трафик пользователя, промежуточный сервер подменяет сертификат на свой. Т.е. он просто сам подключается к клиенту со своим сертификатом, и в то же время подключается к удаленному серверу. Клиенту приходит «левый» сертификат от сервера-злоумышленника, а браузер сообщает пользователю об опасности (такие сертификаты всегда не подписаны). У пользователя остается выбор: принять сертификат и работать с сайтом, либо отказаться его принимать, но и работать с сайтом тогда уже не получится. Иногда пользователи вообще игнорируют содержимое сертификатов и машинально принимают любые переданные им.</p><p>Если пользователь принимает сертификат-подделку, то трафик будет идти по следующей схеме:</p><p><em>клиент &lt;= SSL-соединение => сервер-прослушка &lt;= SSL-соединение => сервер назначения</em></p><p>Т.е. промежуточный сервер будет получать весь ваш «защищенный» трафик в открытом виде. Стоит также заметить, что передача сертификата происходит в начале каждой сессии HTTPS.</p><p>В случае защищенного SSH при первом соединении с сервером на клиенте сохраняется ключ сервера, а на сервере — ключ клиента. Эти ключи передаются между данными клиентом-сервером только один раз, при первом подключении. Если в этом случае SSH-трафик попытаются перехватить, то и клиент, и сервер откажут в соединении из-за несоответствия ключей. Так как ключи можно перенести между клиентом и сервером обходным путем (по защищенному каналу или на внешнем носителе), этот способ соединения является относительно безопасным. Его могут лишь заблокировать, заставив пользователя работать в открытую.</p><p>Стоит отметить, что уже давно продаются так называемые «решения по информационной безопасности предприятия», которые перехватывают весь трафик, проходящий через офисный прокси-сервер, и «читают» его. Программы ищут наличие определенных фраз или информации определенного вида в потоке данных от браузеров, почтовых программ, ftp-клиентов, мессенджеров сотрудников офиса. Причем, эти программы умеют различать и обрабатывать правильно самые разные виды информационного взаимодействия с серверами. В том числе, они проверяют и защищенный SSL-трафик путем подмены сертификатов. С разработкой одной из таких систем я сталкивался почти непосредственно.</p><p>Но пути спасения от тотальной слежки есть. Через установленное SSH-соединение можно направлять любой нужный трафик, который с SSH-сервера будет уже в открытом виде идти на конечную точку. Этот способ называется SSH-туннелинг (tunneling). Так можно обезопасить прохождение трафика по незащищенному каналу, но имеет смысл такой подход только при наличии доверенного сервера с поднятым и настроенным на туннелинг SSH-демоном. Причем организовать это достаточно просто. SSH-клиент подключается к серверу, настраивается на прослушку любого данного порта на локальной машине. Этот клиент будет предоставлять услугу SOCKS5-прокси, т.е. его использование можно настроить в любом браузере, почтовых программах, IM-ах и т.д. Через SSH-туннель пакеты попадают на сервер, а с него уходят на целевой сервер. Схема получается следующая:</p><p><em>[localhost: клиент &lt;=> proxy] &lt;== SSH-соединение ==> сервер &lt;=> целевой сервер</em></p><p>Другой способ защиты трафика — <a href=http://ru.wikipedia.org/wiki/VPN>VPN</a>-канал. В использовании он проще и удобнее SSH-туннелинга, но в первичной установке и настройке сложнее. Основное удобство этого способа в том, что в программах не нужно прописывать прокси. А некоторый софт и вовсе прокси не поддерживает, следовательно только VPN и подойдет.</p><p>На практике есть два варианта работы. Первый — покупка VPN-акканута, который продается специально для этих целей (шифрование трафика по небезопасному каналу). В этом случае продаются обычно аккаунты, соединяться с которыми надо по протоколам PPTP (обычный VPN, который реализован, например, в Windows) или L2TP.</p><p>Второй вариант — покупка VDS-сервера (виртуальный выделенный сервер) с любым дистрибутивом линукса на борту и поднятие на нем VPN-сервера. VDS может быть российским или американским (только не забывайте про заокеанские пинги), дешевым (от $5) и слабым или дорогим и помощнее. На VDS ставят <a href=http://ru.wikipedia.org/wiki/OpenVPN>OpenVPN</a>-сервер, а на компьютере поднимается OpenVPN-клиент. Для Windows есть даже <a href=http://openvpn.se/>гуишная версия клиента</a>.</p><p>Если вы решите использовать вариант с OpenVPN, то есть например эта <a href="http://elwood.su/?p=8">простая пошаговая инструкция</a> по поднятию сервера (Debian). Установить клиента еще проще, особенно под Windows. Отметить стоит только один нюанс. Если весь трафик требуется пустить по созданному VPN-соединению, то требуется прописать default gateway на шлюз VPN (параметр redirect-gateway в конфиге клиента), а если только часть трафика (на определенные хосты), то можно прописать обычные статические маршруты на данные хосты (по IP; например, route add -p 81.25.32.25 10.7.0.1).</p><p>Для соединения OpenVPN обмен ключами происходит в ручном режиме, т.е. транспортировать их от сервера на клиент можно абсолютно безопасно.</p><p>Таким образом, SSH- и VPN-соединения могут практически полностью гарантировать безопасность вашего трафика при перемещении по незащищенному каналу. Единственная проблема, которая может возникнуть в этом случае, — это запрет на SSL-трафик на корпоративном файрволе. Если SSL-трафик разрешен хотябы на один любой порт (обычно дефолтный 443), то вы уже потенциально можете поднять и SSH-тонель, и VPN-соединение, настроив соответствующего демона на вашем VDS на этот порт.</p><p>Спасибо, <a href=http://habrahabr.ru/post/46321/>Хабр</a>!</p><hr><ul class=pager><li class=previous><a href=/blogger/%D0%B1%D0%BE%D0%BC%D0%B1%D0%B0-%D0%B4%D0%BB%D1%8F-%D0%BD%D0%B5%D0%B4%D0%BE%D0%B1%D1%80%D0%BE%D1%81%D0%BE%D0%B2%D0%B5%D1%81%D1%82%D0%BD%D0%BE%D0%B3%D0%BE-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%B0/ data-toggle=tooltip data-placement=top title="Бомба для недобросовестного клиента">&larr;
+Previous Post</a></li><li class=next><a href=/blogger/wireshark-%D0%B4%D0%BB%D1%8F-%D1%81%D0%B0%D0%BC%D1%8B%D1%85-%D0%BC%D0%B0%D0%BB%D0%B5%D0%BD%D1%8C%D0%BA%D0%B8%D1%85/ data-toggle=tooltip data-placement=top title="Wireshark для самых маленьких">Next
+Post &rarr;</a></li></ul><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//bubnovd-github-io.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="col-lg-2 col-lg-offset-0
+visible-lg-block
+sidebar-container
+catalog-container"><div class=side-catalog><hr class="hidden-sm hidden-xs"><h5><a class=catalog-toggle href=#>CATALOG</a></h5><ul class=catalog-body></ul></div></div><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+sidebar-container"><section><hr class="hidden-sm hidden-xs"><h5><a href=/tags/>FEATURED TAGS</a></h5><div class=tags><a href=/tags/#sysadminka title=#sysadminka>#sysadminka</a>
+<a href=/tags/1%D1%81 title=1с>1с</a>
+<a href=/tags/about title=about>about</a>
+<a href=/tags/active-directory title=active-directory>active-directory</a>
+<a href=/tags/ad title=ad>ad</a>
+<a href=/tags/asterisk title=asterisk>asterisk</a>
+<a href=/tags/bandwidth title=bandwidth>bandwidth</a>
+<a href=/tags/best-practice title=best-practice>best-practice</a>
+<a href=/tags/bgp title=bgp>bgp</a>
+<a href=/tags/books title=books>books</a>
+<a href=/tags/certification title=certification>certification</a>
+<a href=/tags/cisco title=cisco>cisco</a>
+<a href=/tags/cmd title=cmd>cmd</a>
+<a href=/tags/cureit title=cureit>cureit</a>
+<a href=/tags/d-link title=d-link>d-link</a>
+<a href=/tags/ddos title=ddos>ddos</a>
+<a href=/tags/debian title=debian>debian</a>
+<a href=/tags/dhcp title=dhcp>dhcp</a>
+<a href=/tags/dns title=dns>dns</a>
+<a href=/tags/dpi title=dpi>dpi</a>
+<a href=/tags/dr.web title=dr.web>dr.web</a>
+<a href=/tags/eoip title=eoip>eoip</a>
+<a href=/tags/failover title=failover>failover</a>
+<a href=/tags/firewall title=firewall>firewall</a>
+<a href=/tags/freebsd title=freebsd>freebsd</a>
+<a href=/tags/groups title=groups>groups</a>
+<a href=/tags/hack title=hack>hack</a>
+<a href=/tags/hardware title=hardware>hardware</a>
+<a href=/tags/hdd title=hdd>hdd</a>
+<a href=/tags/hyper-v title=hyper-v>hyper-v</a>
+<a href=/tags/internet title=internet>internet</a>
+<a href=/tags/ip-%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD%D0%B8%D1%8F title=ip-телефония>ip-телефония</a>
+<a href=/tags/iptables title=iptables>iptables</a>
+<a href=/tags/iso/osi title=iso/osi>iso/osi</a>
+<a href=/tags/keepass title=keepass>keepass</a>
+<a href=/tags/l2 title=l2>l2</a>
+<a href=/tags/link title=link>link</a>
+<a href=/tags/links title=links>links</a>
+<a href=/tags/linux title=linux>linux</a>
+<a href=/tags/linux-firewalls title=linux-firewalls>linux-firewalls</a>
+<a href=/tags/linux-server title=linux-server>linux-server</a>
+<a href=/tags/microsoft title=microsoft>microsoft</a>
+<a href=/tags/midnightcommander title=midnightcommander>midnightcommander</a>
+<a href=/tags/mikrotik title=mikrotik>mikrotik</a>
+<a href=/tags/monitoring title=monitoring>monitoring</a>
+<a href=/tags/mpls title=mpls>mpls</a>
+<a href=/tags/ms title=ms>ms</a>
+<a href=/tags/mss title=mss>mss</a>
+<a href=/tags/mtcna title=mtcna>mtcna</a>
+<a href=/tags/mtcre title=mtcre>mtcre</a>
+<a href=/tags/mtu title=mtu>mtu</a>
+<a href=/tags/mum title=mum>mum</a>
+<a href=/tags/mva title=mva>mva</a>
+<a href=/tags/open-source title=open-source>open-source</a>
+<a href=/tags/oreilly title=oreilly>oreilly</a>
+<a href=/tags/ospf title=ospf>ospf</a>
+<a href=/tags/password title=password>password</a>
+<a href=/tags/powershell title=powershell>powershell</a>
+<a href=/tags/pptp title=pptp>pptp</a>
+<a href=/tags/presentation title=presentation>presentation</a>
+<a href=/tags/python title=python>python</a>
+<a href=/tags/qos title=qos>qos</a>
+<a href=/tags/raid title=raid>raid</a>
+<a href=/tags/rdp title=rdp>rdp</a>
+<a href=/tags/routerboard title=routerboard>routerboard</a>
+<a href=/tags/routeros title=routeros>routeros</a>
+<a href=/tags/routing title=routing>routing</a>
+<a href=/tags/script title=script>script</a>
+<a href=/tags/sdn title=sdn>sdn</a>
+<a href=/tags/security title=security>security</a>
+<a href=/tags/server title=server>server</a>
+<a href=/tags/snmp title=snmp>snmp</a>
+<a href=/tags/snmpv3 title=snmpv3>snmpv3</a>
+<a href=/tags/ssh title=ssh>ssh</a>
+<a href=/tags/ssl title=ssl>ssl</a>
+<a href=/tags/tcp/ip title=tcp/ip>tcp/ip</a>
+<a href=/tags/terminal title=terminal>terminal</a>
+<a href=/tags/the-dude title=the-dude>the-dude</a>
+<a href=/tags/ubuntu title=ubuntu>ubuntu</a>
+<a href=/tags/vpn title=vpn>vpn</a>
+<a href=/tags/webmin title=webmin>webmin</a>
+<a href=/tags/wi-fi title=wi-fi>wi-fi</a>
+<a href=/tags/wifi title=wifi>wifi</a>
+<a href=/tags/windows title=windows>windows</a>
+<a href=/tags/%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=автоматизация>автоматизация</a>
+<a href=/tags/%D0%B0%D0%BD%D1%82%D0%B8%D0%B2%D0%B8%D1%80%D1%83%D1%81-%D0%BA%D0%B0%D1%81%D0%BF%D0%B5%D1%80%D1%81%D0%BA%D0%BE%D0%B3%D0%BE title=антивирус-касперского>антивирус-касперского</a>
+<a href=/tags/%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=безопасность>безопасность</a>
+<a href=/tags/%D0%B1%D0%BB%D0%BE%D0%B3 title=блог>блог</a>
+<a href=/tags/%D0%B2%D0%B8%D1%80%D1%82%D1%83%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=виртуализация>виртуализация</a>
+<a href=/tags/%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D1%8B title=группы>группы</a>
+<a href=/tags/%D0%B4%D0%BB%D1%8F-%D1%87%D0%B0%D0%B9%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2 title=для-чайников>для-чайников</a>
+<a href=/tags/%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C title=жизнь>жизнь</a>
+<a href=/tags/%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD title=закон>закон</a>
+<a href=/tags/%D0%B8%D0%B1 title=иб>иб</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BD%D0%BE%D0%B5 title=интересное>интересное</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82 title=интернет>интернет</a>
+<a href=/tags/%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=информационная-безопасность>информационная-безопасность</a>
+<a href=/tags/%D0%B8%D1%81%D0%BF%D0%B4%D0%BD title=испдн>испдн</a>
+<a href=/tags/%D0%BA%D0%BD%D0%B8%D0%B3%D0%B8 title=книги>книги</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%82%D0%BE%D1%80 title=коммутатор>коммутатор</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%86%D0%B8%D1%8F title=коммутация>коммутация</a>
+<a href=/tags/%D0%BA%D1%83%D1%80%D1%81%D1%8B title=курсы>курсы</a>
+<a href=/tags/%D0%BB%D0%B8%D0%BD%D1%83%D0%BA%D1%81 title=линукс>линукс</a>
+<a href=/tags/%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0 title=настройка>настройка</a>
+<a href=/tags/%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5 title=обучение>обучение</a>
+<a href=/tags/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=оптимизация>оптимизация</a>
+<a href=/tags/%D0%BE%D1%84%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B title=официальные-документы>официальные-документы</a>
+<a href=/tags/%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C title=пароль>пароль</a>
+<a href=/tags/%D0%BF%D0%B4%D0%BD title=пдн>пдн</a>
+<a href=/tags/%D0%BF%D0%BE%D0%BB%D0%B5%D0%B7%D0%BD%D0%BE%D0%B5 title=полезное>полезное</a>
+<a href=/tags/%D0%BF%D1%80%D0%B8%D0%BA%D0%B0%D0%B7 title=приказ>приказ</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=производительность>производительность</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D1%84%D0%B5%D1%81%D1%81%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%BC title=профессионализм>профессионализм</a>
+<a href=/tags/%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0 title=работа>работа</a>
+<a href=/tags/%D1%81%D0%B5%D1%80%D1%82%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F title=сертификация>сертификация</a>
+<a href=/tags/%D1%81%D0%B5%D1%82%D1%8C title=сеть>сеть</a>
+<a href=/tags/%D1%81%D0%BA%D0%B7%D0%B8 title=скзи>скзи</a>
+<a href=/tags/%D1%81%D0%BA%D0%BE%D1%80%D0%BE%D1%81%D1%82%D1%8C title=скорость>скорость</a>
+<a href=/tags/%D1%81%D0%BA%D1%80%D0%B8%D0%BF%D1%82 title=скрипт>скрипт</a>
+<a href=/tags/%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B8 title=ссылки>ссылки</a>
+<a href=/tags/%D1%82%D1%83%D1%80%D0%B8%D0%B7%D0%BC title=туризм>туризм</a>
+<a href=/tags/%D1%86%D0%BE%D0%B4 title=цод>цод</a>
+<a href=/tags/%D1%87%D0%B5%D0%BB%D1%8F%D0%B1%D0%B8%D0%BD%D1%81%D0%BA title=челябинск>челябинск</a>
+<a href=/tags/%D1%8E%D0%B7%D0%B2%D0%B5%D1%80%D0%B8 title=юзвери>юзвери</a></div></section></div></div></div></article><footer><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center"></ul><p class="copyright text-muted">Copyright &copy; Админская фамилия 2022<br><a href=https://themes.gohugo.io/hugo-theme-cleanwhite>CleanWhite Hugo Theme</a> by <a href=https://zhaohuabing.com>Huabing</a> |
+<iframe style=margin-left:2px;margin-bottom:-5px frameborder=0 scrolling=0 width=100px height=20px src="https://ghbtns.com/github-btn.html?user=zhaohuabing&repo=hugo-theme-cleanwhite&type=star&count=true"></iframe></p></div></div></div></footer><script>function loadAsync(e,t){var s=document,o="script",n=s.createElement(o),i=s.getElementsByTagName(o)[0];n.src=e,t&&n.addEventListener("load",function(e){t(null,e)},!1),i.parentNode.insertBefore(n,i)}</script><script>$("#tag_cloud").length!==0&&loadAsync("/js/jquery.tagcloud.js",function(){$.fn.tagcloud.defaults={color:{start:"#bbbbee",end:"#0085a1"}},$("#tag_cloud a").tagcloud()})</script><script>loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js",function(){var e=document.querySelector("nav");e&&FastClick.attach(e)})</script><script type=text/javascript>function generateCatalog(e){_containerSelector="div.post-container";var t,n,s,o,i,a=$(_containerSelector),r=a.find("h1,h2,h3,h4,h5,h6");return $(e).html(""),r.each(function(){t=$(this).prop("tagName").toLowerCase(),o="#"+$(this).prop("id"),n=$(this).text(),i=$('<a href="'+o+'" rel="nofollow">'+n+"</a>"),s=$('<li class="'+t+'_nav"></li>').append(i),$(e).append(s)}),!0}generateCatalog(".catalog-body"),$(".catalog-toggle").click(function(e){e.preventDefault(),$(".side-catalog").toggleClass("fold")}),loadAsync("/js/jquery.nav.js",function(){$(".catalog-body").onePageNav({currentClass:"active",changeHash:!1,easing:"swing",filter:"",scrollSpeed:700,scrollOffset:0,scrollThreshold:.2,begin:null,end:null,scrollChange:null,padding:80})})</script></body></html>

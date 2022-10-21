@@ -1,0 +1,150 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:site_name" content="Админская фамилия"><meta property="og:type" content="article"><meta property="og:image" content="https://bubnovd.net//img/aksai.jpg"><meta property="twitter:image" content="https://bubnovd.net//img/aksai.jpg"><meta name=title content="[Мониторинг] Prometheus + Grafana. Часть 1. Общая информация"><meta property="og:title" content="[Мониторинг] Prometheus + Grafana. Часть 1. Общая информация"><meta property="twitter:title" content="[Мониторинг] Prometheus + Grafana. Часть 1. Общая информация"><meta name=description content="My blog about IT"><meta property="og:description" content="My blog about IT"><meta property="twitter:description" content="My blog about IT"><meta property="twitter:card" content="summary"><meta name=keyword content><link rel="shortcut icon" href=/img/favicon.ico><title>[Мониторинг] Prometheus + Grafana. Часть 1. Общая информация |</title><link rel=canonical href=/blogger/%D0%BC%D0%BE%D0%BD%D0%B8%D1%82%D0%BE%D1%80%D0%B8%D0%BD%D0%B3-prometheus--grafana.-%D1%87%D0%B0%D1%81%D1%82%D1%8C-1.-%D0%BE%D0%B1%D1%89%D0%B0%D1%8F-%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D1%8F/><link rel=stylesheet href=/css/bootstrap.min.css><link rel=stylesheet href=/css/hugo-theme-cleanwhite.min.css><link rel=stylesheet href=/css/zanshang.css><link href=https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@5.15.1/css/all.css rel=stylesheet type=text/css><script src=/js/jquery.min.js></script>
+<script src=/js/bootstrap.min.js></script>
+<script src=/js/hux-blog.min.js></script>
+<script src=/js/lazysizes.min.js></script></head><nav class="navbar navbar-default navbar-custom navbar-fixed-top"><div class=container-fluid><div class="navbar-header page-scroll"><button type=button class=navbar-toggle>
+<span class=sr-only>Toggle navigation</span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+<span class=icon-bar></span></button>
+<a class=navbar-brand href=/>Админская фамилия</a></div><div id=huxblog_navbar><div class=navbar-collapse><ul class="nav navbar-nav navbar-right"><li><a href=/>All Posts</a></li><li><a href=/archive/>Archive</a></li><li><a href=/search><i class="fa fa-search"></i></a></li></ul></div></div></div></nav><script>var $body=document.body,$toggle=document.querySelector(".navbar-toggle"),$navbar=document.querySelector("#huxblog_navbar"),$collapse=document.querySelector(".navbar-collapse");$toggle.addEventListener("click",handleMagic);function handleMagic(){$navbar.className.indexOf("in")>0?($navbar.className=" ",setTimeout(function(){$navbar.className.indexOf("in")<0&&($collapse.style.height="0px")},400)):($collapse.style.height="auto",$navbar.className+=" in")}</script><style type=text/css>header.intro-header{background-image:url(/img/aksai.jpg)}</style><header class=intro-header><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class=post-heading><div class=tags><a class=tag href=/tags/prometheus title=prometheus>prometheus</a>
+<a class=tag href=/tags/grafana title=grafana>grafana</a>
+<a class=tag href=/tags/monitoring title=monitoring>monitoring</a>
+<a class=tag href=/tags/snmp_exporter title=snmp_exporter>snmp_exporter</a></div><h1>[Мониторинг] Prometheus + Grafana. Часть 1. Общая информация</h1><h2 class=subheading></h2><span class=meta>Posted by
+map[name:devi1 uri:https://www.blogger.com/profile/05777499482649623616]
+on
+Sunday, May 27, 2018</span></div></div></div></div></header><article><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+post-container"><p>Система мониторинга - неотъемлемая часть ИТ инфраструктуры. Сеть не исключение. Для мониторинга сети уже написано много различных систем на разные вкусы:</p><ul><li><p><a href=http://www.bubnovd.net/2017/05/thedudenetwork-managementandmonitoring.html>The Dude</a>. Простая и быстрая в настройке и освоении система мониторинга от Mikrotik. Идеально подходит для небольших сетей или в случае, когда мониторинг нужен &ldquo;вчера&rdquo;</p></li><li><p><a href=https://www.zabbix.com/ru/>Zabbix</a>. Монструозный гигант. Долгое время стандарт де факто в мониторинге (да и сейчас, пожалуй). Умеет, не побоюсь этого слова, всё. </p></li><li><p><a href=http://www.bubnovd.net/2014/03/cacti-mikrotik-full-monitoring.html>Cacti</a>. Легковесная мониторилка на основе RRDTool</p></li><li><p><a href=https://oss.oetiker.ch/mrtg/>MRTG</a>, <a href=https://www.ru.paessler.com/prtg>PRTG</a> и <a href=https://www.nagios.org/>куча</a> других <a href=https://www.icinga.com/>систем</a></p></li></ul><p>С распространением микросервисов функциональности и производительности существующих систем мониторинга стало не хватать и, что ожидаемо, начали разрабатываться и внедряться новые системы. В очередном моём проекте как раз понадобилась система мониторинга. И чтобы не отставать от цивилизованного мира, я решил попробовать что-то новое. Выбор пал на стек Prometheus + Grafana. Чтобы как-то увлечь Вас, предлагаю посмотреть на демо интерфейс по <a href="https://play.grafana.org/d/000000003/big-dashboard?orgId=1">ссылке</a>.</p><p><a href=https://3.bp.blogspot.com/-LyDAjmqZx7g/Wwrve4VCaXI/AAAAAAAAFP0/eicg99-DMPs07f5vrO_BbVTVzWEFRp_ZwCLcBGAs/s1600/grafana.PNG><img src=https://3.bp.blogspot.com/-LyDAjmqZx7g/Wwrve4VCaXI/AAAAAAAAFP0/eicg99-DMPs07f5vrO_BbVTVzWEFRp_ZwCLcBGAs/s640/grafana.PNG alt></a></p><p>Grafana</p><p>Давайте рассмотрим что же из себя представляет этот стек.</p><p>В современной разработке принято разделять продукт на несколько разных по назначению частей. Так система получается более масштабируемой и универсальной. Вот и здесь система мониторинга состоит из нескольких частей:</p><p><img src="https://avatars1.githubusercontent.com/u/3380462?s=200&v=4" alt=@prometheus>
+<strong><a href=https://github.com/prometheus/prometheus>Prometheus</a></strong></p><p>Как написано по ссылке, это система мониторинга и time-series database. Prometheus принимает метрики из разных источников (exporters), записывает их в базу и предоставляет интерфейс для построения графиков и различных выборок.</p><p><img src="data:image/svg+xml,%3Csvg%20id=%22Layer_1%22%20xmlns=%22http://www.w3.org/2000/svg%22%20xmlns:xlink=%22http://www.w3.org/1999/xlink%22%20width=%22351%22%20height=%22365%22%20viewBox=%220%200%20351%20365%22%20enable-background=%22new%200%200%20351%20365%22%3E%3Cg%20id=%22Layer_1_1_%22/%3E%3ClinearGradient%20id=%22SVGID_1_%22%20gradientUnits=%22userSpaceOnUse%22%20x1=%22170.9181%22%20y1=%22439.481%22%20x2=%22170.9181%22%20y2=%22106.6749%22%3E%3Cstop%20offset=%220%22%20style=%22stop-color:%23FFF100%22/%3E%3Cstop%20offset=%221%22%20style=%22stop-color:%23F05A28%22/%3E%3C/linearGradient%3E%3Cpath%20fill=%22url(%23SVGID_1_)%22%20d=%22M337.5%20161.1c-.6-6.1-1.6-13.1-3.6-20.9-2-7.7-5-16.2-9.4-25S314.4%2097.3%20307%2088.4c-2.9-3.5-6.1-6.9-9.5-10.2%205.1-20.3-6.2-37.9-6.2-37.9-19.5-1.2-31.9%206.1-36.5%209.4-.8-.3-1.5-.7-2.3-1-3.3-1.3-6.7-2.6-10.3-3.7-3.5-1.1-7.1-2.1-10.8-3-3.7-.9-7.4-1.6-11.2-2.2-.7-.1-1.3-.2-2-.3C209.6%2012.4%20185.1%201%20185.1%201c-27.3%2017.3-32.4%2041.5-32.4%2041.5s-.1.5-.3%201.4c-1.5.4-3%20.9-4.5%201.3-2.1.6-4.2%201.4-6.2%202.2-2.1.8-4.1%201.6-6.2%202.5-4.1%201.8-8.2%203.8-12.2%206-3.9%202.2-7.7%204.6-11.4%207.1-.5-.2-1-.4-1-.4-37.8-14.4-71.3%202.9-71.3%202.9-3.1%2040.2%2015.1%2065.5%2018.7%2070.1-.9%202.5-1.7%205-2.5%207.5-2.8%209.1-4.9%2018.4-6.2%2028.1-.2%201.4-.4%202.8-.5%204.2-34.9%2017.2-45.2%2052.5-45.2%2052.5C33%20261.4%2067%20263.5%2067%20263.5s.1-.1.1-.1c4.3%207.7%209.3%2015%2014.9%2021.9%202.4%202.9%204.8%205.6%207.4%208.3-10.6%2030.4%201.5%2055.6%201.5%2055.6%2032.4%201.2%2053.7-14.2%2058.2-17.7%203.2%201.1%206.5%202.1%209.8%202.9%2010%202.6%2020.2%204.1%2030.4%204.5%202.5.1%205.1.2%207.6.1h1.2.8%201.6l1.6-.1s0%20.1.0.1c15.3%2021.8%2042.1%2024.9%2042.1%2024.9%2021.6-22.8%2020.2-45.3%2020.2-45.3-.2-.2-.4-.3-.6-.5%204.2-2.9%208.2-6.1%2012-9.5%207.6-6.9%2014.3-14.8%2019.9-23.3.5-.8%201-1.6%201.5-2.4%2021.6%201.2%2036.9-13.4%2036.9-13.4-4-25.2-19.6-36-19.6-36-.2.0-.3.1-.5.1.2-1.5.3-3%20.4-4.5.2-2.4.2-4.9.2-7.3V220v-.9-.5c0-.6.0-.4.0-.6l-.1-1.5-.1-2c0-.7-.1-1.3-.2-1.9-.1-.6-.1-1.3-.2-1.9l-.2-1.9-.3-1.9c-.4-2.5-.8-4.9-1.4-7.4-2.3-9.7-6.1-18.9-11-27.2-5-8.3-11.2-15.6-18.3-21.8-7-6.2-14.9-11.2-23.1-14.9-8.3-3.7-16.9-6.1-25.5-7.2-4.3-.6-8.6-.8-12.9-.7h-1.6-.4c-.1.0-.6.0-.5.0h-.7l-1.6.1c-.6.0-1.2.1-1.7.1-2.2.2-4.4.5-6.5.9-8.6%201.6-16.7%204.7-23.8%209-7.1%204.3-13.3%209.6-18.3%2015.6s-8.9%2012.7-11.6%2019.6-4.2%2014.1-4.6%2021c-.1%201.7-.1%203.5-.1%205.2.0.4.0.9.0%201.3l.1%201.4c.1.8.1%201.7.2%202.5.3%203.5%201%206.9%201.9%2010.1%201.9%206.5%204.9%2012.4%208.6%2017.4s8.2%209.1%2012.9%2012.4c4.7%203.2%209.8%205.5%2014.8%207s10%202.1%2014.7%202.1c.6.0%201.2.0%201.7.0.3.0.6.0.9.0s.6.0.9-.1c.5.0%201-.1%201.5-.1.1.0.3.0.4-.1l.5-.1c.3.0.6-.1.9-.1.6-.1%201.1-.2%201.7-.3.6-.1%201.1-.2%201.6-.4%201.1-.2%202.1-.6%203.1-.9%202-.7%204-1.5%205.7-2.4%201.8-.9%203.4-2%205-3%20.4-.3.9-.6%201.3-1%201.6-1.3%201.9-3.7.6-5.3-1.1-1.4-3.1-1.8-4.7-.9-.4.2-.8.4-1.2.6-1.4.7-2.8%201.3-4.3%201.8s-3.1.9-4.7%201.2c-.8.1-1.6.2-2.5.3-.4.0-.8.1-1.3.1-.4.0-.9.0-1.2.0-.4.0-.8.0-1.2.0-.5.0-1%200-1.5-.1.0.0-.3.0-.1.0h-.2-.3c-.2.0-.5.0-.7-.1-.5-.1-.9-.1-1.4-.2-3.7-.5-7.4-1.6-10.9-3.2-3.6-1.6-7-3.8-10.1-6.6-3.1-2.8-5.8-6.1-7.9-9.9s-3.6-8-4.3-12.4c-.3-2.2-.5-4.5-.4-6.7.0-.6.1-1.2.1-1.8.0.2.0-.1.0-.1v-.2-.5c0-.3.1-.6.1-.9.1-1.2.3-2.4.5-3.6%201.7-9.6%206.5-19%2013.9-26.1%201.9-1.8%203.9-3.4%206-4.9s4.4-2.8%206.8-3.9%204.8-2%207.4-2.7c2.5-.7%205.1-1.1%207.8-1.4%201.3-.1%202.6-.2%204-.2.4.0.6.0.9.0h1.1.7c.3.0.0.0.1.0h.3l1.1.1c2.9.2%205.7.6%208.5%201.3%205.6%201.2%2011.1%203.3%2016.2%206.1%2010.2%205.7%2018.9%2014.5%2024.2%2025.1%202.7%205.3%204.6%2011%205.5%2016.9.2%201.5.4%203%20.5%204.5l.1%201.1.1%201.1c0%20.4.0.8.0%201.1.0.4.0.8.0%201.1v1%201.1c0%20.7-.1%201.9-.1%202.6-.1%201.6-.3%203.3-.5%204.9s-.5%203.2-.8%204.8c-.3%201.6-.7%203.2-1.1%204.7-.8%203.1-1.8%206.2-3%209.3-2.4%206-5.6%2011.8-9.4%2017.1-7.7%2010.6-18.2%2019.2-30.2%2024.7-6%202.7-12.3%204.7-18.8%205.7-3.2.6-6.5.9-9.8%201h-.6-.5-1.1-1.6-.8c.4.0-.1.0-.1.0h-.3c-1.8.0-3.5-.1-5.3-.3-7-.5-13.9-1.8-20.7-3.7-6.7-1.9-13.2-4.6-19.4-7.8-12.3-6.6-23.4-15.6-32-26.5-4.3-5.4-8.1-11.3-11.2-17.4-3.1-6.1-5.6-12.6-7.4-19.1-1.8-6.6-2.9-13.3-3.4-20.1l-.1-1.3v-.3-.3-.6-1.1-.3-.4-.8-1.6-.3s0%20.1.0-.1v-.6c0-.8.0-1.7.0-2.5.1-3.3.4-6.8.8-10.2.4-3.4%201-6.9%201.7-10.3s1.5-6.8%202.5-10.2c1.9-6.7%204.3-13.2%207.1-19.3%205.7-12.2%2013.1-23.1%2022-31.8%202.2-2.2%204.5-4.2%206.9-6.2%202.4-1.9%204.9-3.7%207.5-5.4%202.5-1.7%205.2-3.2%207.9-4.6%201.3-.7%202.7-1.4%204.1-2%20.7-.3%201.4-.6%202.1-.9.7-.3%201.4-.6%202.1-.9%202.8-1.2%205.7-2.2%208.7-3.1.7-.2%201.5-.4%202.2-.7.7-.2%201.5-.4%202.2-.6%201.5-.4%203-.8%204.5-1.1.7-.2%201.5-.3%202.3-.5s1.5-.3%202.3-.5c.8-.1%201.5-.3%202.3-.4l1.1-.2%201.2-.2c.8-.1%201.5-.2%202.3-.3.9-.1%201.7-.2%202.6-.3.7-.1%201.9-.2%202.6-.3.5-.1%201.1-.1%201.6-.2l1.1-.1.5-.1h.6c.9-.1%201.7-.1%202.6-.2l1.3-.1s.5.0.1.0h.3.6c.7.0%201.5-.1%202.2-.1%202.9-.1%205.9-.1%208.8.0%205.8.2%2011.5.9%2017%201.9%2011.1%202.1%2021.5%205.6%2031%2010.3%209.5%204.6%2017.9%2010.3%2025.3%2016.5.5.4.9.8%201.4%201.2.4.4.9.8%201.3%201.2.9.8%201.7%201.6%202.6%202.4.9.8%201.7%201.6%202.5%202.4.8.8%201.6%201.6%202.4%202.5%203.1%203.3%206%206.6%208.6%2010%205.2%206.7%209.4%2013.5%2012.7%2019.9.2.4.4.8.6%201.2.2.4.4.8.6%201.2.4.8.8%201.6%201.1%202.4.4.8.7%201.5%201.1%202.3.3.8.7%201.5%201%202.3%201.2%203%202.4%205.9%203.3%208.6%201.5%204.4%202.6%208.3%203.5%2011.7.3%201.4%201.6%202.3%203%202.1%201.5-.1%202.6-1.3%202.6-2.8C338%20170.3%20337.9%20166%20337.5%20161.1z%22/%3E%3C/svg%3E" alt="Grafana Icon">
+ <strong><a href=https://grafana.com/>Grafana</a></strong></p><p>Если предыдущая часть собирает и хранит данные, то эта - отображает их в удобной для пользователя форме. Посмотрите ещё раз <a href="https://play.grafana.org/d/000000012/grafana-play-home?orgId=1">на интерфейс</a> - ну разве не волшебство?</p><p>Prometheus получает данные от экспортеров в виде простого текста. Вроде этого:</p><blockquote><p># HELP go_gc_duration_seconds A summary of the GC invocation durations.<br># TYPE go_gc_duration_seconds summary<br>go_gc_duration_seconds{quantile=&ldquo;0&rdquo;} 6.5914e-05<br>go_gc_duration_seconds{quantile=&ldquo;0.25&rdquo;} 0.000120385<br>go_gc_duration_seconds{quantile=&ldquo;0.5&rdquo;} 0.000150536<br>go_gc_duration_seconds{quantile=&ldquo;0.75&rdquo;} 0.000208313<br>go_gc_duration_seconds{quantile=&ldquo;1&rdquo;} 0.001072873<br>go_gc_duration_seconds_sum 0.333397658<br>go_gc_duration_seconds_count 1648<br># HELP go_goroutines Number of goroutines that currently exist.<br># TYPE go_goroutines gauge<br>go_goroutines 58</p></blockquote><p>Но эти данные ему ещё нужно доставить. Сами ведь они к нему не придут. Для этого существуют специальные модули, называемые exporters, которые позволяют отсылать данные Prometheus&rsquo;у. Со списком можно ознакомиться <a href=https://prometheus.io/docs/instrumenting/exporters/>по ссылке</a>. Это что-то вроде Zabbix agent&rsquo;ов. Есть экспортеры для Linux и Windows, MS SQL, MySQL, Nginx и других систем.</p><p>Так как нас в первую очередь интересует сеть, то и экспортировать нам надо SNMP. В этом нам поможет <a href=https://github.com/prometheus/snmp_exporter>SNMP_exporter</a>.</p><p>Таким образом, мы определились, что наш стек мониторинга будет работать на Prometheus, Grafana и snmp_exporter для Prometheus. Все эти модули можно менять на любые другие такого же назначения. Интерфейс Grafana можно заменить на Kibana (но не стоит этого делать - kibana совсем для других целей), а БД в виде Prometheus можно заменить на InfluxDB, Graphite или что-то ещё. Я выбрал именно Grafana + Prometheus + snmp_exporter за гибкий язык запросов prometheus  и гибкость и красоту grafana.</p><p>Чтобы ещё больше погрузиться в модные технологии, весь стек было решено поднимать в docker контейнерах. Вам совсем необязательно повторять этот трюк, но познакомиться с контейнерезацией в XXI веке тоже было бы неплохо.</p><p>На этом пока всё. В следующей части установим и настроим сборку метрик с помощью prometheus и snmp_exporter.</p><hr><ul class=pager><li class=previous><a href=/blogger/ceph.-%D1%82%D1%80%D0%B5%D0%B1%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-%D0%BA-%D0%B6%D0%B5%D0%BB%D0%B5%D0%B7%D1%83/ data-toggle=tooltip data-placement=top title="CEPH. Требования к железу">&larr;
+Previous Post</a></li><li class=next><a href=/blogger/%D0%BC%D1%8B%D1%81%D0%BB%D0%B8-%D0%BE-%D0%BD%D0%B0%D1%88%D0%B5%D0%BC-%D0%B1%D1%83%D0%B4%D1%83%D1%89%D0%B5%D0%BC/ data-toggle=tooltip data-placement=top title="Мысли о нашем будущем">Next
+Post &rarr;</a></li></ul><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//bubnovd-github-io.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="col-lg-2 col-lg-offset-0
+visible-lg-block
+sidebar-container
+catalog-container"><div class=side-catalog><hr class="hidden-sm hidden-xs"><h5><a class=catalog-toggle href=#>CATALOG</a></h5><ul class=catalog-body></ul></div></div><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+sidebar-container"><section><hr class="hidden-sm hidden-xs"><h5><a href=/tags/>FEATURED TAGS</a></h5><div class=tags><a href=/tags/#sysadminka title=#sysadminka>#sysadminka</a>
+<a href=/tags/1%D1%81 title=1с>1с</a>
+<a href=/tags/about title=about>about</a>
+<a href=/tags/active-directory title=active-directory>active-directory</a>
+<a href=/tags/ad title=ad>ad</a>
+<a href=/tags/asterisk title=asterisk>asterisk</a>
+<a href=/tags/bandwidth title=bandwidth>bandwidth</a>
+<a href=/tags/best-practice title=best-practice>best-practice</a>
+<a href=/tags/bgp title=bgp>bgp</a>
+<a href=/tags/books title=books>books</a>
+<a href=/tags/certification title=certification>certification</a>
+<a href=/tags/cisco title=cisco>cisco</a>
+<a href=/tags/cmd title=cmd>cmd</a>
+<a href=/tags/cureit title=cureit>cureit</a>
+<a href=/tags/d-link title=d-link>d-link</a>
+<a href=/tags/ddos title=ddos>ddos</a>
+<a href=/tags/debian title=debian>debian</a>
+<a href=/tags/dhcp title=dhcp>dhcp</a>
+<a href=/tags/dns title=dns>dns</a>
+<a href=/tags/dpi title=dpi>dpi</a>
+<a href=/tags/dr.web title=dr.web>dr.web</a>
+<a href=/tags/eoip title=eoip>eoip</a>
+<a href=/tags/failover title=failover>failover</a>
+<a href=/tags/firewall title=firewall>firewall</a>
+<a href=/tags/freebsd title=freebsd>freebsd</a>
+<a href=/tags/groups title=groups>groups</a>
+<a href=/tags/hack title=hack>hack</a>
+<a href=/tags/hardware title=hardware>hardware</a>
+<a href=/tags/hdd title=hdd>hdd</a>
+<a href=/tags/hyper-v title=hyper-v>hyper-v</a>
+<a href=/tags/internet title=internet>internet</a>
+<a href=/tags/ip-%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD%D0%B8%D1%8F title=ip-телефония>ip-телефония</a>
+<a href=/tags/iptables title=iptables>iptables</a>
+<a href=/tags/iso/osi title=iso/osi>iso/osi</a>
+<a href=/tags/keepass title=keepass>keepass</a>
+<a href=/tags/l2 title=l2>l2</a>
+<a href=/tags/link title=link>link</a>
+<a href=/tags/links title=links>links</a>
+<a href=/tags/linux title=linux>linux</a>
+<a href=/tags/linux-firewalls title=linux-firewalls>linux-firewalls</a>
+<a href=/tags/linux-server title=linux-server>linux-server</a>
+<a href=/tags/microsoft title=microsoft>microsoft</a>
+<a href=/tags/midnightcommander title=midnightcommander>midnightcommander</a>
+<a href=/tags/mikrotik title=mikrotik>mikrotik</a>
+<a href=/tags/monitoring title=monitoring>monitoring</a>
+<a href=/tags/mpls title=mpls>mpls</a>
+<a href=/tags/ms title=ms>ms</a>
+<a href=/tags/mss title=mss>mss</a>
+<a href=/tags/mtcna title=mtcna>mtcna</a>
+<a href=/tags/mtcre title=mtcre>mtcre</a>
+<a href=/tags/mtu title=mtu>mtu</a>
+<a href=/tags/mum title=mum>mum</a>
+<a href=/tags/mva title=mva>mva</a>
+<a href=/tags/open-source title=open-source>open-source</a>
+<a href=/tags/oreilly title=oreilly>oreilly</a>
+<a href=/tags/ospf title=ospf>ospf</a>
+<a href=/tags/password title=password>password</a>
+<a href=/tags/powershell title=powershell>powershell</a>
+<a href=/tags/pptp title=pptp>pptp</a>
+<a href=/tags/presentation title=presentation>presentation</a>
+<a href=/tags/python title=python>python</a>
+<a href=/tags/qos title=qos>qos</a>
+<a href=/tags/raid title=raid>raid</a>
+<a href=/tags/rdp title=rdp>rdp</a>
+<a href=/tags/routerboard title=routerboard>routerboard</a>
+<a href=/tags/routeros title=routeros>routeros</a>
+<a href=/tags/routing title=routing>routing</a>
+<a href=/tags/script title=script>script</a>
+<a href=/tags/sdn title=sdn>sdn</a>
+<a href=/tags/security title=security>security</a>
+<a href=/tags/server title=server>server</a>
+<a href=/tags/snmp title=snmp>snmp</a>
+<a href=/tags/snmpv3 title=snmpv3>snmpv3</a>
+<a href=/tags/ssh title=ssh>ssh</a>
+<a href=/tags/ssl title=ssl>ssl</a>
+<a href=/tags/tcp/ip title=tcp/ip>tcp/ip</a>
+<a href=/tags/terminal title=terminal>terminal</a>
+<a href=/tags/the-dude title=the-dude>the-dude</a>
+<a href=/tags/ubuntu title=ubuntu>ubuntu</a>
+<a href=/tags/vpn title=vpn>vpn</a>
+<a href=/tags/webmin title=webmin>webmin</a>
+<a href=/tags/wi-fi title=wi-fi>wi-fi</a>
+<a href=/tags/wifi title=wifi>wifi</a>
+<a href=/tags/windows title=windows>windows</a>
+<a href=/tags/%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=автоматизация>автоматизация</a>
+<a href=/tags/%D0%B0%D0%BD%D1%82%D0%B8%D0%B2%D0%B8%D1%80%D1%83%D1%81-%D0%BA%D0%B0%D1%81%D0%BF%D0%B5%D1%80%D1%81%D0%BA%D0%BE%D0%B3%D0%BE title=антивирус-касперского>антивирус-касперского</a>
+<a href=/tags/%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=безопасность>безопасность</a>
+<a href=/tags/%D0%B1%D0%BB%D0%BE%D0%B3 title=блог>блог</a>
+<a href=/tags/%D0%B2%D0%B8%D1%80%D1%82%D1%83%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=виртуализация>виртуализация</a>
+<a href=/tags/%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D1%8B title=группы>группы</a>
+<a href=/tags/%D0%B4%D0%BB%D1%8F-%D1%87%D0%B0%D0%B9%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2 title=для-чайников>для-чайников</a>
+<a href=/tags/%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C title=жизнь>жизнь</a>
+<a href=/tags/%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD title=закон>закон</a>
+<a href=/tags/%D0%B8%D0%B1 title=иб>иб</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BD%D0%BE%D0%B5 title=интересное>интересное</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82 title=интернет>интернет</a>
+<a href=/tags/%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=информационная-безопасность>информационная-безопасность</a>
+<a href=/tags/%D0%B8%D1%81%D0%BF%D0%B4%D0%BD title=испдн>испдн</a>
+<a href=/tags/%D0%BA%D0%BD%D0%B8%D0%B3%D0%B8 title=книги>книги</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%82%D0%BE%D1%80 title=коммутатор>коммутатор</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%86%D0%B8%D1%8F title=коммутация>коммутация</a>
+<a href=/tags/%D0%BA%D1%83%D1%80%D1%81%D1%8B title=курсы>курсы</a>
+<a href=/tags/%D0%BB%D0%B8%D0%BD%D1%83%D0%BA%D1%81 title=линукс>линукс</a>
+<a href=/tags/%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0 title=настройка>настройка</a>
+<a href=/tags/%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5 title=обучение>обучение</a>
+<a href=/tags/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=оптимизация>оптимизация</a>
+<a href=/tags/%D0%BE%D1%84%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B title=официальные-документы>официальные-документы</a>
+<a href=/tags/%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C title=пароль>пароль</a>
+<a href=/tags/%D0%BF%D0%B4%D0%BD title=пдн>пдн</a>
+<a href=/tags/%D0%BF%D0%BE%D0%BB%D0%B5%D0%B7%D0%BD%D0%BE%D0%B5 title=полезное>полезное</a>
+<a href=/tags/%D0%BF%D1%80%D0%B8%D0%BA%D0%B0%D0%B7 title=приказ>приказ</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=производительность>производительность</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D1%84%D0%B5%D1%81%D1%81%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%BC title=профессионализм>профессионализм</a>
+<a href=/tags/%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0 title=работа>работа</a>
+<a href=/tags/%D1%81%D0%B5%D1%80%D1%82%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F title=сертификация>сертификация</a>
+<a href=/tags/%D1%81%D0%B5%D1%82%D1%8C title=сеть>сеть</a>
+<a href=/tags/%D1%81%D0%BA%D0%B7%D0%B8 title=скзи>скзи</a>
+<a href=/tags/%D1%81%D0%BA%D0%BE%D1%80%D0%BE%D1%81%D1%82%D1%8C title=скорость>скорость</a>
+<a href=/tags/%D1%81%D0%BA%D1%80%D0%B8%D0%BF%D1%82 title=скрипт>скрипт</a>
+<a href=/tags/%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B8 title=ссылки>ссылки</a>
+<a href=/tags/%D1%82%D1%83%D1%80%D0%B8%D0%B7%D0%BC title=туризм>туризм</a>
+<a href=/tags/%D1%86%D0%BE%D0%B4 title=цод>цод</a>
+<a href=/tags/%D1%87%D0%B5%D0%BB%D1%8F%D0%B1%D0%B8%D0%BD%D1%81%D0%BA title=челябинск>челябинск</a>
+<a href=/tags/%D1%8E%D0%B7%D0%B2%D0%B5%D1%80%D0%B8 title=юзвери>юзвери</a></div></section></div></div></div></article><footer><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center"></ul><p class="copyright text-muted">Copyright &copy; Админская фамилия 2022<br><a href=https://themes.gohugo.io/hugo-theme-cleanwhite>CleanWhite Hugo Theme</a> by <a href=https://zhaohuabing.com>Huabing</a> |
+<iframe style=margin-left:2px;margin-bottom:-5px frameborder=0 scrolling=0 width=100px height=20px src="https://ghbtns.com/github-btn.html?user=zhaohuabing&repo=hugo-theme-cleanwhite&type=star&count=true"></iframe></p></div></div></div></footer><script>function loadAsync(e,t){var s=document,o="script",n=s.createElement(o),i=s.getElementsByTagName(o)[0];n.src=e,t&&n.addEventListener("load",function(e){t(null,e)},!1),i.parentNode.insertBefore(n,i)}</script><script>$("#tag_cloud").length!==0&&loadAsync("/js/jquery.tagcloud.js",function(){$.fn.tagcloud.defaults={color:{start:"#bbbbee",end:"#0085a1"}},$("#tag_cloud a").tagcloud()})</script><script>loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js",function(){var e=document.querySelector("nav");e&&FastClick.attach(e)})</script><script type=text/javascript>function generateCatalog(e){_containerSelector="div.post-container";var t,n,s,o,i,a=$(_containerSelector),r=a.find("h1,h2,h3,h4,h5,h6");return $(e).html(""),r.each(function(){t=$(this).prop("tagName").toLowerCase(),o="#"+$(this).prop("id"),n=$(this).text(),i=$('<a href="'+o+'" rel="nofollow">'+n+"</a>"),s=$('<li class="'+t+'_nav"></li>').append(i),$(e).append(s)}),!0}generateCatalog(".catalog-body"),$(".catalog-toggle").click(function(e){e.preventDefault(),$(".side-catalog").toggleClass("fold")}),loadAsync("/js/jquery.nav.js",function(){$(".catalog-body").onePageNav({currentClass:"active",changeHash:!1,easing:"swing",filter:"",scrollSpeed:700,scrollOffset:0,scrollThreshold:.2,begin:null,end:null,scrollChange:null,padding:80})})</script></body></html>

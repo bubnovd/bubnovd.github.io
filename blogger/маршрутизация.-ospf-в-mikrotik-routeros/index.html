@@ -1,0 +1,151 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:site_name" content="Админская фамилия"><meta property="og:type" content="article"><meta property="og:image" content="https://bubnovd.net//img/aksai.jpg"><meta property="twitter:image" content="https://bubnovd.net//img/aksai.jpg"><meta name=title content="Маршрутизация. OSPF в Mikrotik RouterOS"><meta property="og:title" content="Маршрутизация. OSPF в Mikrotik RouterOS"><meta property="twitter:title" content="Маршрутизация. OSPF в Mikrotik RouterOS"><meta name=description content="My blog about IT"><meta property="og:description" content="My blog about IT"><meta property="twitter:description" content="My blog about IT"><meta property="twitter:card" content="summary"><meta name=keyword content><link rel="shortcut icon" href=/img/favicon.ico><title>Маршрутизация. OSPF в Mikrotik RouterOS |</title><link rel=canonical href=/blogger/%D0%BC%D0%B0%D1%80%D1%88%D1%80%D1%83%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F.-ospf-%D0%B2-mikrotik-routeros/><link rel=stylesheet href=/css/bootstrap.min.css><link rel=stylesheet href=/css/hugo-theme-cleanwhite.min.css><link rel=stylesheet href=/css/zanshang.css><link href=https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@5.15.1/css/all.css rel=stylesheet type=text/css><script src=/js/jquery.min.js></script>
+<script src=/js/bootstrap.min.js></script>
+<script src=/js/hux-blog.min.js></script>
+<script src=/js/lazysizes.min.js></script></head><nav class="navbar navbar-default navbar-custom navbar-fixed-top"><div class=container-fluid><div class="navbar-header page-scroll"><button type=button class=navbar-toggle>
+<span class=sr-only>Toggle navigation</span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+<span class=icon-bar></span></button>
+<a class=navbar-brand href=/>Админская фамилия</a></div><div id=huxblog_navbar><div class=navbar-collapse><ul class="nav navbar-nav navbar-right"><li><a href=/>All Posts</a></li><li><a href=/archive/>Archive</a></li><li><a href=/search><i class="fa fa-search"></i></a></li></ul></div></div></div></nav><script>var $body=document.body,$toggle=document.querySelector(".navbar-toggle"),$navbar=document.querySelector("#huxblog_navbar"),$collapse=document.querySelector(".navbar-collapse");$toggle.addEventListener("click",handleMagic);function handleMagic(){$navbar.className.indexOf("in")>0?($navbar.className=" ",setTimeout(function(){$navbar.className.indexOf("in")<0&&($collapse.style.height="0px")},400)):($collapse.style.height="auto",$navbar.className+=" in")}</script><style type=text/css>header.intro-header{background-image:url(/img/aksai.jpg)}</style><header class=intro-header><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class=post-heading><div class=tags><a class=tag href=/tags/ospf title=OSPF>OSPF</a>
+<a class=tag href=/tags/routeros title=routeros>routeros</a>
+<a class=tag href=/tags/routing title=routing>routing</a>
+<a class=tag href=/tags/mikrotik title=Mikrotik>Mikrotik</a></div><h1>Маршрутизация. OSPF в Mikrotik RouterOS</h1><h2 class=subheading></h2><span class=meta>Posted by
+map[name:devi1 uri:https://www.blogger.com/profile/05777499482649623616]
+on
+Wednesday, March 16, 2016</span></div></div></div></div></header><article><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+post-container"><p>По Вики: OSPF(<a href=https://ru.wikipedia.org/wiki/%D0%90%D0%BD%D0%B3%D0%BB%D0%B8%D0%B9%D1%81%D0%BA%D0%B8%D0%B9_%D1%8F%D0%B7%D1%8B%D0%BA>англ.</a> Open Shortest Path First) — протокол динамической <a href=https://ru.wikipedia.org/wiki/%D0%9C%D0%B0%D1%80%D1%88%D1%80%D1%83%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F>маршрутизации</a>, основанный на технологии отслеживания состояния канала (link-state technology) и использующий для нахождения кратчайшего пути <a href=https://ru.wikipedia.org/wiki/%D0%90%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC_%D0%94%D0%B5%D0%B9%D0%BA%D1%81%D1%82%D1%80%D1%8B>алгоритм Дейкстры</a>.</p><p>Для чего нужен OSPF и как применять его на сетях, построенных на Mikrotik RouterOS, мы и рассмотрим в этой статье.</p><p>Все, кто работал с сетями, имеющими более одной подсети (провайдеры, компании с филиалами, несколько vlan и т.д.) знают о необходимости существования маршрутов из одной сети в другую. Иначе пакеты в соединении будут просто улетать на шлюз по умолчанию и дропаться где-то в интернете.</p><p>Для тех же, кто с этим не знаком, поясню. Представьте, что мы внезапно захотели попасть из Челябинска в Киев, не имя при этом ни карты, ни навигатора. Поедем по указателям - не зря же их ставили.</p><p><img src=https://lh4.googleusercontent.com/F5Eh9eEahfyDkdhnwrhivSGam5jyPG5uYI0_9HVUff1ZztiYhvmSXKreMtl0jASab8rcarbXt7rohlQ6XlOELIObuzE2sgf3XJcz1dVjkEsdNhqFxQQlN03OgPrsQQ-q08A9EIDz alt=def3152d41f310537ded5b5e85f98024.jpg></p><p>Таким образом посмотрев на 10-20-100 укзателей мы рано или поздно доберемся до Киева - пакет от отправителя ушел к адресату. Сделали там все свои дела и захотели обратно домой в Челябинск - приложение обработало пакет и отправило ответ инициатору соединения. Но дорогу то мы не помним (в пакете нет никаких данных о прохождении пути. На самом деле есть намеки на это, но с помощью них нельзя восстановить путь пакета). Не беда - поедем по указателям.</p><p><img src=https://lh6.googleusercontent.com/tQFmGwLFRAopzx8624XROXrN7bhII7Hv5peK1S6MJg-zYyzVX8uCImXKNEeiMbEZq8PzP64BXjW318hior-rk-7AMCCyvhyvHfExVjzF8CaiBfyRcMn9XLRP3QLwY5YB1TEtJ02y alt=d-3.jpg></p><p>Так же как и в первый раз мы каким-то образом вернемся в точку, из которой выехали. Причем, очень важно то, что вернуться мы можем по другим дорогам - на каких то начали укладывать асфальт за время нашего пребывания в Киеве и поставили знаки объезда, где-то просто затор и мы решили объехать по менее нагруженным трассам. Но мы все равно доберемся до места, пусть и затратив большее время.</p><p>Итак, мы, инкапсулированные в автомобиль - это данные, инкапсулированные в IP-пакет. Перекрестки на дороге - маршрутизаторы, подключенные к разным сетям (дорогам). А указатели на перекрестках - таблицы маршрутизации отдельных маршрутизаторов, знающие куда повернуть, чтобы попасть в ту или иную точку. И если в одну сторону мы доедем по указателям, а в другую указателей не будет, то пиши пропало - до исходной точки не доберемся. Значит, маршруты до общающихся сетей должны быть прописаны на обеих сторонах. И очень важно понимать, что дорог-маршрутов может быть несколько. И если один перекресток-маршрутизатор в ремонте, то предыдущий может послать нас в объезд, но сначала он должен узнать, что его сосед сломался. И если мы ездим по разным дорогам, значит и время пинга у нас будет разное.</p><p>Итак, с маршрутами разобрались. Теперь поговорим о дорожниках, ставящих указатели.</p><p>Статические указатели на дорогах - хорошо. Но расстояние между Челябинском и Киевом 2400 км. А значит и указателей должно быть не меньше 24 - по одному на каждые 100 км. И если на одном из перекрестков идет ремонт, необходимо внести изменения на два смежных указателя. А вероятность одновременного ремонта на 24 перекрестах весьма высока. То есть нужна отдельная бригада дорожников, меняющих указатели.</p><p>Было бы неплохо соединить все указатели в  сеть и позволить им самим оценивать ситуацию на своих участках и передевать эти данные между собой. К сожалению великие и ужасные службы обслуживания дорог об этом ещё не додумались, да и вряд ли это надо - деньги то пилить не получится. А вот айтишники придумали технологии, позволяющие динамически изменять таблицы маршрутизации и обмениваться этой информацией. Эти технологии называются Протоколы Динамической Маршрутизации. И один из них - OSPF, предназначенный для обмена информацией внутри одной автономной системы - AS.</p><p>Термины и работа OSPF хорошо описаны в <a href=http://wiki.mikrotik.com/wiki/Russian/OSPF>вики</a> микротика. Но я осмелюсь кое-что повторить и перефразировать.</p><p>Допустим, есть следующая сеть.
+<img src=https://lh6.googleusercontent.com/Q0CaTrRk9W1S6bXYtFGMLX-1KENf7wtZh1BBytzRgZ7TAPOMOeoVL1l5JflulsS-wd4Tn0TSyWJTnMU5CbMn6vNTm7WcjaT3UNcQ5qR81q1WWux93yFebG2_NEzY_xzP9pss9jSv alt></p><p>Как видим, к сети 172.16.1.0 можно попасть двумя путями: через R2  и через связку R3+R4. Cost’ы, написанные возле каждого линка задают стоимость линка, своеобразный аналог параметра distance в ip-route. Чем ниже значение cost’а, тем выше вероятность того, что трафик пойдет по этому пути. Но как видно на следующем рисунке суммарная стоимость обоих маршрутов к сети 172.16.1.0 составляет 20. Так по какому же пути пойдет трафик?</p><p><img src=https://lh5.googleusercontent.com/bmVkOn8ug3_iwz5CxX4V4pG6rBUV1PWEuUribhRBcgrH74XIYw5EHkzpYJqACPQMg-KBcT64yNIWlEyZU5SYquXmkMeA-nHSeA0w_tyf979IeeesldHJMF9lzXa1-QlPp2X5zwSU alt=500px-Sp-tree.png></p><p>В таком случае в таблице маршрутизации увидим примерно такую картину - к одной сети имеем два шлюза. И трафик должен пойти через оба шлюза. В этом случае мы можем управлять тем, куда пойдет трафик. Называется эта технология Policy Based Routing, но тема управления трафиком выходит за рамки этой статьи.
+<img src=https://lh3.googleusercontent.com/cPf0vHU_4mm0j9dMGH-8CTmKI2qRy-GNCPey8D9iRfSxONlpmF22xGA7TAXM7mZKow9vvgxKjRqZAisabPYkuvxpVk1mOZBkj7u9_ClxXR3mbWAvz9KvToxnZvgAjNo3urv-u3u5 alt></p><p>Сделать, чтобы OSPF “заработал” в Mikrotik RouterOS очень просто - нужно лишь добавить в backbone на каждом роутере в Routing - OSPF - Networks все ваши сети, между которыми вы хотите динамическую маршрутизацию и “оно заработает”.</p><p><img src=https://lh5.googleusercontent.com/W5tJB4H6ueSTcer4mrd4rJHO8PN88T9yB7QAmCn964Ox3AA1TAvfdoJWC_2D95G9EyJiIB3xgU4yLIfaVxVJzB_BYiqS_wqiBj3RWsbJUvIjxCVuAQm8yioPpvVkcZd-xl83plBW alt></p><p>Но мы ведь хотим управлять процессом. Тот, кто не хочет управлять дальше может не читать. Остальным - добро пожаловать!</p><p>Рассматривать будем сеть, типичную для организации с несколькими филиалами. Имеем центральный офис (Headquarter на схеме, для краткости будем звать его ЦО) с сетью 192.168.0.0/24 (что я, кстати, не рекомендую при дефолтных настройках OSPF. Почему - скажу ниже). В ЦО расположены все основные элементы инфраструктуры - контроллер домена, сервер удаленного доступа, почтовый сервер и т.д. Все филиалы должны иметь доступ ко всем этим сервисам.</p><p>Несколько филиалов (Branche на схеме, для краткости - СП - Структурное Подразделение) с адресами 192.168.X.0/24. Между ЦО и каждым СП шифрованный туннель SSTP (или любой другой VPN)  - адреса в туннелях из подсети 192.168.255.0/24 (192.168.255.10 - ЦО, 192.168.255.1 - СП1, 192.168.255.2 - СП2, &mldr;). Между филиалами связь не нужна, т.к. все службы в ЦО. Когда филиалов 3, нам легко добавить 3 маршрута на роутер в ЦО и по одному на каждый из роутеров СП. Итого 6 движений мышкой. А что если СП у нас не 3, а 33 и необходимы маршруты от каждого каждому, а ещё есть подрядчики с доступом к нескольким СП? Тут и приходит на помощь OSPF.</p><p><img src=https://lh3.googleusercontent.com/A4EHiSGPUqDZ1beS7QFD_l8GnvOMSDr28Oab4DtlwqjYgAnJnul5ex94nxPd8Oo5VTfozCLRWL5rDpuoBqu-cGa96rbHFJ5rVWErypF0U47M0nosNtbR13u7fKObO6hDsM_zH9_Q alt></p><p>Кому надо “быстро и пофиг как оно работает”, могут пойти по схеме, предложенной выше - добавить в backbone все свои сети.</p><p>Почему именно backbone? Backbone в переводе с английского - хребет, позвоночник. OSPF оперирует понятиями Area (область), Autonomous System (AS, автономная система). AS - все сети, которые принадлежат вам и между которыми может работать ваш протокол динамической маршрутизации. Area - часть этой сети. На картинке ниже показана одна AS с тремя Area, одна из которых - backbone (Area 0 с ID 0.0.0.0). Каждая Area имеет свой ID, похожий на IP адрес. Backbone всегда имеет ID 0.0.0.0. Все области в OSPF должны иметь линк с backbone. Иначе ничего работать не будет.</p><p><img src=https://lh5.googleusercontent.com/noQfSLYZJlp7I4vlDy913kNgc-vs9hD_313y347vX9boBeYaguiXos_05VsWs5ZHV7dy_yobuAfGRXz5j0rmZRn6PtC7QXAQjeEYvCFegbTPsQsV53QdX7iZiVh6s16wfzy_kSAR alt=slide1.jpg></p><p>В нашем примере мы решили долго не думать и загнать все в backbone. По большому счету это ничем не грозит и работать будет. Но если провайдер отдает одному из ваших филиалов частный адрес из 192.168.0.0/16 (192.168.18.27/29, например), то в вашей таблице маршрутизации появится сеть провайдера. И если кто-то с другой стороны провайдера использует такие же настройки (или просто указал маршрут к вашим сетям), то он сможет беспрепятственно попасть в вашу сеть. А уж случайно это сделали или намеренно - узнаете когда данные из вашей БД всплывут в интернете.</p><p>В этом случае можно использовать авторизацию на каждом интерфейсе Routing - OSPF - Interfaces.</p><p><img src=https://lh3.googleusercontent.com/0ZY3n6YzZay2C5Nq2zlFrSy2N5P2Ba1qVBITR-vhPNGXNFO9jGb8A_Fn-Gopw3kGGOJSjBJtOIeRQncruQsdVP5dS1DM7hAiI0C5Th_gVMj_vCbJwISiCYp9jk1rYpJOF7CR3_oT alt></p><p>Или указать, что интерфейс, смотрящий к провайдеру будет в пассивном режиме.</p><p><img src=https://lh6.googleusercontent.com/bqn9Fg0NfnLC6J6NQJhxY2_2xeCexwJS6nI_sZQ6b9g52FPIPQLb_eUVTjPpjDdCR-u9dc_EAzvcXWycFryBGx0Z0TxeIdur9yqXKwHJ2fezwSXPC05T6x8rhqFcQ5zwrRjLzjuL alt></p><p>Теперь поговорим о том, как сделать “правильно” - не вещать свои сети куда попало и позволить грамотно траблшутить работу OSPF.</p><p>Как мы говорили выше, каждая область имеет свой ID. Также и каждый участник OSPF имеет свой ID. По умолчаню он выставляется автоматически и выбирается из IP адресов, присвоенных интерфейсам роутера. Но нам надо проставить его в ручную, чтобы была какая-то логика в именовании и мы всегда знали откуда пришел запрос. Ставится это в Routing - OSPF - Instances - Router ID.</p><p>**<br><img src=https://lh3.googleusercontent.com/3ug33SNyG9U33zD4xO45a-ls1VyNV2fWqUIYD9-5S-ct9hyhQY1sxfbyEpj6jMi6j3EZHluf2DFQZZ1KdKidP11l8yU0IpYDRAFenDdhm3YqsB6GvxQ9xCClTdOCCHwk0skL5jkE alt>
+**</p><p>В нашей схеме имеется несколько областей. Как мы выяснили, основная область, соединяющая все остальные - backbone. Именно в этой области летают пакеты от одного роутера к другому, позволяющие обмениваться маршрутной информацией. Значит, этой областью должны быть туннели, соединяющие СП и ЦО, что видно на рисунке ниже.</p><p>**<br><img src=https://lh6.googleusercontent.com/j13-MMPzbhY3dwDuC5rI7bqBm3Ez29U7L1FQvt_6EOe_ilDLeHRQZjCSdv_4V3gvuu1HI2Gp1nPJQXvwo1BdNfAyGY54UuPKVrrddn02edY4ujtxo6JP_62BFilwX_OxIek0aMvF alt></p><p>**Таким образом, нам необходимо выделить на каждом маршрутизаторе по две зоны - backbone и свою локальную сеть. На примере ЦО:</p><p>routing ospf area add name=Area0 area-id=192.168.0.0</p><p>routing ospf network add area=Area0 network=192.168.0.0/24</p><p>routing ospf network add area=backbone network=192.168.255.0/24</p><p>И точно так же на остальных маршрутизаторах, только заменив Area-ID, Area name и network на свои.</p><p>Теперь на каждом маршрутизаторе можем увидеть маршруты ко всем остальным сетям с буквами D и o в описании, что означает, что эти маршруты D - динамические (прилетели в резудльтате работы протоколов динамической маршрутизации) и o - из протокола  OSPF.</p><p><img src=https://lh3.googleusercontent.com/Xm1gPou5DGykhpHT6MdJ0us-DNZZ6t6IcJFQ9kHarSsHnTdxZwMZ2d08NH-88YVkkEPuHa9Phewkbnc_NtnRJkLme77h2QSFWpJ71ESJ0IGyDNQM1isavubZvUDR9Dy_6c_rNyR8 alt=SP2_2.PNG></p><p>Таким образом мы произвели простую и надежную настройку протокола динамической маршрутизации. У OSPF ещё имеется куча дополнительных настроек, таких как приоритет роутера, стоимость интерфейса, время определения состояний и многое, многое другое. Это позволяет очень гибко настроить маршрутизацию под свои нужды, но тема эта очень обширная и выходит за рамки этого и так очень растянувшегося поста. Если читатели проявят желание, то в будущем можно будет подробно расписать (почти) все нюансы применения OSPF.</p><p>Картинки с wiki.mikrotik.com, blog.globalknowledge.com и других ресурсов, а также свои скриншоты и схемы, нарисованные с помощью сервиса <a href=https://www.draw.io/>draw.io</a></p><p>Статья написана мной для <a href=http://lanmarket.ua/stats/protokol-dinamicheskoy-marshrutizacii-OSPF>lanmarket.ua</a></p><hr><ul class=pager><li class=previous><a href=/blogger/%D0%BF%D1%80%D0%BE%D0%BF%D1%83%D1%81%D0%BA%D0%BD%D0%B0%D1%8F-%D1%81%D0%BF%D0%BE%D1%81%D0%BE%D0%B1%D0%BD%D0%BE%D1%81%D1%82%D1%8C-%D1%81%D0%B5%D1%82%D0%B8/ data-toggle=tooltip data-placement=top title="Пропускная способность сети">&larr;
+Previous Post</a></li><li class=next><a href=/blogger/%D1%81%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B2%D0%B0-%D0%B1%D0%BE%D1%80%D1%8C%D0%B1%D1%8B-%D1%81-ddos%D0%BE%D0%BC/ data-toggle=tooltip data-placement=top title="Средства борьбы с DDoS'ом">Next
+Post &rarr;</a></li></ul><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//bubnovd-github-io.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="col-lg-2 col-lg-offset-0
+visible-lg-block
+sidebar-container
+catalog-container"><div class=side-catalog><hr class="hidden-sm hidden-xs"><h5><a class=catalog-toggle href=#>CATALOG</a></h5><ul class=catalog-body></ul></div></div><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+sidebar-container"><section><hr class="hidden-sm hidden-xs"><h5><a href=/tags/>FEATURED TAGS</a></h5><div class=tags><a href=/tags/#sysadminka title=#sysadminka>#sysadminka</a>
+<a href=/tags/1%D1%81 title=1с>1с</a>
+<a href=/tags/about title=about>about</a>
+<a href=/tags/active-directory title=active-directory>active-directory</a>
+<a href=/tags/ad title=ad>ad</a>
+<a href=/tags/asterisk title=asterisk>asterisk</a>
+<a href=/tags/bandwidth title=bandwidth>bandwidth</a>
+<a href=/tags/best-practice title=best-practice>best-practice</a>
+<a href=/tags/bgp title=bgp>bgp</a>
+<a href=/tags/books title=books>books</a>
+<a href=/tags/certification title=certification>certification</a>
+<a href=/tags/cisco title=cisco>cisco</a>
+<a href=/tags/cmd title=cmd>cmd</a>
+<a href=/tags/cureit title=cureit>cureit</a>
+<a href=/tags/d-link title=d-link>d-link</a>
+<a href=/tags/ddos title=ddos>ddos</a>
+<a href=/tags/debian title=debian>debian</a>
+<a href=/tags/dhcp title=dhcp>dhcp</a>
+<a href=/tags/dns title=dns>dns</a>
+<a href=/tags/dpi title=dpi>dpi</a>
+<a href=/tags/dr.web title=dr.web>dr.web</a>
+<a href=/tags/eoip title=eoip>eoip</a>
+<a href=/tags/failover title=failover>failover</a>
+<a href=/tags/firewall title=firewall>firewall</a>
+<a href=/tags/freebsd title=freebsd>freebsd</a>
+<a href=/tags/groups title=groups>groups</a>
+<a href=/tags/hack title=hack>hack</a>
+<a href=/tags/hardware title=hardware>hardware</a>
+<a href=/tags/hdd title=hdd>hdd</a>
+<a href=/tags/hyper-v title=hyper-v>hyper-v</a>
+<a href=/tags/internet title=internet>internet</a>
+<a href=/tags/ip-%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD%D0%B8%D1%8F title=ip-телефония>ip-телефония</a>
+<a href=/tags/iptables title=iptables>iptables</a>
+<a href=/tags/iso/osi title=iso/osi>iso/osi</a>
+<a href=/tags/keepass title=keepass>keepass</a>
+<a href=/tags/l2 title=l2>l2</a>
+<a href=/tags/link title=link>link</a>
+<a href=/tags/links title=links>links</a>
+<a href=/tags/linux title=linux>linux</a>
+<a href=/tags/linux-firewalls title=linux-firewalls>linux-firewalls</a>
+<a href=/tags/linux-server title=linux-server>linux-server</a>
+<a href=/tags/microsoft title=microsoft>microsoft</a>
+<a href=/tags/midnightcommander title=midnightcommander>midnightcommander</a>
+<a href=/tags/mikrotik title=mikrotik>mikrotik</a>
+<a href=/tags/monitoring title=monitoring>monitoring</a>
+<a href=/tags/mpls title=mpls>mpls</a>
+<a href=/tags/ms title=ms>ms</a>
+<a href=/tags/mss title=mss>mss</a>
+<a href=/tags/mtcna title=mtcna>mtcna</a>
+<a href=/tags/mtcre title=mtcre>mtcre</a>
+<a href=/tags/mtu title=mtu>mtu</a>
+<a href=/tags/mum title=mum>mum</a>
+<a href=/tags/mva title=mva>mva</a>
+<a href=/tags/open-source title=open-source>open-source</a>
+<a href=/tags/oreilly title=oreilly>oreilly</a>
+<a href=/tags/ospf title=ospf>ospf</a>
+<a href=/tags/password title=password>password</a>
+<a href=/tags/powershell title=powershell>powershell</a>
+<a href=/tags/pptp title=pptp>pptp</a>
+<a href=/tags/presentation title=presentation>presentation</a>
+<a href=/tags/python title=python>python</a>
+<a href=/tags/qos title=qos>qos</a>
+<a href=/tags/raid title=raid>raid</a>
+<a href=/tags/rdp title=rdp>rdp</a>
+<a href=/tags/routerboard title=routerboard>routerboard</a>
+<a href=/tags/routeros title=routeros>routeros</a>
+<a href=/tags/routing title=routing>routing</a>
+<a href=/tags/script title=script>script</a>
+<a href=/tags/sdn title=sdn>sdn</a>
+<a href=/tags/security title=security>security</a>
+<a href=/tags/server title=server>server</a>
+<a href=/tags/snmp title=snmp>snmp</a>
+<a href=/tags/snmpv3 title=snmpv3>snmpv3</a>
+<a href=/tags/ssh title=ssh>ssh</a>
+<a href=/tags/ssl title=ssl>ssl</a>
+<a href=/tags/tcp/ip title=tcp/ip>tcp/ip</a>
+<a href=/tags/terminal title=terminal>terminal</a>
+<a href=/tags/the-dude title=the-dude>the-dude</a>
+<a href=/tags/ubuntu title=ubuntu>ubuntu</a>
+<a href=/tags/vpn title=vpn>vpn</a>
+<a href=/tags/webmin title=webmin>webmin</a>
+<a href=/tags/wi-fi title=wi-fi>wi-fi</a>
+<a href=/tags/wifi title=wifi>wifi</a>
+<a href=/tags/windows title=windows>windows</a>
+<a href=/tags/%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=автоматизация>автоматизация</a>
+<a href=/tags/%D0%B0%D0%BD%D1%82%D0%B8%D0%B2%D0%B8%D1%80%D1%83%D1%81-%D0%BA%D0%B0%D1%81%D0%BF%D0%B5%D1%80%D1%81%D0%BA%D0%BE%D0%B3%D0%BE title=антивирус-касперского>антивирус-касперского</a>
+<a href=/tags/%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=безопасность>безопасность</a>
+<a href=/tags/%D0%B1%D0%BB%D0%BE%D0%B3 title=блог>блог</a>
+<a href=/tags/%D0%B2%D0%B8%D1%80%D1%82%D1%83%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=виртуализация>виртуализация</a>
+<a href=/tags/%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D1%8B title=группы>группы</a>
+<a href=/tags/%D0%B4%D0%BB%D1%8F-%D1%87%D0%B0%D0%B9%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2 title=для-чайников>для-чайников</a>
+<a href=/tags/%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C title=жизнь>жизнь</a>
+<a href=/tags/%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD title=закон>закон</a>
+<a href=/tags/%D0%B8%D0%B1 title=иб>иб</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BD%D0%BE%D0%B5 title=интересное>интересное</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82 title=интернет>интернет</a>
+<a href=/tags/%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=информационная-безопасность>информационная-безопасность</a>
+<a href=/tags/%D0%B8%D1%81%D0%BF%D0%B4%D0%BD title=испдн>испдн</a>
+<a href=/tags/%D0%BA%D0%BD%D0%B8%D0%B3%D0%B8 title=книги>книги</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%82%D0%BE%D1%80 title=коммутатор>коммутатор</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%86%D0%B8%D1%8F title=коммутация>коммутация</a>
+<a href=/tags/%D0%BA%D1%83%D1%80%D1%81%D1%8B title=курсы>курсы</a>
+<a href=/tags/%D0%BB%D0%B8%D0%BD%D1%83%D0%BA%D1%81 title=линукс>линукс</a>
+<a href=/tags/%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0 title=настройка>настройка</a>
+<a href=/tags/%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5 title=обучение>обучение</a>
+<a href=/tags/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=оптимизация>оптимизация</a>
+<a href=/tags/%D0%BE%D1%84%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B title=официальные-документы>официальные-документы</a>
+<a href=/tags/%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C title=пароль>пароль</a>
+<a href=/tags/%D0%BF%D0%B4%D0%BD title=пдн>пдн</a>
+<a href=/tags/%D0%BF%D0%BE%D0%BB%D0%B5%D0%B7%D0%BD%D0%BE%D0%B5 title=полезное>полезное</a>
+<a href=/tags/%D0%BF%D1%80%D0%B8%D0%BA%D0%B0%D0%B7 title=приказ>приказ</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=производительность>производительность</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D1%84%D0%B5%D1%81%D1%81%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%BC title=профессионализм>профессионализм</a>
+<a href=/tags/%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0 title=работа>работа</a>
+<a href=/tags/%D1%81%D0%B5%D1%80%D1%82%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F title=сертификация>сертификация</a>
+<a href=/tags/%D1%81%D0%B5%D1%82%D1%8C title=сеть>сеть</a>
+<a href=/tags/%D1%81%D0%BA%D0%B7%D0%B8 title=скзи>скзи</a>
+<a href=/tags/%D1%81%D0%BA%D0%BE%D1%80%D0%BE%D1%81%D1%82%D1%8C title=скорость>скорость</a>
+<a href=/tags/%D1%81%D0%BA%D1%80%D0%B8%D0%BF%D1%82 title=скрипт>скрипт</a>
+<a href=/tags/%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B8 title=ссылки>ссылки</a>
+<a href=/tags/%D1%82%D1%83%D1%80%D0%B8%D0%B7%D0%BC title=туризм>туризм</a>
+<a href=/tags/%D1%86%D0%BE%D0%B4 title=цод>цод</a>
+<a href=/tags/%D1%87%D0%B5%D0%BB%D1%8F%D0%B1%D0%B8%D0%BD%D1%81%D0%BA title=челябинск>челябинск</a>
+<a href=/tags/%D1%8E%D0%B7%D0%B2%D0%B5%D1%80%D0%B8 title=юзвери>юзвери</a></div></section></div></div></div></article><footer><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center"></ul><p class="copyright text-muted">Copyright &copy; Админская фамилия 2022<br><a href=https://themes.gohugo.io/hugo-theme-cleanwhite>CleanWhite Hugo Theme</a> by <a href=https://zhaohuabing.com>Huabing</a> |
+<iframe style=margin-left:2px;margin-bottom:-5px frameborder=0 scrolling=0 width=100px height=20px src="https://ghbtns.com/github-btn.html?user=zhaohuabing&repo=hugo-theme-cleanwhite&type=star&count=true"></iframe></p></div></div></div></footer><script>function loadAsync(e,t){var s=document,o="script",n=s.createElement(o),i=s.getElementsByTagName(o)[0];n.src=e,t&&n.addEventListener("load",function(e){t(null,e)},!1),i.parentNode.insertBefore(n,i)}</script><script>$("#tag_cloud").length!==0&&loadAsync("/js/jquery.tagcloud.js",function(){$.fn.tagcloud.defaults={color:{start:"#bbbbee",end:"#0085a1"}},$("#tag_cloud a").tagcloud()})</script><script>loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js",function(){var e=document.querySelector("nav");e&&FastClick.attach(e)})</script><script type=text/javascript>function generateCatalog(e){_containerSelector="div.post-container";var t,n,s,o,i,a=$(_containerSelector),r=a.find("h1,h2,h3,h4,h5,h6");return $(e).html(""),r.each(function(){t=$(this).prop("tagName").toLowerCase(),o="#"+$(this).prop("id"),n=$(this).text(),i=$('<a href="'+o+'" rel="nofollow">'+n+"</a>"),s=$('<li class="'+t+'_nav"></li>').append(i),$(e).append(s)}),!0}generateCatalog(".catalog-body"),$(".catalog-toggle").click(function(e){e.preventDefault(),$(".side-catalog").toggleClass("fold")}),loadAsync("/js/jquery.nav.js",function(){$(".catalog-body").onePageNav({currentClass:"active",changeHash:!1,easing:"swing",filter:"",scrollSpeed:700,scrollOffset:0,scrollThreshold:.2,begin:null,end:null,scrollChange:null,padding:80})})</script></body></html>
