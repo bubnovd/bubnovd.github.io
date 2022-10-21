@@ -7,10 +7,11 @@ disqusShortname: bubnovd-github-io
 
 params:
   header_image: "img/aksai.jpg"
-  description: "My blog about IT"
+  description: "DevOps, Linux, Networks"
   slogan: "Make Sysadmins Great Again"
   bookmarks: true
   about_me: true
+  friends: true
   readingTime: true
 
 
@@ -18,6 +19,7 @@ params:
   featured_condition_size: 1 
 
   omit_categories: false
+  page_view_conter: false
   #social:
   #  email: "wfg"
   #  telegram: "rrwr"
