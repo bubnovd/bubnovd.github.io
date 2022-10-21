@@ -9,6 +9,32 @@ params:
   header_image: "img/khs22/logo.jpg"
   description: "My blog about IT"
   slogan: "Make Sysadmins Great Again"
+  bookmarks: true
+  about_me: true
   readingTime: true
 
 
+  featured_tags: true 
+  featured_condition_size: 1 
+
+  omit_categories: false
+  #social:
+  #  email: "wfg"
+  #  telegram: "rrwr"
+  #  wechat: "dd"
+  #  mastodon: "f"
+  #  keybase: "f" 
+  #  xing: "f"
+
+  #sidebar_about_description: "Software Developer, Open Source Enthusiast and Life Adventurer"
+  ##sidebar_avatar = "img/avatar-zhaohuabing.jpg"      # use absolute URL, seeing it's used in both `/` and `/about/`
+  #sidebar_avatar: "img/zhaohuabing.png"      # use absolute URL, seeing it's used in both `/` and `/about/`
+  bookmark_link:
+    - title: "Telegram Mikrotik Ninja"
+      href: "https://t.me/mikrotikninja"
+
+  addtional_menus:
+    - title: "Archive"
+      href: "/archive/"
+    - title: "sdf"
+      href: "/post/"
