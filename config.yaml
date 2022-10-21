@@ -6,7 +6,7 @@ theme: "hugo-theme-cleanwhite"
 disqusShortname: bubnovd-github-io
 
 params:
-  header_image: "img/khs22/logo.jpg"
+  header_image: "img/aksai.jpg"
   description: "My blog about IT"
   slogan: "Make Sysadmins Great Again"
   bookmarks: true
@@ -36,5 +36,3 @@ params:
   addtional_menus:
     - title: "Archive"
       href: "/archive/"
-    - title: "sdf"
-      href: "/post/"
