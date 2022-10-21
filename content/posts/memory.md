@@ -279,3 +279,7 @@ Stack   | 28K   | 2K
 
 
 
+readelf
+
+numactl
+size
