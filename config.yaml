@@ -1,12 +1,14 @@
 baseURL: 'https://bubnovd.net/'
 languageCode: 'en-us'
 title: 'Админская фамилия'
-theme: "terminal"
+theme: "hugo-theme-cleanwhite"
 
 disqusShortname: bubnovd-github-io
 
 params:
-  themeColor: "blue"
+  header_image: "img/khs22/logo.jpg"
+  description: "My blog about IT"
+  slogan: "Make Sysadmins Great Again"
   readingTime: true
 
 
