@@ -3,7 +3,7 @@ title: KazHackStan 2022
 date: "2022-09-19T04:22:41Z"
 author: bubnovd
 authorTwitter: bubnovdnet
-cover: "/img/khs22/logo.jpg"
+image: "/img/khs22/logo.jpg"
 description: Посетил конференцию по ИБ в Алмате. Кратко, о том, что увидел, услышал и успел записать дилетант из докладов о безопасности и безопасной разработке
 tags:
 - kazhackstan

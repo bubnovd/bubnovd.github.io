@@ -12,7 +12,7 @@ params:
   bookmarks: true
   about_me: true
   readingTime: true
-
+  page_view_conter: true
 
   featured_tags: true 
   featured_condition_size: 1 
