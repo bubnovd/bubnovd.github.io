@@ -30,7 +30,7 @@ params:
   ##sidebar_avatar = "img/avatar-zhaohuabing.jpg"      # use absolute URL, seeing it's used in both `/` and `/about/`
   #sidebar_avatar: "img/zhaohuabing.png"      # use absolute URL, seeing it's used in both `/` and `/about/`
   bookmark_link:
-    - title: "Telegram Mikrotik Ninja"
+    - title: "Telegram"
       href: "https://t.me/mikrotikninja"
 
   addtional_menus:
