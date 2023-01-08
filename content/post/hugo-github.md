@@ -18,6 +18,7 @@ keywords:
 showFullContent: false
 readingTime: true
 hideComments: false
+spendTime: 3h
 ---
 
 - разобрать что за Static Sites, какие есть
@@ -59,8 +60,8 @@ _Обложка: Млечный Путь с хижины Рацека 24.09.2022
 Заранее создадаим репозиторий с сайтом на GitHub и склонируем его (`git clone https://github.com/bubnovd/hugosite.git`). В первых шагах он нам не нужен, но пригодится дальше при публикации сайта
 
 Создадаим новый сайт с именем hugostite. Имя сайта должно совпадать с именем репозитория.
-export HUGO_DOCKER_TAG=0.107.0
-docker run -it --rm -v $(pwd):/src -p 1313:1313 klakegg/hugo:$HUGO_DOCKER_TAG new site hugosite --force
+export HUGO_DOCKER_TAG=0.107.0-ext
+`docker run -it --rm -v $(pwd):/src -p 1313:1313 klakegg/hugo:$HUGO_DOCKER_TAG new site hugosite --force`
 force в данном случае используем потому что директория уже есть - мы скачали её из гитхаба, а переписывать не хотим, т.к. там конфиг гита
 
 Заходим в директорию hugosite. Добавим тему therminal
@@ -118,6 +119,78 @@ _This is first post_
 ```
 
 ![first-post](/img/hugo-github/first-post.png)
-Запускаем, проверяем, что работает `docker run -it --rm -v $(pwd):/src -p 1313:1313  klakegg/hugo:0.107.0-ext serve -D --bind 0.0.0.0`
+Запускаем, `docker run -it --rm -v $(pwd):/src -p 1313:1313  klakegg/hugo:0.107.0-ext serve -D --bind 0.0.0.0` проверяем, что работает localhost:1313
 
 В [документации к Mrkdown](https://www.markdownguide.org/basic-syntax/) можно почитать на что способен этот формат и офрмлять посты красиво. Так же сам Hugo и темы к нему имеют огромное количество настроек, с помощью которых можно изменить свой сайт как угодно. В этом посте не будем заниматься внешним видом - об этом уже много написано, а нам ещё нужно опубликовать сайт и автоматизировать его деплой.
+
+Теперь зальем наш получившийся репозиторий на GitHub. 
+`git commit -m hugosite && git push`
+
+## Публикация сайта на GitHub
+Hugo умеет работать на любом вебсервере, а так же имеет средства для деплоя на популярные облачные сервисы:
+- 21YunBox
+- AWS Amplify
+- Azure Static Web Apps
+- Netlify
+- Render
+- Firebase
+- GitHub
+- GitLab
+- KeyCDN
+- Cloudflare Pages
+В официальной документации Hugo описаны все перечисленные виды деплоя.
+
+Проект [GitHub Pages](https://pages.github.com/) может сделать сайтом любой публичный репозиторий. Для этого достаточно в настройках репозитория активировать Pages и указать ветку, которая будет использоваться в качестве сайта. 
+![github-pages](/img/hugo-github/github-pages.png)
+Для деплоя нашего сайта понадобится ещё одна фича GitHub'a
+
+### GitHub Actions
+Как платформа для хранения исходного кода, GitHub просто обязан был внедрить возможность CI/CD. Эта функциональность обеспечивается [GitHub Actions](https://github.com/features/actions). В корне репозитория создается файл `.github/workflows/gh-pages.yml`. В нем описываются действия, которые будут происходить при определенных событиях. Например, при пуше в ветку develop необходимо сначала собрать проект, а затем запустить тесты. А при мердже в main опубликовать проект. По сути Actions запускает контейнер с каким-то приложением и передает ему параметры запуска. 
+
+В нашем случае `.github/workflows/gh-pages.yml`. выглядит так:
+```
+name: github pages
+
+on:
+  push:
+    branches:
+      - main  # Set a branch that will trigger a deployment
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true  # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest'
+          extended: true
+
+      - name: Build
+        run: hugo --minify
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+```
+
+Воркфлоу работает на Ubuntu 22.04 и состоит из трех шагов:
+- Первый шаг исспоьзует action checkout версии 3. Он скачивает наш репозиторий вместе с сабмодулями, что указано в соответствующем поле
+- Шаг Setup Hugo устанавилвает в контейнер с Ubuntu пакет Hugo последней версии `hugo-version: 'latest'`. Правила хорошего тона требуеют указывать конкретные версии пакетов, чтобы не сломать продукт, разработанные для старой версии. Дело в том, что тег `latest` диктует использовать последнюю версию Hugo, в то время, как наш сайт тестировался локально с версией 0.107.0-ext. Когда выйдет новая версию Hugo, то Actions будет использовать её. Есть вероятность, что какие-то старые фичи перестант поддерживаться в новой версии и наш сайт сломается. Так что ВСЕГДА указывате конкретные теги, вместо `latest`
+- В шаге Build запускается hugo в режиме генерации сайта. В нем из наших исходников в папку public собираются html, css и js файлы, которые мы используем при октрытии сайта в браузере
+- Шаг Deploy указывает использовать папку public, полученную в предыдущем шаге, в качестве содержимого веб-сервера. Тут же указывается `GITHUB_TOKEN`, требуемый для публикации новой ветки с сайтом
+
+`GITHUB_TOKEN` откуда берется
+указать бранч в пэеджес
+
+В репозитории на вклладке Actions можно увидеть весь процесс сборки и деплоя сайта. Каждый шаг можно развернуть и посмотреть его логи
+![actions](/img/hugo-github/actions.png)
