@@ -148,6 +148,9 @@ Hugo умеет работать на любом вебсервере, а так
 
 Проект [GitHub Pages](https://pages.github.com/) может сделать сайтом любой публичный репозиторий. Для этого достаточно в настройках репозитория активировать Pages и указать ветку, которая будет использоваться в качестве сайта. 
 ![github-pages](/img/hugo-github/github-pages.png)
+
+Сайт в Pages будет иметь адрес username.github.io или username.github.io/reponame, что позволяет держать несколько сайтов на одном GitHub аккаунте.  Кроме того сайт можно опубликовать на своем домене. Для этого нужно будет пройти [верификацию домена](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/about-custom-domains-and-github-pages)
+
 Теперь для обновления сайта нужно локально генерировать файлы с помощью Hugo и заливать их в репозиторий, но мы автоматизируем процесс с помощью ещё одной фичи GitHub'a.
 
 ### GitHub Actions
