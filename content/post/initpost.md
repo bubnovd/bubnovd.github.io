@@ -29,15 +29,15 @@ hideComments = false
 - В среднем в месяц на блог заходили 15 тысяч человек (или роботов. Я не пытался разбираться откуда трафик)
 
 ### Популярные посты
-- [IPSec over L2TP между RouterOS и Apple iOS 10 ](/blogger/ipsec-over-l2tp-между-routeros-и-apple-ios-10) - почти 40000 просмотров
-- [Почему за EoIP over OpenVPN нужно отрубать руки. И почему обе.](/blogger/почему-за-eoip-over-openvpn-нужно-отрубать-руки.-и-почему-обе) - 32400 просмотров
-- Пост [Маршрутизация. OSPF в Mikrotik RouterOS](/blogger/маршрутизация.-ospf-в-mikrotik-routeros) просмотрело почти 29 тысяч человек
-- [Система управления конфигурациями Oxidized ](/blogger/система-управления-конфигурациями-oxidized) - 23000 просмотров
-- [DHCP Failover with RouterOS ](/blogger/dhcp-failover-with-routeros) - 9000 просмотров
-- [Сегментация сети с использованием оборудования Mikrotik и D-Link ](/blogger/сегментация-сети-с-использованием-оборудования-mikrotik-и-d-link) 6000 просмотров
+- [IPSec over L2TP между RouterOS и Apple iOS 10 ](/post/blogger/ipsec-over-l2tp-между-routeros-и-apple-ios-10) - почти 40000 просмотров
+- [Почему за EoIP over OpenVPN нужно отрубать руки. И почему обе.](/post/blogger/почему-за-eoip-over-openvpn-нужно-отрубать-руки.-и-почему-обе) - 32400 просмотров
+- Пост [Маршрутизация. OSPF в Mikrotik RouterOS](/post/blogger/маршрутизация.-ospf-в-mikrotik-routeros) просмотрело почти 29 тысяч человек
+- [Система управления конфигурациями Oxidized ](/post/blogger/система-управления-конфигурациями-oxidized) - 23000 просмотров
+- [DHCP Failover with RouterOS ](/post/blogger/dhcp-failover-with-routeros) - 9000 просмотров
+- [Сегментация сети с использованием оборудования Mikrotik и D-Link ](/post/blogger/сегментация-сети-с-использованием-оборудования-mikrotik-и-d-link) 6000 просмотров
 - [Самый полный мануал по резервированию интернета на Mikrotik RouterOS](http://www.bubnovd.net/2015/03/mikrotik-routeros.html)
 - [DHCP, Option 82](http://www.bubnovd.net/2015/11/dhcp-option-82.html)
-- [ Мikrotik RouterOS Configuration Management с помощью скриптов и какой-то там матери ](/blogger/mikrotik-routeros-configuration-management-с-помощью-скриптов-и-какой-то-там-матери)
+- [ Мikrotik RouterOS Configuration Management с помощью скриптов и какой-то там матери ](/post/blogger/mikrotik-routeros-configuration-management-с-помощью-скриптов-и-какой-то-там-матери)
 
 ## Что изменилось
 - С 2020 года я всё реже работаю с сетями и постов о них почти не стало
