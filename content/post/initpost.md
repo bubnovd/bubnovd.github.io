@@ -29,7 +29,7 @@ hideComments = false
 - В среднем в месяц на блог заходили 15 тысяч человек (или роботов. Я не пытался разбираться откуда трафик)
 
 ### Популярные посты
-- [IPSec over L2TP между RouterOS и Apple iOS 10 ](/post/blogger/ipsec-over-l2tp-между-routeros-и-apple-ios-10) - почти 40000 просмотров
+- [IPSec over L2TP между RouterOS и Apple iOS 10 ](http://www.bubnovd.net/2016/10/ipsec-over-l2tp-routeros-apple-ios-10.html) - почти 40000 просмотров
 - [Почему за EoIP over OpenVPN нужно отрубать руки. И почему обе.](/post/blogger/почему-за-eoip-over-openvpn-нужно-отрубать-руки.-и-почему-обе) - 32400 просмотров
 - Пост [Маршрутизация. OSPF в Mikrotik RouterOS](/post/blogger/маршрутизация.-ospf-в-mikrotik-routeros) просмотрело почти 29 тысяч человек
 - [Система управления конфигурациями Oxidized ](/post/blogger/система-управления-конфигурациями-oxidized) - 23000 просмотров
