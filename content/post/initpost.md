@@ -30,14 +30,14 @@ hideComments = false
 
 ### Популярные посты
 - [IPSec over L2TP между RouterOS и Apple iOS 10 ](http://www.bubnovd.net/2016/10/ipsec-over-l2tp-routeros-apple-ios-10.html) - почти 40000 просмотров
-- [Почему за EoIP over OpenVPN нужно отрубать руки. И почему обе.](/post/blogger/почему-за-eoip-over-openvpn-нужно-отрубать-руки.-и-почему-обе) - 32400 просмотров
-- Пост [Маршрутизация. OSPF в Mikrotik RouterOS](/post/blogger/маршрутизация.-ospf-в-mikrotik-routeros) просмотрело почти 29 тысяч человек
-- [Система управления конфигурациями Oxidized ](/post/blogger/система-управления-конфигурациями-oxidized) - 23000 просмотров
-- [DHCP Failover with RouterOS ](/post/blogger/dhcp-failover-with-routeros) - 9000 просмотров
-- [Сегментация сети с использованием оборудования Mikrotik и D-Link ](/post/blogger/сегментация-сети-с-использованием-оборудования-mikrotik-и-d-link) 6000 просмотров
+- [Почему за EoIP over OpenVPN нужно отрубать руки. И почему обе.](http://www.bubnovd.net/2016/01/eoip-over-openvpn.html) - 32400 просмотров
+- Пост [Маршрутизация. OSPF в Mikrotik RouterOS](http://www.bubnovd.net/2016/03/ospf-mikrotik-routeros.html) просмотрело почти 29 тысяч человек
+- [Система управления конфигурациями Oxidized ](http://www.bubnovd.net/2017/10/oxidized.html) - 23000 просмотров
+- [DHCP Failover with RouterOS ](http://www.bubnovd.net/2017/07/dhcp-failover-with-routeros.html) - 9000 просмотров
+- [Сегментация сети с использованием оборудования Mikrotik и D-Link ](http://www.bubnovd.net/2015/12/mikrotik-d-link.html) 6000 просмотров
 - [Самый полный мануал по резервированию интернета на Mikrotik RouterOS](http://www.bubnovd.net/2015/03/mikrotik-routeros.html)
 - [DHCP, Option 82](http://www.bubnovd.net/2015/11/dhcp-option-82.html)
-- [ Мikrotik RouterOS Configuration Management с помощью скриптов и какой-то там матери ](/post/blogger/mikrotik-routeros-configuration-management-с-помощью-скриптов-и-какой-то-там-матери)
+- [ Мikrotik RouterOS Configuration Management с помощью скриптов и какой-то там матери ](http://www.bubnovd.net/2017/11/ikrotik-routeros-configuration.html)
 
 ## Что изменилось
 - С 2020 года я всё реже работаю с сетями и постов о них почти не стало
