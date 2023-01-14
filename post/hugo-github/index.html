@@ -1,0 +1,229 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:site_name" content="Админская фамилия"><meta property="og:type" content="article"><meta property="og:image" content="https://bubnovd.net//img/aksai.jpg"><meta property="twitter:image" content="https://bubnovd.net//img/aksai.jpg"><meta name=title content="Деплой статических сайтов в GitHub Pages"><meta property="og:title" content="Деплой статических сайтов в GitHub Pages"><meta property="twitter:title" content="Деплой статических сайтов в GitHub Pages"><meta name=description content="Деплой статических сайтов в GitHub Pages с помощью GitHub Actions"><meta property="og:description" content="Деплой статических сайтов в GitHub Pages с помощью GitHub Actions"><meta property="twitter:description" content="Деплой статических сайтов в GitHub Pages с помощью GitHub Actions"><meta property="twitter:card" content="summary"><meta name=keyword content><link rel="shortcut icon" href=/img/favicon.ico><title>Деплой статических сайтов в GitHub Pages |</title><link rel=canonical href=/post/hugo-github/><link rel=stylesheet href=/css/bootstrap.min.css><link rel=stylesheet href=/css/hugo-theme-cleanwhite.min.css><link rel=stylesheet href=/css/zanshang.css><link href=https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@5.15.1/css/all.css rel=stylesheet type=text/css><script src=/js/jquery.min.js></script>
+<script src=/js/bootstrap.min.js></script>
+<script src=/js/hux-blog.min.js></script>
+<script src=/js/lazysizes.min.js></script></head><nav class="navbar navbar-default navbar-custom navbar-fixed-top"><div class=container-fluid><div class="navbar-header page-scroll"><button type=button class=navbar-toggle>
+<span class=sr-only>Toggle navigation</span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+<span class=icon-bar></span></button>
+<a class=navbar-brand href=/>Админская фамилия</a></div><div id=huxblog_navbar><div class=navbar-collapse><ul class="nav navbar-nav navbar-right"><li><a href=/>All Posts</a></li><li><a href=/archive/>Archive</a></li><li><a href=/search><i class="fa fa-search"></i></a></li></ul></div></div></div></nav><script>var $body=document.body,$toggle=document.querySelector(".navbar-toggle"),$navbar=document.querySelector("#huxblog_navbar"),$collapse=document.querySelector(".navbar-collapse");$toggle.addEventListener("click",handleMagic);function handleMagic(){$navbar.className.indexOf("in")>0?($navbar.className=" ",setTimeout(function(){$navbar.className.indexOf("in")<0&&($collapse.style.height="0px")},400)):($collapse.style.height="auto",$navbar.className+=" in")}</script><style type=text/css>header.intro-header{background-image:url(/img/hugo-github/logo.jpg)}</style><header class=intro-header><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class=post-heading><div class=tags><a class=tag href=/tags/static-site-generator title="static site generator">static site generator</a>
+<a class=tag href=/tags/hugo title=hugo>hugo</a>
+<a class=tag href=/tags/github-actions title="github actions">github actions</a>
+<a class=tag href=/tags/github-pages title="github pages">github pages</a></div><h1>Деплой статических сайтов в GitHub Pages</h1><h2 class=subheading></h2><span class=meta>Posted by
+bubnovd
+on
+Sunday, January 8, 2023
+<span id=/post/hugo-github/ class="leancloud_visitors meta_data_item" data-flag-title><span class=post-meta-item-icon><span class="octicon octicon-eye"></span></span>
+<i class="fa fa-eye"></i>
+<span class=old-visitors-count style=display:none></span>
+<span class=leancloud-visitors-count></span></span>
+<script src=https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js></script>
+<script>AV.initialize("","")</script><script type=text/javascript>function showTime(e){var n=new AV.Query(e),t=[],s=$(".leancloud_visitors");s.each(function(){t.push($(this).attr("id").trim())}),n.containedIn("url",t),n.find().done(function(e){for(var s,o,i,a,r,l,c=".leancloud-visitors-count",d=".old-visitors-count",n=0;n<e.length;n++)a=e[n],o=a.get("url"),l=a.get("time"),s=document.getElementById(o),$(s).find(c).text(l);for(n=0;n<t.length;n++)o=t[n],s=document.getElementById(o),i=$(s).find(c),i.text()==""&&(r=$(s).find(d).text(),r!=""?i.text(0+parseInt(r)):i.text(0))}).fail(function(e,t){console.log("Error: "+t.code+" "+t.message)})}function addCount(e){var n=$(".leancloud_visitors"),t=n.attr("id").trim(),o=n.attr("data-flag-title").trim(),s=new AV.Query(e);s.equalTo("url",t),s.find({success:function(n){if(n.length>0){var s,i,r,c,l,a=n[0];a.fetchWhenSave(!0),a.increment("time"),a.save(null,{success:function(e){var n=$(document.getElementById(t));n.find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to save Visitor num, with error message: "+t.message)}})}else s=new e,i=new AV.ACL,i.setPublicReadAccess(!0),i.setPublicWriteAccess(!0),s.setACL(i),s.set("title",o),s.set("url",t),c=".old-visitors-count",l=$(document.getElementById(t)),r=l.find(c).text(),r!=""?s.set("time",parseInt(r)+1):s.set("time",1),s.save(null,{success:function(e){var n=$(document.getElementById(t));n.find(".leancloud-visitors-count").text(e.get("time"))},error:function(){console.log("Failed to create")}})},error:function(e){console.log("Error:"+e.code+" "+e.message)}})}$(function(){var e=AV.Object.extend("Counter");$(".leancloud_visitors").length==1?addCount(e):showTime(e)})</script></span></div></div></div></div></header><article><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+post-container"><p><em>Обложка: Млечный Путь с хижины Рацека 24.09.2022</em></p><blockquote><p>В статье рассмотрим генераторы статических сайтов, создадим сайт на одном из них, опубликуем его в GitHub Pages и настроим автодеплой в Gitub Actions</p></blockquote><h2 id=немного-истории>Немного истории</h2><p>В начале развития веба сайты были статическими. На странице был текст и картинки. Для любого пользователя сайт выглядел одинаково и взаимодействие с польователем было не нужно. Тенхологии равивались, пользователям хотелось ваимодействовать с сайтами - оставлять комментарии, обсуждать новости. Сайтов становилось больше, они требовали взаимодествия с пользователями и их наполнение нужно доверить нетехническим людям - упростить добавление новостей и новых страниц - нужны простые админки. Для реализации этого требовались обработчики действий пользователей. Сначала это был Perl, потом PHP и другие.
+По прошествии какого-то времени стало ясно, что не всем нужны динамические сайты. Например, сайт-визитка компании не нуждается ни в комментариях, ни в форме заказа. Так же как персональный блог не требует упрощенной админки. Наступила новая эра статических сайтов.</p><h2 id=static-sites>Static Sites</h2><p>Статические сайты не требуют использования дополнительных технологий: никаких баз данных, движков обработки - только веб сервер. Раньше админ сайта вручную редактировал html код - требовались знания HTML, CSS. В новом мире появились генераторы статических сайтов. От админа требуется написать текст (обычно в формате Markdown), прикрепить картинки, выбрать тему сайта и запустить генератор. Он обработает тексты постов и создаст красивый сайт в соответствии со своими шаблонами. На выходе получится набор html, css, js файлов для работы сайта. Достаточно просто положить эти файлы в папку с веб-сервером и можно пользоваться полноценным сайтом.
+Существует несколько распространенных генераторов статических сайтов:</p><ul><li><strong>Hugo</strong>: Написан на Go. В качестве шаблонов использует Go Template. Легко настраивается, очень быстро генерирует сайт. Не требует зависимостей - всего один бинарник</li><li><strong>Jekyll</strong>: Написан на Ruby. Шаблоны Liquid. Один из первых генераторов статических сайтов с огромным комьюнити. Хорошо оптимизирован для SEO</li><li><strong>Gatsby</strong>: Написан на JavaScript, шаблоны React. Для работы требует GraphQL. Позволяет делать PWA - Progressive Web Application. Огромное количество плагинов</li><li><strong><a href=https://xakep.ru/2017/08/08/lektor-get-started/>Lektor</a>, Next, Zola, Eleventy, Pelican, &mldr;</strong></li></ul><p>Все движки имеют огромное количество тем для разных применений. Для своего блога я выбрал генератор Hugo - он показался мне достаточно удобным, с нужным функционалом, а так же использует Go Template, с которым было интересно разобраться, так как такие темплейты использует большинство современного ПО для клауд сервисов.</p><blockquote><p>Книга про генераторы статических сайтов <a href=https://www.oreilly.com/library/view/static-site-generators/9781492048558/>Static Site Generators. Modern Tools for Static Website Development</a></p></blockquote><h2 id=делаем-сайт-на-hugo>Делаем сайт на Hugo</h2><p>В большинстве случаев для создания сайта нужно склоинровать репозиторий с генератором и выполнить несколько команд:</p><ul><li>создать структуру каталогов</li><li>создать новый пост</li><li>подготовить сайт к публикации
+В итоге получим структуру директорий, которую нужно положить в директорию, откуда веб-сервер читает контент. Да, вот так просто.</li></ul><p>Работать с hugo будем из Docker. Инструкция по его установке и настройке есть на <a href=https://docs.docker.com/>официальном сайте</a>. Если читателю не хочется ставить Docker, то предлагаю [разобраться]](<a href=https://gohugo.io/installation/>https://gohugo.io/installation/</a>) с установкой Hugo - это совсем не сложно.</p><p>Заранее создадаим репозиторий с сайтом на GitHub и склонируем его <code>git clone https://github.com/bubnovd/hugosite.git</code>. В первых шагах он нам не нужен, но пригодится дальше при публикации сайта</p><p>Зафиксируем используемую версию Hugo, чтобы в будущем при обновлении не менять версии в командах. Вместо этого будем указывать переменную <code>HUGO_DOCKER_TAG</code>:</p><p><code>export HUGO_DOCKER_TAG=0.107.0-ext</code></p><p>Создадим новый сайт с именем hugostite. Имя сайта должно совпадать с именем репозитория:</p><p><code>docker run -it --rm -v $(pwd):/src -p 1313:1313 klakegg/hugo:$HUGO_DOCKER_TAG new site hugosite --force</code></p><p>force в данном случае используем чтобы Docker не ругался ну существующую директорию - мы скачали её из гитхаба, а переписывать не хотим, т.к. там конфиг гита.</p><p>Заходим в директорию hugosite:</p><p><code>cd hugosite</code></p><p>Добавим тему therminal:</p><p><code>git submodule add -f https://github.com/panr/hugo-theme-terminal.git themes/terminal</code></p><p>И пропишем в конфиге, что будем использовать именно её:</p><p><code>echo "theme = 'terminal'" >> config.toml</code></p><p>Теперь можно запускать сайт. Сейчас он пустой</p><p><code>docker run -it --rm -v $(pwd):/src -p 1313:1313 klakegg/hugo:$HUGO_DOCKER_TAG serve -D --bind 0.0.0.0</code></p><p><a href=https://gohugo.io/troubleshooting/faq/#i-get--this-feature-is-not-available-in-your-current-hugo-version>ext тут нужен потому что эта тема не работает с базовым Hugo</a>. Для других тем нужно отдельно проверить заработает ли Hugo с базовым образом (без -ext).
+<img src=/img/hugo-github/run-theme.png alt=run-theme></p><p>Создадим новый пост <code>docker run -it --rm -v $(pwd):/src -p 1313:1313 klakegg/hugo:$HUGO_DOCKER_TAG new posts/my-first-post.md</code></p><p>Генератор создал файл content/posts/my-first-post.md с содержимым</p><pre tabindex=0><code>+++
+title = &#34;My First Post&#34;
+date = &#34;2023-01-08T11:05:20Z&#34;
+author = &#34;&#34;
+authorTwitter = &#34;&#34; #do not include @
+cover = &#34;&#34;
+tags = [&#34;&#34;, &#34;&#34;]
+keywords = [&#34;&#34;, &#34;&#34;]
+description = &#34;&#34;
+showFullContent = false
+readingTime = false
+hideComments = false
+color = &#34;&#34; #color from the theme settings
++++
+</code></pre><p>Тут можно изменить название поста, проставить теги, выбрать цвет и другие параметры. Ниже последних <code>+++</code> можно писать текст в формате Markdown
+C таким содержимым полуилось как на картинке</p><pre tabindex=0><code>+++
+title = &#34;Hello Ninjas!&#34;
+date = &#34;2023-01-08T11:05:20Z&#34;
+author = &#34;Mikrotik Ninja&#34;
+authorTwitter = &#34;bubnovdnet&#34; #do not include @
+cover = &#34;&#34;
+tags = [&#34;hugo&#34;, &#34;demo&#34;]
+keywords = [&#34;hugo&#34;, &#34;demo&#34;]
+description = &#34;Tiny post for hugo demo post&#34;
+showFullContent = false
+readingTime = true
+hideComments = false
+color = &#34;green&#34; #color from the theme settings
++++
+
+# Hello Ninjas!
+_This is first post_
+- first
+- second
+- third
+</code></pre><p><img src=/img/hugo-github/first-post.png alt=first-post></p><p>Запускаем, <code>docker run -it --rm -v $(pwd):/src -p 1313:1313 klakegg/hugo:$HUGO_DOCKER_TAG serve -D --bind 0.0.0.0</code> проверяем, что работает - открываем браузер по адресу <code>localhost:1313</code>.</p><p>В <a href=https://www.markdownguide.org/basic-syntax/>документации к Markdown</a> можно почитать на что способен этот формат и оформлять посты красиво. Так же сам Hugo и темы к нему имеют огромное количество настроек, с помощью которых можно изменить свой сайт как угодно. В этом посте не будем заниматься внешним видом - об этом уже много написано, а нам ещё нужно опубликовать сайт и автоматизировать его деплой.</p><p>Теперь зальем наш получившийся репозиторий на GitHub.
+<code>git commit -m hugosite && git push</code></p><h2 id=публикация-сайта-на-github>Публикация сайта на GitHub</h2><p>Hugo умеет работать на любом вебсервере, а так же имеет средства для деплоя на популярные облачные сервисы:</p><ul><li>21YunBox</li><li>AWS Amplify</li><li>Azure Static Web Apps</li><li>Netlify</li><li>Render</li><li>Firebase</li><li>GitHub</li><li>GitLab</li><li>KeyCDN</li><li>Cloudflare Pages
+В официальной документации Hugo описаны все перечисленные виды деплоя.</li></ul><p>Проект <a href=https://pages.github.com/>GitHub Pages</a> может сделать сайтом любой публичный репозиторий. Для этого достаточно в настройках репозитория активировать Pages и указать ветку, которая будет использоваться в качестве сайта. Укажем её позже, после первого деплоя, когда появится нужная нам ветка.</p><p>Сайт в Pages будет иметь адрес username.github.io или username.github.io/reponame, что позволяет держать несколько сайтов на одном GitHub аккаунте. Кроме того сайт можно опубликовать на своем домене. Для этого нужно будет пройти <a href=https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/about-custom-domains-and-github-pages>верификацию домена</a></p><p>Теперь для обновления сайта нужно локально генерировать файлы с помощью Hugo и заливать их в репозиторий, но мы автоматизируем процесс с помощью ещё одной фичи GitHub&rsquo;a.</p><h2 id=github-actions>GitHub Actions</h2><p>Как платформа для хранения исходного кода, GitHub просто обязан был внедрить возможность CI/CD. Эта функциональность обеспечивается <a href=https://github.com/features/actions>GitHub Actions</a>. В корне репозитория создается файл <code>.github/workflows/gh-pages.yml</code>. В нем описываются действия, которые будут происходить при определенных событиях. Например, при пуше в ветку develop необходимо сначала собрать проект, а затем запустить тесты. А при мердже в main опубликовать проект. По сути Actions запускает контейнер с каким-то приложением и передает ему параметры запуска.</p><p>В нашем случае <code>.github/workflows/gh-pages.yml</code>. выглядит так:</p><pre tabindex=0><code>name: github pages
+
+on:
+  push:
+    branches:
+      - main  # Set a branch that will trigger a deployment
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true  # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: &#39;0.107.0&#39;  # Our Hugo version
+          extended: true           # extended Hugo 
+
+      - name: Build
+        run: hugo --minify
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == &#39;refs/heads/main&#39;
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+</code></pre><p>Воркфлоу работает на Ubuntu 22.04 и состоит из трех шагов:</p><ul><li>Первый шаг использует action checkout версии 3. Он скачивает наш репозиторий вместе с сабмодулями, что указано в соответствующем поле</li><li>Шаг Setup Hugo устанавливает в контейнер с Ubuntu пакет Hugo указанной версии <code>hugo-version: '0.107.0'</code>. Правила хорошего тона требуеют указывать конкретные версии пакетов, чтобы не сломать продукты, разработанные для старой версии. По умолчанию тут стоит <code>latest</code>. Дело в том, что тег <code>latest</code> диктует использовать последнюю версию Hugo, в то время, как наш сайт тестировался локально с версией 0.107.0-ext. Когда выйдет новая версию Hugo, то Actions будет использовать её. Есть вероятность, что какие-то старые фичи перестанут поддерживаться в новой версии и наш сайт сломается. Так что ВСЕГДА указывате конкретные теги, вместо <code>latest</code></li><li>В шаге Build запускается hugo в режиме генерации сайта из исходников, скачанных в первом шаге. В нем из наших исходников в папку public собираются html, css и js файлы, которые мы используем при открытии сайта в браузере</li><li>Шаг Deploy указывает использовать папку public, полученную в предыдущем шаге, в качестве содержимого веб-сервера</li></ul><p>В репозитории на вкладке Actions можно увидеть весь процесс сборки и деплоя сайта. Каждый шаг можно развернуть и посмотреть его логи
+<img src=/img/hugo-github/actions.png alt=actions></p><p>Для корректной работы GitHub Pages нужно указать ветку, которая будет публиковаться. В нашем случае это ветка <a href=https://gohugo.io/hosting-and-deployment/hosting-on-github/#branches-for-github-actions>gh-pages</a>.
+<img src=/img/hugo-github/github-pages.png alt=github-pages></p><p>Во время деплоя, скорее всего, получим ошибку <code>Error: Action failed with "The process '/usr/bin/git' failed with exit code 128"</code>
+<img src=/img/hugo-github/error.png alt=error></p><p>Это значит, что GitHub Action не хватает прав для пуша в репозиторий. Нужно выдать эти права в настройках репозитория <code>Actions - General - Workflow Permissions: Read and Write Permissions</code></p><p><img src=/img/hugo-github/wf-permissions.png alt=wf-permissions></p><p>Помимо сборки и деплоя сайта в воркфлоу можно добавить проверку ошибок, сжатие картинок и всё, что пожелает админ. Думаю, читатель сам найдет и другие способы применения этого продукта. Кроме GitHub Actions можно использовать GitLab CI, Travis CI, Circle CI, Jenkins и другие CI/CD системы.</p><h2 id=импорт-постов-из-других-источников>Импорт постов из других источников</h2><p>Если у вас уже есть блог на какой-либо платформе, то в новый блог можно легко импортировать записи с этой платформы. Есть огромное количество скриптов для переноса содержимого из других платформ. Если же у вас не очень распространенная платформа, для такой скрипт можно написать самому. Вот список работающих импортеров с <a href=https://gohugo.io/tools/migrations/>официального сайта Hugo</a>:</p><ul><li>Jekyll</li><li>Ghost</li><li>Octopress</li><li>DokuWiki</li><li>WordPress</li><li>Medium</li><li>Tumblr</li><li>Drupal</li><li>Joomla</li><li>Blogger</li><li>Contentful</li><li>BlogML</li></ul><p>Для переноса статей с blogger я пользовался скриптом <a href=https://pypi.org/project/blogger-to-hugo/>blogger-to-hugo</a>. Посты переехали в отдельную папку blogger. Некорректно переехали переносы строк, но это поправимо. Большим преимществом является то, что в таких импортированных статьях можно проставить алиасы адресов для постов. Например, в старом блоге пост лежал по адресу <a href=https://www.bubnovd.net/2015/03/mikrotik-routeros.html>https://www.bubnovd.net/2015/03/mikrotik-routeros.html</a>, а в hugo он окажется по адресу <a href=https://bubnovd.net/blogger/>https://bubnovd.net/blogger/</a>самый-полный-мануал-по-резервированию-интернета-на-mikrotik-routeros и если у кого-то был сохранен линк на старый блог, то этот линк просто не откроется. В hugo в заголовке поста можно указать алиас для адреса и пост будет лежать уже по двум путям - старому и новому. Так мы не сломаем линки на наши посты со сторонних ресурсов.</p><p>Подходы к работе с сайтами сильно изменились со времен первого веба и теперь создать красивый современный сайт под силу каждому. А попутно ещё можно разобраться с современными технологиями, чтобы не отставать от быстро мчащегося паровоза под названием Информационные Технологии</p><hr><ul class=pager><li class=previous><a href=/post/nebula/ data-toggle=tooltip data-placement=top title=Nebula>&larr;
+Previous Post</a></li></ul><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//bubnovd-github-io.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="col-lg-2 col-lg-offset-0
+visible-lg-block
+sidebar-container
+catalog-container"><div class=side-catalog><hr class="hidden-sm hidden-xs"><h5><a class=catalog-toggle href=#>CATALOG</a></h5><ul class=catalog-body></ul></div></div><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+sidebar-container"><section><hr class="hidden-sm hidden-xs"><h5><a href=/tags/>FEATURED TAGS</a></h5><div class=tags><a href=/tags/#sysadminka title=#sysadminka>#sysadminka</a>
+<a href=/tags/1%D1%81 title=1с>1с</a>
+<a href=/tags/about title=about>about</a>
+<a href=/tags/active-directory title=active-directory>active-directory</a>
+<a href=/tags/ad title=ad>ad</a>
+<a href=/tags/asterisk title=asterisk>asterisk</a>
+<a href=/tags/bandwidth title=bandwidth>bandwidth</a>
+<a href=/tags/best-practice title=best-practice>best-practice</a>
+<a href=/tags/bgp title=bgp>bgp</a>
+<a href=/tags/books title=books>books</a>
+<a href=/tags/certification title=certification>certification</a>
+<a href=/tags/cisco title=cisco>cisco</a>
+<a href=/tags/cmd title=cmd>cmd</a>
+<a href=/tags/cureit title=cureit>cureit</a>
+<a href=/tags/d-link title=d-link>d-link</a>
+<a href=/tags/ddos title=ddos>ddos</a>
+<a href=/tags/debian title=debian>debian</a>
+<a href=/tags/dhcp title=dhcp>dhcp</a>
+<a href=/tags/dns title=dns>dns</a>
+<a href=/tags/dpi title=dpi>dpi</a>
+<a href=/tags/dr.web title=dr.web>dr.web</a>
+<a href=/tags/eoip title=eoip>eoip</a>
+<a href=/tags/failover title=failover>failover</a>
+<a href=/tags/firewall title=firewall>firewall</a>
+<a href=/tags/freebsd title=freebsd>freebsd</a>
+<a href=/tags/groups title=groups>groups</a>
+<a href=/tags/hack title=hack>hack</a>
+<a href=/tags/hardware title=hardware>hardware</a>
+<a href=/tags/hdd title=hdd>hdd</a>
+<a href=/tags/hyper-v title=hyper-v>hyper-v</a>
+<a href=/tags/internet title=internet>internet</a>
+<a href=/tags/ip-%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD%D0%B8%D1%8F title=ip-телефония>ip-телефония</a>
+<a href=/tags/iptables title=iptables>iptables</a>
+<a href=/tags/iso/osi title=iso/osi>iso/osi</a>
+<a href=/tags/keepass title=keepass>keepass</a>
+<a href=/tags/l2 title=l2>l2</a>
+<a href=/tags/link title=link>link</a>
+<a href=/tags/links title=links>links</a>
+<a href=/tags/linux title=linux>linux</a>
+<a href=/tags/linux-firewalls title=linux-firewalls>linux-firewalls</a>
+<a href=/tags/linux-server title=linux-server>linux-server</a>
+<a href=/tags/microsoft title=microsoft>microsoft</a>
+<a href=/tags/midnightcommander title=midnightcommander>midnightcommander</a>
+<a href=/tags/mikrotik title=mikrotik>mikrotik</a>
+<a href=/tags/monitoring title=monitoring>monitoring</a>
+<a href=/tags/mpls title=mpls>mpls</a>
+<a href=/tags/ms title=ms>ms</a>
+<a href=/tags/mss title=mss>mss</a>
+<a href=/tags/mtcna title=mtcna>mtcna</a>
+<a href=/tags/mtcre title=mtcre>mtcre</a>
+<a href=/tags/mtu title=mtu>mtu</a>
+<a href=/tags/mum title=mum>mum</a>
+<a href=/tags/mva title=mva>mva</a>
+<a href=/tags/open-source title=open-source>open-source</a>
+<a href=/tags/oreilly title=oreilly>oreilly</a>
+<a href=/tags/ospf title=ospf>ospf</a>
+<a href=/tags/password title=password>password</a>
+<a href=/tags/powershell title=powershell>powershell</a>
+<a href=/tags/pptp title=pptp>pptp</a>
+<a href=/tags/presentation title=presentation>presentation</a>
+<a href=/tags/python title=python>python</a>
+<a href=/tags/qos title=qos>qos</a>
+<a href=/tags/raid title=raid>raid</a>
+<a href=/tags/rdp title=rdp>rdp</a>
+<a href=/tags/routerboard title=routerboard>routerboard</a>
+<a href=/tags/routeros title=routeros>routeros</a>
+<a href=/tags/routing title=routing>routing</a>
+<a href=/tags/script title=script>script</a>
+<a href=/tags/sdn title=sdn>sdn</a>
+<a href=/tags/security title=security>security</a>
+<a href=/tags/server title=server>server</a>
+<a href=/tags/snmp title=snmp>snmp</a>
+<a href=/tags/snmpv3 title=snmpv3>snmpv3</a>
+<a href=/tags/ssh title=ssh>ssh</a>
+<a href=/tags/ssl title=ssl>ssl</a>
+<a href=/tags/tcp/ip title=tcp/ip>tcp/ip</a>
+<a href=/tags/terminal title=terminal>terminal</a>
+<a href=/tags/the-dude title=the-dude>the-dude</a>
+<a href=/tags/ubuntu title=ubuntu>ubuntu</a>
+<a href=/tags/vpn title=vpn>vpn</a>
+<a href=/tags/webmin title=webmin>webmin</a>
+<a href=/tags/wi-fi title=wi-fi>wi-fi</a>
+<a href=/tags/wifi title=wifi>wifi</a>
+<a href=/tags/windows title=windows>windows</a>
+<a href=/tags/%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=автоматизация>автоматизация</a>
+<a href=/tags/%D0%B0%D0%BD%D1%82%D0%B8%D0%B2%D0%B8%D1%80%D1%83%D1%81-%D0%BA%D0%B0%D1%81%D0%BF%D0%B5%D1%80%D1%81%D0%BA%D0%BE%D0%B3%D0%BE title=антивирус-касперского>антивирус-касперского</a>
+<a href=/tags/%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=безопасность>безопасность</a>
+<a href=/tags/%D0%B1%D0%BB%D0%BE%D0%B3 title=блог>блог</a>
+<a href=/tags/%D0%B2%D0%B8%D1%80%D1%82%D1%83%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=виртуализация>виртуализация</a>
+<a href=/tags/%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D1%8B title=группы>группы</a>
+<a href=/tags/%D0%B4%D0%BB%D1%8F-%D1%87%D0%B0%D0%B9%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2 title=для-чайников>для-чайников</a>
+<a href=/tags/%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C title=жизнь>жизнь</a>
+<a href=/tags/%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD title=закон>закон</a>
+<a href=/tags/%D0%B8%D0%B1 title=иб>иб</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BD%D0%BE%D0%B5 title=интересное>интересное</a>
+<a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82 title=интернет>интернет</a>
+<a href=/tags/%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=информационная-безопасность>информационная-безопасность</a>
+<a href=/tags/%D0%B8%D1%81%D0%BF%D0%B4%D0%BD title=испдн>испдн</a>
+<a href=/tags/%D0%BA%D0%BD%D0%B8%D0%B3%D0%B8 title=книги>книги</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%82%D0%BE%D1%80 title=коммутатор>коммутатор</a>
+<a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%86%D0%B8%D1%8F title=коммутация>коммутация</a>
+<a href=/tags/%D0%BA%D1%83%D1%80%D1%81%D1%8B title=курсы>курсы</a>
+<a href=/tags/%D0%BB%D0%B8%D0%BD%D1%83%D0%BA%D1%81 title=линукс>линукс</a>
+<a href=/tags/%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0 title=настройка>настройка</a>
+<a href=/tags/%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5 title=обучение>обучение</a>
+<a href=/tags/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=оптимизация>оптимизация</a>
+<a href=/tags/%D0%BE%D1%84%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B title=официальные-документы>официальные-документы</a>
+<a href=/tags/%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C title=пароль>пароль</a>
+<a href=/tags/%D0%BF%D0%B4%D0%BD title=пдн>пдн</a>
+<a href=/tags/%D0%BF%D0%BE%D0%BB%D0%B5%D0%B7%D0%BD%D0%BE%D0%B5 title=полезное>полезное</a>
+<a href=/tags/%D0%BF%D1%80%D0%B8%D0%BA%D0%B0%D0%B7 title=приказ>приказ</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=производительность>производительность</a>
+<a href=/tags/%D0%BF%D1%80%D0%BE%D1%84%D0%B5%D1%81%D1%81%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%BC title=профессионализм>профессионализм</a>
+<a href=/tags/%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0 title=работа>работа</a>
+<a href=/tags/%D1%81%D0%B5%D1%80%D1%82%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F title=сертификация>сертификация</a>
+<a href=/tags/%D1%81%D0%B5%D1%82%D1%8C title=сеть>сеть</a>
+<a href=/tags/%D1%81%D0%BA%D0%B7%D0%B8 title=скзи>скзи</a>
+<a href=/tags/%D1%81%D0%BA%D0%BE%D1%80%D0%BE%D1%81%D1%82%D1%8C title=скорость>скорость</a>
+<a href=/tags/%D1%81%D0%BA%D1%80%D0%B8%D0%BF%D1%82 title=скрипт>скрипт</a>
+<a href=/tags/%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B8 title=ссылки>ссылки</a>
+<a href=/tags/%D1%82%D1%83%D1%80%D0%B8%D0%B7%D0%BC title=туризм>туризм</a>
+<a href=/tags/%D1%86%D0%BE%D0%B4 title=цод>цод</a>
+<a href=/tags/%D1%87%D0%B5%D0%BB%D1%8F%D0%B1%D0%B8%D0%BD%D1%81%D0%BA title=челябинск>челябинск</a>
+<a href=/tags/%D1%8E%D0%B7%D0%B2%D0%B5%D1%80%D0%B8 title=юзвери>юзвери</a></div></section></div></div></div></article><footer><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center"></ul><p class="copyright text-muted">Copyright &copy; Админская фамилия 2023<br><a href=https://themes.gohugo.io/hugo-theme-cleanwhite>CleanWhite Hugo Theme</a> by <a href=https://zhaohuabing.com>Huabing</a> |
+<iframe style=margin-left:2px;margin-bottom:-5px frameborder=0 scrolling=0 width=100px height=20px src="https://ghbtns.com/github-btn.html?user=zhaohuabing&repo=hugo-theme-cleanwhite&type=star&count=true"></iframe></p></div></div></div></footer><script>function loadAsync(e,t){var s=document,o="script",n=s.createElement(o),i=s.getElementsByTagName(o)[0];n.src=e,t&&n.addEventListener("load",function(e){t(null,e)},!1),i.parentNode.insertBefore(n,i)}</script><script>$("#tag_cloud").length!==0&&loadAsync("/js/jquery.tagcloud.js",function(){$.fn.tagcloud.defaults={color:{start:"#bbbbee",end:"#0085a1"}},$("#tag_cloud a").tagcloud()})</script><script>loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js",function(){var e=document.querySelector("nav");e&&FastClick.attach(e)})</script><script type=text/javascript>function generateCatalog(e){_containerSelector="div.post-container";var t,n,s,o,i,a=$(_containerSelector),r=a.find("h1,h2,h3,h4,h5,h6");return $(e).html(""),r.each(function(){t=$(this).prop("tagName").toLowerCase(),o="#"+$(this).prop("id"),n=$(this).text(),i=$('<a href="'+o+'" rel="nofollow">'+n+"</a>"),s=$('<li class="'+t+'_nav"></li>').append(i),$(e).append(s)}),!0}generateCatalog(".catalog-body"),$(".catalog-toggle").click(function(e){e.preventDefault(),$(".side-catalog").toggleClass("fold")}),loadAsync("/js/jquery.nav.js",function(){$(".catalog-body").onePageNav({currentClass:"active",changeHash:!1,easing:"swing",filter:"",scrollSpeed:700,scrollOffset:0,scrollThreshold:.2,begin:null,end:null,scrollChange:null,padding:80})})</script></body></html>
