@@ -22,6 +22,49 @@ TOKEN=$(curl \
 Потом пойти с этим токеном в куб KUBECONFIG=~/Downloads/dev1.conf k --token $TOKEN get pod 
 в выводе токена должен быть поле name - то поле, которое указали аписерверу oidc-username-claim: name
 
+
+https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation
+
+
+# Topic
+- What is the general topic you want to cover?
+impersonate is urgent not so popular feature 
+- Do you already have a potential title in mind? (If not, come up with 3 viable options together.)
+Some non-obvious features  Kubernetes RBAC, Impersonate it
+- Are there any particular subtopics you would like to focus on? (Outline specific headings together.)
+bellow
+- Are there any relevant topics that should be avoided?
+no
+- Are there any existing pieces of content that you would like us to reference or align with?
+k8s documentation
+# Audience
+- Who is the primary target audience for this content? What job titles do they have?
+devops jun+/middle
+- Are there any secondary audiences we should keep in mind?
+developers, devops junior
+- Is the reader a beginner, intermediate, or expert?
+intermediate
+- What value do you hope the audience will gain from this content? What is the key takeaway?
+know about nonobvious features of k8s rbac
+- Are there any common questions or concerns of the audience that we should address?
+# Purpose
+- What is the primary purpose or goal of this content? (E.g., new product awareness, existing product purchase, increase traffic to product page)
+threat awareness 
+- Is there a secondary purpose or goal we should consider?
+better understanding of k8s rbac
+- Are you hoping to promote a specific product or service through this content?
+managed kubernetes
+- How will you measure the success of this content?
+likes and reposts
+# Length and Genre
+- Do you have a preferred length for this content?
+7-10 minutes read
+- Is there a specific genre or style you're aiming for (blog post, white paper, case study, etc.)?
+
+- Are there any visual elements (graphs, charts, images, etc.) that need to be included?
+images, code
+
+
 - inro
 - rbac
 - impersonate
@@ -74,6 +117,19 @@ rules:
   verbs: ["get", "watch", "list"]
 ```
 
+#### Verbs
+В роли могут использоваться следующие verbs:
+https://kubernetes.io/docs/reference/access-authn-authz/authorization/#determine-the-request-verb
+- create - создать ресурс
+- get, list, watch - прочитать ресурс
+- update - редактировать ресурс
+- patch - редактировать ресурс
+- delete, deletecollection - удалить ресурс
+- bind, escalate - интересное тут ПОПРАВИТЬ
+- impersonate, userextras
+
+> escalate, bind verb https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping   https://kubernetes.io/docs/concepts/security/rbac-good-practices/#least-privilege
+
 ### ServiceAccounts, Users, Groups
 
 [ServiceAccount](https://kubernetes.io/docs/concepts/security/service-accounts/)(дальше - SA) - тип учетной записи в k8s, используемый подами, системными компонентами и всем, что не кожаный мешок. В качестве аутентификатора SA использует [токен JWT](https://www.rfc-editor.org/rfc/rfc7519.html). Посмотрим подробнее на создание SA и его JWT токен.
@@ -94,10 +150,42 @@ metadata:
 `TOKEN=$(k create token mysa)`
 СГЕНЕРИТЬ И ПОКАЗАТЬ
 Получили JWT. 
-> Обычно по-русски пишут JWT токен, что является [плеоназмом](https://ru.wikipedia.org/wiki/%D0%90%D0%B1%D0%B1%D1%80%D0%B5%D0%B2%D0%B8%D0%B0%D1%82%D1%83%D1%80%D0%B0#%D0%A2%D0%B0%D0%B2%D1%82%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5_%D1%81%D0%BE%D0%BA%D1%80%D0%B0%D1%89%D0%B5%D0%BD%D0%B8%D0%B5): Java Web Token токен. Поэтому я буду писать просто JWT
+> Обычно по-русски пишут JWT токен, что является [плеоназмом](https://ru.wikipedia.org/wiki/%D0%90%D0%B1%D0%B1%D1%80%D0%B5%D0%B2%D0%B8%D0%B0%D1%82%D1%83%D1%80%D0%B0#%D0%A2%D0%B0%D0%B2%D1%82%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5_%D1%81%D0%BE%D0%BA%D1%80%D0%B0%D1%89%D0%B5%D0%BD%D0%B8%D0%B5): JSON Web Token токен. Поэтому я буду писать просто JWT
 
 JWT состоит из трех частей, разделенных точками. Первые две части - закодированный в base64 текст, последняя - подпись.
 `echo $TOKEN | jq -R ' split(".") | select(length > 0) | .[0],.[1] | @base64d | fromjson'`
+ПОКАЗАТЬ ЧТО ПОЛУЧИЛОСЬ
+
+#### Users, Groups
+
+Это может показаться странным, но API k8s не имеет понятия юзера или группы. Невозможно создать пользователя или группу. Но эти данные необходимы для авторизации. API Server распознает пользователя по полю CN в Subject сертификата.
+ПОКАЗАТЬТ КАК openssl x509 -noout -text -in ~/gcore/tmp/c.crt  
+
+### RoleBinding
+Ресурс, связывающий роль и пользователя/группу/сервисаккаунт. Содержит всего два поля:
+- список Subjects, в котором перечислены субъекты доступа: пользователи и/или группы и/или сервисаккаунты
+- roleRef - роль, которая привязывается к  перечилсенным субъектам
+
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "jane" to read pods in the "default" namespace.
+# You need to already have a Role named "pod-reader" in that namespace.
+kind: RoleBinding
+metadata:
+  name: read-pods
+  namespace: default
+subjects:
+# You can specify more than one "subject"
+- kind: User
+  name: jane # "name" is case sensitive
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: Role #this must be Role or ClusterRole
+  name: pod-reader # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io
+```
 
 
 ```
