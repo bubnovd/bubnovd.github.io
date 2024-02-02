@@ -235,7 +235,20 @@ https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-ro
 > You can only create/update a role binding if you already have all the permissions contained in the referenced role
 что это значить? Можно ли эти пермишены получить от других ролей?
 
+doc
+To allow a user to create/update role bindings:
 
+Grant them a role that allows them to create/update RoleBinding or ClusterRoleBinding objects, as desired.
+Grant them permissions needed to bind a particular role:
+implicitly, by giving them the permissions contained in the role.
+explicitly, by giving them permission to perform the bind verb on the particular Role (or ClusterRole).
+
+
+blog
+ to create or update a role binding, you need to meet either of the following conditions:
+
+You already possess all the permissions specified in the referenced role, at the same scope as the role binding. This means that you have the necessary privileges to perform the required actions defined by the role.
+You have been explicitly authorized to use the bind verb on the referenced role. This means that even if you don't have all the permissions in the role, you can still create or update the role binding by having the specific authority to bind the role to the user or group
 
 ```
 k create ns bubnovd
