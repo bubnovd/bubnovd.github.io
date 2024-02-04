@@ -72,13 +72,14 @@ images, code
 - как защититься
 - обзор инструментов
 
+Ещё одна угроза - Фggregated ClusterRole 
+[Хорошая презентация про RBAC](https://www.cncf.io/wp-content/uploads/2020/08/2020_04_Introduction-to-Kubernetes-RBAC.pdf), [видео](https://www.youtube.com/watch?v=B6Ylwugs3t0)
 
 В kubernetes есть аналог sudo, благодаря которому можно обойти ограничения в назначенных ролях и получить доступ туда, куда не предполагалось. И эта возможность есть у любого юзера с дефолтной кластерролью edit. В этой статье попробуем разобраться что это такое и как защититься от такого легального повышения привилегий.
 
-Зачем используетя?
-https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation
-https://www.cncf.io/wp-content/uploads/2020/08/2020_04_Introduction-to-Kubernetes-RBAC.pdf
-https://kublr.com/media/kubernetes-rbac-101-2/
+Зачем используетя? 
+- для дебага рбака обычно
+
 
 ## Ролевая модель доступа в Kubernetes
 
@@ -94,18 +95,19 @@ Kubernetes может использовать модели доступа: [Nod
 Чаще всего приходится работать с ролевой моделью доступа - RBAC. В ней есть несколько взаимосвязанных сущностей:
 - роль, описывающая доступ к ресурсам
 - пользователь (это может быть User, Group или ServiceAccount)
-- Rolebinding - то, что объединяет роли и пользователей
+- Rolebinding - то, что объединяет роли и пользователей 
 
-На самом деле этих сущностей немного больше. Рассмотрим их детальней. ИЛИ НЕ НАДО??
-Про RBAC хорошо написано в [документации k8s](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) и я не буду пытаться написать ещё раз. Просто детально рассмотрим то, что нам понадобится дальше.
+На самом деле этих сущностей немного больше. Рассмотрим их детальней.
+Про RBAC хорошо написано в [документации k8s](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) и я не буду пытаться написать ещё раз. Просто рассмотрим то, без чего остальная статья не имеет смысла. Если читатель знает концепции RBAC k8s - эту часть можно пропусать и сразу переходить к следующей НАЗВАНИЕ ЧАСТИ ТУТ
 
+## Ресурсы kubernetes RBAC
 ### Role
 Роль состоит из списка правил. Каждое правило включает в себя:
 - apiGroups - указатель на API groups
 - resources - список ресурсов, к которым будет применяться правило. Тут может быть `pods`, `configmaps`, `secrets`, ...
 - verbs - доступные операции с перечисленными ресурсами
 
-```
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -121,17 +123,17 @@ rules:
 
 [Request Verbs](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#determine-the-request-verb)
 
-В роли могут использоваться следующие verbs:
-- create - создать ресурс
-- get, list, watch - прочитать ресурс
-- update - редактировать ресурс
-- patch - редактировать ресурс
-- delete, deletecollection - удалить ресурс
-Самое интересное начинается тут
-- [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb), [escalate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb) - интересное тут ПОПРАВИТЬ 
-- [impersonate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#impersonate-verb), userextras
+Verbs описывают что можно делать с ресурсом - как `rwx` в `chmod`. В роли могут использоваться следующие verbs:
+- `create` - создать ресурс. HTTP метод `POST`
+- get, list, watch - прочитать ресурс. HTTP метод `GET`, `HEAD`
+- update - редактировать ресурс. HTTP метод `PUT`
+- patch - редактировать ресурс. HTTP метод `PATCH`
+- delete, deletecollection - удалить ресурс. HTTP метод `DELETE`
 
-> escalate, bind verb https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping   https://kubernetes.io/docs/concepts/security/rbac-good-practices/#least-privilege https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation
+Описанные выше действия очевидны и не требуют пояснений. Самое интересное начинается со следующими verbs:
+- [escalate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb) - создавать и редактировать роли ЧУЖИЕ?? 
+- [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - создавать и редактировать биндинги ЧУЖИЕ?? 
+- [impersonate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#impersonate-verb) - представиться k8s API другим пользователем, группой или предоставить другие данные (extra)
 
 ### ServiceAccounts, Users, Groups
 
@@ -139,7 +141,7 @@ rules:
 Создание SA:
 `k create sa mysa`
 `k get sa mysa -oyaml`
-```
+```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -164,13 +166,14 @@ JWT состоит из трех частей, разделенных точка
 Это может показаться странным, но API k8s не имеет понятия юзера или группы. Невозможно создать пользователя или группу. Но эти данные необходимы для авторизации. API Server распознает пользователя по полю CN в Subject сертификата.
 ПОКАЗАТЬТ КАК openssl x509 -noout -text -in ~/gcore/tmp/c.crt  
 
+В качестве системы аутентификации k8s может использовать сторонние Identity Providers и интегрироваться с ними по OpenID Connect. Например, keycloak (ССЫЛКА ТУТ)
+
 ### RoleBinding
 Ресурс, связывающий роль и пользователя/группу/сервисаккаунт. Содержит всего два поля:
 - список Subjects, в котором перечислены субъекты доступа: пользователи и/или группы и/или сервисаккаунты
-- roleRef - роль, которая привязывается к  перечилсенным субъектам
+- roleRef - роль, которая привязывается к  перечисленным субъектам
 
-
-```
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 # This role binding allows "jane" to read pods in the "default" namespace.
 # You need to already have a Role named "pod-reader" in that namespace.
@@ -191,28 +194,38 @@ roleRef:
 ```
 
  ### ClusterRole, ClusterRoleBinding
- Ресурсы кластера делятся на namespaced и non-namespaced. Это значит, что первые всегда имеют namespace, а вторые нет. Пример non-namespaced ресурсов: node, TЩË ПРИМЕР
+ Ресурсы кластера делятся на namespaced и non-namespaced. Это значит, что первые всегда имеют namespace, а вторые нет (например `node`).
 
 - Role - namespaced ресурс. То есть она описывает доступы только внутри namespace
 - ClusterRole - non-namespaced. Описывает права доступа на ресурсы, которые не имеют namespace. Но также может описывать и namespaced. За подробностями - в [документацию](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole)
 
 RoleBinding отличается от ClusterRoleBinding примерно тем же. Подробности опять же в документации
 
-
+## Неочевидные нюансы k8s RBAC
 Наконец-то добрались до того, ради чего писался этот пост.
 Не самые популярные, но опасные нюансы в RBAC.
 
+ДО СЮДА ВСЕ ХОРОШО!! 4.02.24
 ### Impersonate
-https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation
+[DOC](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation)
+Impersonation requests first authenticate as the requesting user, then switch to the impersonated user info.
+- A user makes an API call with their credentials and impersonation headers.
+- API server authenticates the user.
+- API server ensures the authenticated users have impersonation privileges.
+- Request user info is replaced with impersonation values.
+- Request is evaluated, authorization acts on impersonated user info.
+
 Impersonate это такой sudo для k8s. С правами impersonate пользователь может представиться другим пользователем и выполнять команды от его имени. kubectl имеет опции `--as`, `--as-group`, `--as-uid`, позволяющие выполнить команду от имени юзера, группы или uid соответственно. То есть, если в одной из ролей пользователь получил impersonate, то его можно считать админом неймспейса. Или кластера в худшем варианте.
 
 Имперсонэйт удобно использовать для проверки корректности RBAC - запускать `kubectl auth can-i --as=$USERNAME -n $MANESPACE get pod`.
 
 Хорошие виндовые админы должны помнить, что даже главные админы должны использовать аккаунты с минимальными правами для ежедневных дел, а важные консоли запускать от имени другого юзера с бОльшим количеством прав. В линуксе тот же принцип обеспечивается с помощью `sudo`. Так и в кубернетес - для защиты от случайного удаления важных данных, лучше не разрешать это действие обычному юзеру, а разрешить только админу, а юзеру дать права на impersonate, чтобы он мог использовать `--as=` когда это действительно нужно.
 
+![impers](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*8XFhTnrLK8xLRr-eNl1PZw.png) НКАРИСОВАТЬ!
+
 https://github.com/postfinance/kubectl-sudo
 проверить 
-```
+```yaml
 # Can impersonate the user "jane.doe@example.com"
 - apiGroups: [""]
   resources: ["users"]
@@ -226,29 +239,31 @@ https://infosecwriteups.com/the-bind-escalate-and-impersonate-verbs-in-the-kuber
 
 
 ### Escalate
+[DOC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update): You can only create/update a _role_ if at least one of the following things is true:
+- You already have all the permissions contained in the role, at the same scope as the object being modified (cluster-wide for a ClusterRole, within the same namespace or cluster-wide for a Role).
+- You are granted explicit permission to perform the `escalate` verb on the roles or clusterroles resource in the rbac.authorization.k8s.io API group.
 
-[Kubernetes RBAC API не позволяет повысить привелегии доступа путем редактирования Role или RoleBinding. Это происходит на уровне API и будет работать даже если выключен RBAC authorizer](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping)
-ПРОВЕРИТЬ И НАПИСАТЬ ПРИМЕРЫ
+[Kubernetes RBAC API не позволяет повысить привелегии доступа путем редактирования Role или RoleBinding. Это происходит на уровне API и будет работать даже если выключен RBAC authorizer](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping). Исключение из этого правила - наличие права `escalate` у роли.
+![escalate](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*CBK_TpCOMNyaWyA32nx-bA.png) НАРИСОВАТЬ!
 
 ### Bind
+[DOC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update): To allow a user to create/update _role bindings_:
+- Grant them a role that allows them to create/update RoleBinding or ClusterRoleBinding objects, as desired.
+- Grant them permissions needed to bind a particular role:
+    - implicitly, by giving them the permissions contained in the role.
+    - explicitly, by giving them permission to perform the bind verb on the particular Role (or ClusterRole).
+
 https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update
 > You can only create/update a role binding if you already have all the permissions contained in the referenced role
 что это значить? Можно ли эти пермишены получить от других ролей?
 
-doc
-To allow a user to create/update role bindings:
-
-Grant them a role that allows them to create/update RoleBinding or ClusterRoleBinding objects, as desired.
-Grant them permissions needed to bind a particular role:
-implicitly, by giving them the permissions contained in the role.
-explicitly, by giving them permission to perform the bind verb on the particular Role (or ClusterRole).
+Если прав в роли недостаточно, то ты можешь забиндить себя на другую роль.
+![pic](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*6rzbOIuEDvpBfUnZZpeGhA.png) НАРИСОВАТЬ!
 
 
-blog
- to create or update a role binding, you need to meet either of the following conditions:
 
-You already possess all the permissions specified in the referenced role, at the same scope as the role binding. This means that you have the necessary privileges to perform the required actions defined by the role.
-You have been explicitly authorized to use the bind verb on the referenced role. This means that even if you don't have all the permissions in the role, you can still create or update the role binding by having the specific authority to bind the role to the user or group
+### Tools
+
 
 ```
 k create ns bubnovd
