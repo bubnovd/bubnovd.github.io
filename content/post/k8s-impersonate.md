@@ -12,7 +12,7 @@ https://github.com/aad-for-linux/openvpn-auth-aad
 
 keycloak - мониторинг, kuberos, сборрка kuberos без CVE
 "serviceaccounts" - запросить id_token
-TOKEN=$(curl \                                                                                             
+TOKEN=$(curl \
   -d "client_id=CLIENT_ID" -d "client_secret=CLIENT_SECRET" \
   -d "username=bserviceaccount" -d "password=1234567890" \
   -d "grant_type=password" \
@@ -21,6 +21,9 @@ TOKEN=$(curl \
 
 Потом пойти с этим токеном в куб KUBECONFIG=~/Downloads/dev1.conf k --token $TOKEN get pod 
 в выводе токена должен быть поле name - то поле, которое указали аписерверу oidc-username-claim: name
+
+в клок добавить что если уже авторизовалмя в одном клиенте и пошел в другой, то клок может отдавать 502. Это не клок виноват. Логи ингреса " upstream sent too big header while reading response header from upstream". Надо увеличить proxy_buffers and proxy_buffers_size через аннтиоции    annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
 
 
 https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation
