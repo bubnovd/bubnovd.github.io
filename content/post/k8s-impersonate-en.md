@@ -1,108 +1,14 @@
-Azure AD, PAM, OVPN plugins
-https://medium.com/@jkroepke/openvpn-sso-via-oauth2-ab2583ee8477
-https://blog.please-open.it/openvpn-keycloak/
-https://medium.com/@hiranadikari993/openvpn-active-directory-authentication-726f3bac3546
-https://github.com/threerings/openvpn-auth-ldap
-https://community.openvpn.net/openvpn/wiki/PluginOverview
-https://github.com/OpenVPN/openvpn/blob/master/src/plugins/auth-pam/README.auth-pam
-https://github.com/ubuntu/aad-auth
-https://github.com/aad-for-linux/openvpn-auth-aad
-И PDF PAM Guide ...
-
-
-keycloak - мониторинг, kuberos, сборрка kuberos без CVE
-"serviceaccounts" - запросить id_token
-TOKEN=$(curl \
-  -d "client_id=CLIENT_ID" -d "client_secret=CLIENT_SECRET" \
-  -d "username=bserviceaccount" -d "password=1234567890" \
-  -d "grant_type=password" \
-  -d "scope=openid" \
-  "https://KEYCLOAK/realms/master/protocol/openid-connect/token" | jq -r '.id_token')
-
-Потом пойти с этим токеном в куб KUBECONFIG=~/Downloads/dev1.conf k --token $TOKEN get pod 
-в выводе токена должен быть поле name - то поле, которое указали аписерверу oidc-username-claim: name
-
-в клок добавить что если уже авторизовалмя в одном клиенте и пошел в другой, то клок может отдавать 502. Это не клок виноват. Логи ингреса " upstream sent too big header while reading response header from upstream". Надо увеличить proxy_buffers and proxy_buffers_size через аннтиоции    annotations:
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
-
-проверка авторизации клок 
-kubectl config set-credentials oidc \
-  --exec-api-version=client.authentication.k8s.io/v1beta1 \
-  --exec-command=kubectl \
-  --exec-arg=oidc-login \
-  --exec-arg=get-token \
-  --exec-arg=--oidc-issuer-url=https://keycloak.k-stg-1.luxembourg-2.cloud.gc.onl/realms/realmWithLdap \
-  --exec-arg=--oidc-client-id=ed-16-k-stg-1 \
-  --exec-arg=--oidc-client-secret=нделепалклаплка
-
-
-
-
-kubectl oidc-login setup --oidc-issuer-url https://keycloak.k-stg-1.luxembourg-2.cloud.gc.onl/realms/realmWithLdap --oidc-client-id ed-16-k-stg-1 --oidc-client-secret ун4цугн3ун5у4г
-
-
-
-https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation
-
-
-# Topic
-- What is the general topic you want to cover?
-impersonate is urgent not so popular feature 
-- Do you already have a potential title in mind? (If not, come up with 3 viable options together.)
-Some non-obvious features  Kubernetes RBAC, Impersonate it
-- Are there any particular subtopics you would like to focus on? (Outline specific headings together.)
-bellow
-- Are there any relevant topics that should be avoided?
-no
-- Are there any existing pieces of content that you would like us to reference or align with?
-k8s documentation
-# Audience
-- Who is the primary target audience for this content? What job titles do they have?
-devops jun+/middle
-- Are there any secondary audiences we should keep in mind?
-developers, devops junior
-- Is the reader a beginner, intermediate, or expert?
-intermediate
-- What value do you hope the audience will gain from this content? What is the key takeaway?
-know about nonobvious features of k8s rbac
-- Are there any common questions or concerns of the audience that we should address?
-# Purpose
-- What is the primary purpose or goal of this content? (E.g., new product awareness, existing product purchase, increase traffic to product page)
-threat awareness 
-- Is there a secondary purpose or goal we should consider?
-better understanding of k8s rbac
-- Are you hoping to promote a specific product or service through this content?
-managed kubernetes
-- How will you measure the success of this content?
-likes and reposts
-# Length and Genre
-- Do you have a preferred length for this content?
-7-10 minutes read
-- Is there a specific genre or style you're aiming for (blog post, white paper, case study, etc.)?
-
-- Are there any visual elements (graphs, charts, images, etc.) that need to be included?
-images, code
-
-
-- inro
-- rbac
-- impersonate
-- угрозы
-- как защититься
-- обзор инструментов
-
-Ещё одна угроза - Фggregated ClusterRole 
-[Хорошая презентация про RBAC](https://www.cncf.io/wp-content/uploads/2020/08/2020_04_Introduction-to-Kubernetes-RBAC.pdf), [видео](https://www.youtube.com/watch?v=B6Ylwugs3t0)
-
 В kubernetes есть аналог sudo, благодаря которому можно обойти ограничения в назначенных ролях и получить доступ туда, куда не предполагалось. И эта возможность есть у любого юзера с дефолтной кластерролью edit. В этой статье попробуем разобраться что это такое и как защититься от такого легального повышения привилегий.
+
+Kubernetes has its own sudo. It allows to break restrictions in roles and get access to hidden areas. Anyone with default clusterrole edit can do it. This article helps you understand what is it and how to prevent such violations
 
 Зачем используетя? 
 - для дебага рбака обычно
 
 
-## Ролевая модель доступа в Kubernetes
+## Kubernetes Role Based Access Model
 
-Cуществует несколько подходов к разграничению доступа к ресурсам:
+There are several approaches to restrict access to resources:
 - ABAC - Attribute Based Access Control
 - RBAC - Role Based Access Control
 - PBAC - Policy Based Access Control
@@ -119,12 +25,27 @@ Kubernetes может использовать модели доступа: [Nod
 На самом деле этих сущностей немного больше. Рассмотрим их детальней.
 Про RBAC хорошо написано в [документации k8s](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) и я не буду пытаться написать ещё раз. Просто рассмотрим то, без чего остальная статья не имеет смысла. Если читатель знает концепции RBAC k8s - эту часть можно пропусать и сразу переходить к следующей НАЗВАНИЕ ЧАСТИ ТУТ
 
-## Ресурсы kubernetes RBAC
+
+In Kubernetes you can use bellow access models: [Node, ABAC, RBAC, WebHook](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules).
+The most popular model is Role Based Access Control (RBAC). It has several related entities:
+- role describes access rigths
+- user (can be User, Group or ServiceAccount)
+- RoleBinding - entity united roles and users
+
+To be honest we have more enitites. Let's look at it deeply.
+Kubernetes has amazing [documentation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) and we won't try to repeat it here. Just will look at the most important things accorded to this article. If you already have known k8s RBAC well just skip this part and go to NEXT_PART_NAME
+
+## Kubernetes RBAC resources
 ### Role
 Роль состоит из списка правил. Каждое правило включает в себя:
 - apiGroups - указатель на API groups
 - resources - список ресурсов, к которым будет применяться правило. Тут может быть `pods`, `configmaps`, `secrets`, ...
 - verbs - доступные операции с перечисленными ресурсами
+
+Role contains rules that represent a set of permissions. Every rule contains:
+- apiGroups - pointer to API groups
+- resources - list of resources rule will manipulate. Can be `pods`, `configmaps`, `secrets`, ...
+- verbs - allowed operations with resources
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -154,6 +75,20 @@ Verbs описывают что можно делать с ресурсом - к
 - [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - создавать и редактировать биндинги ЧУЖИЕ?? 
 - [impersonate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#impersonate-verb) - представиться k8s API другим пользователем, группой или предоставить другие данные (extra)
 
+
+Verbs describe what can be done with a resource. Like `rwx` in `chmod`. The most popular verbs:
+- `create` - create resource. HTTP method POST
+- `get`, `list`, `watch` - прочитать ресурс. HTTP метод `GET`, `HEAD`
+- `update` - edit resource. HTTP method `PUT`
+- `patch` - edit resource. HTTP method `PATCH`
+- `delete`, `deletecollection` - delete resource. HTTP method `DELETE`
+
+These actions are obvious and require no explanation. The most interesting verbs are:
+- [escalate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb) - create and edit roles ЧУЖИЕ?? 
+- [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - create and edit rolebindings and clusterrolebindings ЧУЖИЕ?? 
+- [impersonate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#impersonate-verb) - This verb allows users to impersonate and gain the rights of other users in the cluster, other group or get other data (extra)
+
+
 ### ServiceAccounts, Users, Groups
 
 [ServiceAccount](https://kubernetes.io/docs/concepts/security/service-accounts/)(дальше - SA) - тип учетной записи в k8s, используемый подами, системными компонентами и всем, что не кожаный мешок. В качестве аутентификатора SA использует [токен JWT](https://www.rfc-editor.org/rfc/rfc7519.html). Посмотрим подробнее на создание SA и его JWT токен.
@@ -169,6 +104,9 @@ metadata:
 ```
 Как видим, в манифесте SA нет ничего особенного. Но есть [нюансы](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting) =). Обратите внимаение, что SA - namespaced resource, то есть у SA всегда есть Namespace.
 
+
+[ServiceAccount](https://kubernetes.io/docs/concepts/security/service-accounts/)(bellow - SA) - a type of non-human account. Application Pods, system components, and entities inside and outside the cluster can use a specific ServiceAccount's credentials to identify as that ServiceAccount. As authenticator uses [JSON Web Token](https://www.rfc-editor.org/rfc/rfc7519.html). Let's look deeper at SA and its JWT.
+
 #### JWT
 Сгенерируем токен для аутентификации от имени SA:
 `TOKEN=$(k create token mysa)`
@@ -180,6 +118,15 @@ JWT состоит из трех частей, разделенных точка
 `echo $TOKEN | jq -R ' split(".") | select(length > 0) | .[0],.[1] | @base64d | fromjson'`
 ПОКАЗАТЬ ЧТО ПОЛУЧИЛОСЬ
 
+
+Let's generate token to authenticate as SA:
+`TOKEN=$(k create token mysa)`
+СГЕНЕРИТЬ И ПОКАЗАТЬ
+Now we have JWT. It contains 3 parts divided by dots. First and second parts - base64 encoded text, last part - signature.
+`echo $TOKEN | jq -R ' split(".") | select(length > 0) | .[0],.[1] | @base64d | fromjson'`
+ПОКАЗАТЬ ЧТО ПОЛУЧИЛОСЬ
+
+
 #### Users, Groups
 
 Это может показаться странным, но API k8s не имеет понятия юзера или группы. Невозможно создать пользователя или группу. Но эти данные необходимы для авторизации. API Server распознает пользователя по полю CN в Subject сертификата.
@@ -187,10 +134,20 @@ JWT состоит из трех частей, разделенных точка
 
 В качестве системы аутентификации k8s может использовать сторонние Identity Providers и интегрироваться с ними по OpenID Connect. Например, keycloak (ССЫЛКА ТУТ)
 
+
+It looks strange but k8s API doesn't have user and group entities. It's impossible to create user or group via kubectl. But those data are required to authorization. Kubernetes API Server gets user from CN in Subject field of Certificate.
+ПОКАЗАТЬТ КАК openssl x509 -noout -text -in ~/gcore/tmp/c.crt
+
+Kubernetes can use third-party Identity Providers as authentication system and integrate with it by OpenID Connect. For example keycloak, dex
+
 ### RoleBinding
 Ресурс, связывающий роль и пользователя/группу/сервисаккаунт. Содержит всего два поля:
 - список Subjects, в котором перечислены субъекты доступа: пользователи и/или группы и/или сервисаккаунты
 - roleRef - роль, которая привязывается к  перечисленным субъектам
+
+Resource united roles and users/groupd/serviveAccounts. Has two fields:
+- list of Subjects, holds access subjects: user and/or group and/or ServiceAccount
+- roleRef - role united with these subjects
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -220,9 +177,13 @@ roleRef:
 
 RoleBinding отличается от ClusterRoleBinding примерно тем же. Подробности опять же в документации
 
-## Неочевидные нюансы k8s RBAC
-Наконец-то добрались до того, ради чего писался этот пост.
-Не самые популярные, но опасные нюансы в RBAC.
+There are namespaced and non-namespaced cluster resources. It means the first always has namespace, and second never (node, for example)
+
+- Role - namespaced resource. It means it manages access rights in particular namespace
+- ClusterRole - non-namespaced resource. It manages access right for any resource: namespaced and non-namespaced. Detailed in [documentation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole)
+
+## Unobvious Kubernetes RBAC nuances
+Not very popular but too dangerous nuances in k8s RBAC
 
 ДО СЮДА ВСЕ ХОРОШО!! 4.02.24
 ### Impersonate
