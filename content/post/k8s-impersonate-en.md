@@ -185,7 +185,6 @@ There are namespaced and non-namespaced cluster resources. It means the first al
 ## Unobvious Kubernetes RBAC nuances
 Not very popular but too dangerous nuances in k8s RBAC
 
-ДО СЮДА ВСЕ ХОРОШО!! 4.02.24
 ### Impersonate
 [DOC](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation)
 Impersonation requests first authenticate as the requesting user, then switch to the impersonated user info.
@@ -201,6 +200,16 @@ Impersonate это такой sudo для k8s. С правами impersonate п�
 
 Хорошие виндовые админы должны помнить, что даже главные админы должны использовать аккаунты с минимальными правами для ежедневных дел, а важные консоли запускать от имени другого юзера с бОльшим количеством прав. В линуксе тот же принцип обеспечивается с помощью `sudo`. Так и в кубернетес - для защиты от случайного удаления важных данных, лучше не разрешать это действие обычному юзеру, а разрешить только админу, а юзеру дать права на impersonate, чтобы он мог использовать `--as=` когда это действительно нужно.
 
+
+
+Impersonate verb is like sudo but for k8s instead of Linux. If user has `imeprsonate` access, he can authenticate as other user and run commands as other user. kubectl has options `--as`, `--as-group`, `--as-uid`, which allowed to run command as other user, other group or other uid respectively. So, we can say if any user got impersonate rights, he would be namespace admin or even cluster admin.
+
+Impersonate is usefull to check RBAC rules - admin should run `kubectl auth can-i --as=$USERNAME -n $MANESPACE get pod` and check is authorization works as designed.
+
+Good system administrators remember: even if you have domain admin access level you have to use limited account to manage your infrastructure and use privileged account only if it needed for such tasks. It called The principle of least privilege. In cloud era this principle realized by impersonate. To prevent accidentally important resources deletion it is possible to create separate ServiceAccount with verb `delete` and allow users to impersonate only with this ServicaAccount ПОКАЗАТЬ КАК!
+
+There is a project [kubectl-sudo](https://github.com/postfinance/kubectl-sudo) implemented such technique as a kubectl plugin.
+
 ![impers](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*8XFhTnrLK8xLRr-eNl1PZw.png) НКАРИСОВАТЬ!
 
 https://github.com/postfinance/kubectl-sudo
@@ -212,13 +221,27 @@ https://github.com/postfinance/kubectl-sudo
   verbs: ["impersonate"]
   resourceNames: ["jane.doe@example.com"]
 ```
-##### Угрозы
-https://infosecwriteups.com/the-bind-escalate-and-impersonate-verbs-in-the-kubernetes-cluster-e9635b4fbfc6
+#### Threats
+Наличие у пользователя неограниченных прав impersonate в неймспейсе или целом кластере может привести к получению полного контроля к неймспейсу/кластеру. И не только для авторизованных пользователей, но и для нелегитимных. Например, злоумыщленник таким образом может повысить свои привилегии из дефолтного сервисаккаунта дл кластер админа.
 
-- давать юзерам ограниченный конфиг и конфиг админа толкьо для реально админских дел
+Таким образом необходимо мониторить Role/ClusterRole на появление в них `impersonate` и изучать откуда эта запись появляется и, возможно, более тонко настраивать все нюансы. Для отслеживания ЧТО ПРИМЕНЯТЬ ДЛЯ АУДИТА?
 
 
+Impersonate in k8s is like sudo in Linux. So, 
+```
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+```
+It could give users more than they want. Incorrect imeprsonate configuration could allow users admin access to the whole cluster. More dangerous it could be used by unlegitimate users - hacker can escalate privileges from default serviceAccount to admin.
+
+So, it is necessary to monitor Roles/ClusterRoles to `impersonate` verb and know who or what did it. And correct RBAC manifests  if necessary 
+
+ДО СЮДА СДЕЛАЛ. Добавить ниже! 01.04.24
 ### Escalate
+НАПИСАТЬ КУДА_ТО о том, что если есть серт в кофниге, то токен не используется!! https://stackoverflow.com/questions/60083889/kubectl-token-token-doesnt-run-with-the-permissions-of-the-token
+
+
 [DOC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update): You can only create/update a _role_ if at least one of the following things is true:
 - You already have all the permissions contained in the role, at the same scope as the object being modified (cluster-wide for a ClusterRole, within the same namespace or cluster-wide for a Role).
 - You are granted explicit permission to perform the `escalate` verb on the roles or clusterroles resource in the rbac.authorization.k8s.io API group.

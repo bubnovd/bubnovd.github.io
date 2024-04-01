@@ -252,9 +252,10 @@ https://github.com/postfinance/kubectl-sudo
   resourceNames: ["jane.doe@example.com"]
 ```
 ##### Угрозы
-https://infosecwriteups.com/the-bind-escalate-and-impersonate-verbs-in-the-kubernetes-cluster-e9635b4fbfc6
+Наличие у пользователя неограниченных прав impersonate в неймспейсе или целом кластере может привести к получению полного контроля к неймспейсу/кластеру. И не только для авторизованных пользователей, но и для нелегитимных. Например, злоумыщленник таким образом может повысить свои привилегии из дефолтного сервисаккаунта дл кластер админа.
 
-- давать юзерам ограниченный конфиг и конфиг админа толкьо для реально админских дел
+Таким образом необходимо мониторить Role/ClusterRole на появление в них `impersonate` и изучать откуда эта запись появляется и, возможно, более тонко настраивать все нюансы. Для отслеживания ЧТО ПРИМЕНЯТЬ ДЛЯ АУДИТА?
+
 
 
 ### Escalate
@@ -265,6 +266,137 @@ https://infosecwriteups.com/the-bind-escalate-and-impersonate-verbs-in-the-kuber
 [Kubernetes RBAC API не позволяет повысить привелегии доступа путем редактирования Role или RoleBinding. Это происходит на уровне API и будет работать даже если выключен RBAC authorizer](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping). Исключение из этого правила - наличие права `escalate` у роли.
 ![escalate](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*CBK_TpCOMNyaWyA32nx-bA.png) НАРИСОВАТЬ!
 
+Создаем неймспейс:
+```
+kubectl create ns rbac
+namespace/rbac created
+```
+
+Создаем сервисаккаунт:
+```
+kubectl -n rbac create sa escalate
+serviceaccount/escalate created
+```
+
+Роль с правами на просмотр подов и ролей в неймспейсе rbac:
+```
+kubectl -n rbac create role view --verb=list,watch,get --resource=role,pod
+role.rbac.authorization.k8s.io/view created 
+```
+
+Биндим созданный ранее сервисаккаунт к нашей роли:
+```
+kubectl -n rbac create rolebinding view --role=view --serviceaccount=rbac:escalate
+rolebinding.rbac.authorization.k8s.io/view created
+```
+
+Проверяем:
+```
+kubectl auth can-i get role -n rbac --as=system:serviceaccount:rbac:escalate 
+yes
+
+kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:escalate 
+no
+```
+
+Сделаем роль с правами на редактирование ролей в неймспейсе rbac:
+```
+kubectl -n rbac create role edit --verb=update,patch --resource=role                              
+role.rbac.authorization.k8s.io/edit created
+```
+
+Биндим к нашему сервисаккаунту:
+```
+kubectl -n rbac create rolebinding edit --role=edit --serviceaccount=rbac:escalate
+rolebinding.rbac.authorization.k8s.io/edit created
+```
+
+Проверим:
+```
+kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:escalate   
+yes
+
+kubectl auth can-i delete role -n rbac --as=system:serviceaccount:rbac:escalate
+no
+```
+
+Теперь для чистоты эксперимента проверим возможности нашего сервисаккаунта. Для этого используем его токен в конфиге. 
+`TOKEN=$(kubectl -n rbac create token escalate --duration=8h)`
+
+Придется удалить из конфига старые параметры аутентификации, т.к. [k8s сначала проверяет сертификат пользователя и не будет проверять токен, если данные о сертификате переданы](https://stackoverflow.com/questions/60083889/kubectl-token-token-doesnt-run-with-the-permissions-of-the-token).
+```
+cp ~/.kube/config ~/.kube/rbac.conf
+export KUBECONFIG=~/.kube/rbac.conf
+kubectl config delete-user kubernetes-admin
+kubectl config set-credentials escalate --token=$TOKEN
+kubectl config set-context --current --user=escalate
+```
+
+В роли edit написано, что мы имеем права не редактирование ролей:
+`kubectl -n rbac get role edit -oyaml`
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: edit
+  namespace: rbac
+rules:
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  verbs:
+  - update
+  - patch
+```
+
+Попробуем добавить в роль новый verb (list), который уже имеется в другой роли (view)
+```
+kubectl -n rbac edit  role edit 
+OK
+```
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: edit
+  namespace: rbac
+rules:
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  verbs:
+  - update
+  - patch
+  - list
+```
+
+Попробуем добавить в роль новый verb (delete), который не описан в других ролях:
+```
+kubectl -n rbac edit  role edit 
+
+error: roles.rbac.authorization.k8s.io "edit" could not be patched: roles.rbac.authorization.k8s.io "edit" is forbidden: user "system:serviceaccount:rbac:escalate" (groups=["system:serviceaccounts" "system:serviceaccounts:rbac" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
+{APIGroups:["rbac.authorization.k8s.io"], Resources:["roles"], Verbs:["delete"]}
+```
+Kubernetes не позволяет добавлять себе новых прав, которых ещё нет у пользователя - прав, которые не описаны в других ролях, забинденых к этому пользователю
+
+Используя админские права добавим новую роль с verb escalate:
+```
+KUBECONFIG=~/.kube/config kubectl -n rbac create role escalate --verb=escalate --resource=role   
+role.rbac.authorization.k8s.io/escalate created
+
+KUBECONFIG=~/.kube/config kubectl -n rbac create rolebinding escalate --role=escalate --serviceaccount=rbac:escalate
+rolebinding.rbac.authorization.k8s.io/escalate created
+```
+
+Повторяем то, что не удалось сделать без escalate - добавить delete в существующую роль:
+```
+kubectl -n rbac edit  role edit 
+role.rbac.authorization.k8s.io/edit edited
+```
+
+Теперь это работает. Пользователь может повышать свои привилегии редактируя существующие роли. То есть verb escalate фактически дает права администратора, т.к. пользователь, обладающий привилегиями escalate может выписать себе любые права на неймспейс или кластер, если это указано resources.
 ### Bind
 [DOC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update): To allow a user to create/update _role bindings_:
 - Grant them a role that allows them to create/update RoleBinding or ClusterRoleBinding objects, as desired.
@@ -282,7 +414,7 @@ https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-ro
 
 
 ### Tools
-
+НАПИСАТЬ КУДА_ТО о том, что если есть серт в кофниге, то токен не используется!! https://stackoverflow.com/questions/60083889/kubectl-token-token-doesnt-run-with-the-permissions-of-the-token
 
 ```
 k create ns bubnovd
