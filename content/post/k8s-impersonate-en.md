@@ -254,8 +254,8 @@ namespace/rbac created
 
 Create ServiceAccount:
 ```
-kubectl -n rbac create sa escalate
-serviceaccount/escalate created
+kubectl -n rbac create sa privesc
+serviceaccount/privesc created
 ```
 
 Create role allowed to read-only access to pods and roles in `rbac` namespace:
@@ -264,18 +264,18 @@ kubectl -n rbac create role view --verb=list,watch,get --resource=role,pod
 role.rbac.authorization.k8s.io/view created 
 ```
 
-Bind role to ServiceAccount `escalate`:
+Bind role to ServiceAccount `privesc`:
 ```
-kubectl -n rbac create rolebinding view --role=view --serviceaccount=rbac:escalate
+kubectl -n rbac create rolebinding view --role=view --serviceaccount=rbac:privesc
 rolebinding.rbac.authorization.k8s.io/view created
 ```
 
 Check it:
 ```
-kubectl auth can-i get role -n rbac --as=system:serviceaccount:rbac:escalate 
+kubectl auth can-i get role -n rbac --as=system:serviceaccount:rbac:privesc 
 yes
 
-kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:escalate 
+kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:privesc 
 no
 ```
 
@@ -285,24 +285,24 @@ kubectl -n rbac create role edit --verb=update,patch --resource=role
 role.rbac.authorization.k8s.io/edit created
 ```
 
-Bind it to ServiceAccount `escalate`:
+Bind it to ServiceAccount `privesc`:
 ```
-kubectl -n rbac create rolebinding edit --role=edit --serviceaccount=rbac:escalate
+kubectl -n rbac create rolebinding edit --role=edit --serviceaccount=rbac:privesc
 rolebinding.rbac.authorization.k8s.io/edit created
 ```
 
 Check:
 ```
-kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:escalate   
+kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:privesc   
 yes
 
-kubectl auth can-i delete role -n rbac --as=system:serviceaccount:rbac:escalate
+kubectl auth can-i delete role -n rbac --as=system:serviceaccount:rbac:privesc
 no
 ```
 Теперь для чистоты эксперимента проверим возможности нашего сервисаккаунта. Для этого используем его токен в конфиге. 
 
 Now for the purity of the experiment let's check the capabilities of our account service. Will use its token for it.
-`TOKEN=$(kubectl -n rbac create token escalate --duration=8h)`
+`TOKEN=$(kubectl -n rbac create token privesc --duration=8h)`
 
 Придется удалить из конфига старые параметры аутентификации, т.к. [k8s сначала проверяет сертификат пользователя и не будет проверять токен, если данные о сертификате переданы](https://stackoverflow.com/questions/60083889/kubectl-token-token-doesnt-run-with-the-permissions-of-the-token).
 
@@ -312,8 +312,8 @@ We should remove old authentication parameters from config, becaus [k8s firstly 
 cp ~/.kube/config ~/.kube/rbac.conf
 export KUBECONFIG=~/.kube/rbac.conf
 kubectl config delete-user kubernetes-admin
-kubectl config set-credentials escalate --token=$TOKEN
-kubectl config set-context --current --user=escalate
+kubectl config set-credentials privesc --token=$TOKEN
+kubectl config set-context --current --user=privesc
 ```
 
 `edit` role shows we can edit roles:
@@ -375,19 +375,19 @@ rules:
   - patch
   - delete   # <-- added this string
 
-error: roles.rbac.authorization.k8s.io "edit" could not be patched: roles.rbac.authorization.k8s.io "edit" is forbidden: user "system:serviceaccount:rbac:escalate" (groups=["system:serviceaccounts" "system:serviceaccounts:rbac" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
+error: roles.rbac.authorization.k8s.io "edit" could not be patched: roles.rbac.authorization.k8s.io "edit" is forbidden: user "system:serviceaccount:rbac:privesc" (groups=["system:serviceaccounts" "system:serviceaccounts:rbac" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
 {APIGroups:["rbac.authorization.k8s.io"], Resources:["roles"], Verbs:["delete"]}
 ```
 Kubernetes не позволяет добавлять себе новых прав, которых ещё нет у пользователя - прав, которые не описаны в других ролях, забинденых к этому пользователю
 
 Kubernetes doesn't allow to add new access rights for user or ServiceAccount if it still hasn't have it. If there aren't such access rights in other roles binded to this user or ServiceAccount.
 
-Let's expand ServiceAccount `escalate` access rights. Will add new role with verb `escalate` using admin config:
+Let's expand ServiceAccount `privesc` access rights. Will add new role with verb `escalate` using admin config:
 ```
 KUBECONFIG=~/.kube/config kubectl -n rbac create role escalate --verb=escalate --resource=role   
 role.rbac.authorization.k8s.io/escalate created
 
-KUBECONFIG=~/.kube/config kubectl -n rbac create rolebinding escalate --role=escalate --serviceaccount=rbac:escalate
+KUBECONFIG=~/.kube/config kubectl -n rbac create rolebinding escalate --role=escalate --serviceaccount=rbac:privesc
 rolebinding.rbac.authorization.k8s.io/escalate created
 ```
 
