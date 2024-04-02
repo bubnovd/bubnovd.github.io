@@ -274,8 +274,8 @@ namespace/rbac created
 
 Создаем сервисаккаунт:
 ```
-kubectl -n rbac create sa escalate
-serviceaccount/escalate created
+kubectl -n rbac create sa privesc
+serviceaccount/privesc created
 ```
 
 Роль с правами на просмотр подов и ролей в неймспейсе rbac:
@@ -286,16 +286,16 @@ role.rbac.authorization.k8s.io/view created
 
 Биндим созданный ранее сервисаккаунт к нашей роли:
 ```
-kubectl -n rbac create rolebinding view --role=view --serviceaccount=rbac:escalate
+kubectl -n rbac create rolebinding view --role=view --serviceaccount=rbac:privesc
 rolebinding.rbac.authorization.k8s.io/view created
 ```
 
 Проверяем:
 ```
-kubectl auth can-i get role -n rbac --as=system:serviceaccount:rbac:escalate 
+kubectl auth can-i get role -n rbac --as=system:serviceaccount:rbac:privesc 
 yes
 
-kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:escalate 
+kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:privesc 
 no
 ```
 
@@ -307,29 +307,29 @@ role.rbac.authorization.k8s.io/edit created
 
 Биндим к нашему сервисаккаунту:
 ```
-kubectl -n rbac create rolebinding edit --role=edit --serviceaccount=rbac:escalate
+kubectl -n rbac create rolebinding edit --role=edit --serviceaccount=rbac:privesc
 rolebinding.rbac.authorization.k8s.io/edit created
 ```
 
 Проверим:
 ```
-kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:escalate   
+kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:privesc   
 yes
 
-kubectl auth can-i delete role -n rbac --as=system:serviceaccount:rbac:escalate
+kubectl auth can-i delete role -n rbac --as=system:serviceaccount:rbac:privesc
 no
 ```
 
 Теперь для чистоты эксперимента проверим возможности нашего сервисаккаунта. Для этого используем его токен в конфиге. 
-`TOKEN=$(kubectl -n rbac create token escalate --duration=8h)`
+`TOKEN=$(kubectl -n rbac create token privesc --duration=8h)`
 
 Придется удалить из конфига старые параметры аутентификации, т.к. [k8s сначала проверяет сертификат пользователя и не будет проверять токен, если данные о сертификате переданы](https://stackoverflow.com/questions/60083889/kubectl-token-token-doesnt-run-with-the-permissions-of-the-token).
 ```
 cp ~/.kube/config ~/.kube/rbac.conf
 export KUBECONFIG=~/.kube/rbac.conf
 kubectl config delete-user kubernetes-admin
-kubectl config set-credentials escalate --token=$TOKEN
-kubectl config set-context --current --user=escalate
+kubectl config set-credentials privesc --token=$TOKEN
+kubectl config set-context --current --user=privesc
 ```
 
 В роли edit написано, что мы имеем права не редактирование ролей:
@@ -391,17 +391,17 @@ rules:
   - patch
   - delete   # <-- добавлена эта строка
 
-error: roles.rbac.authorization.k8s.io "edit" could not be patched: roles.rbac.authorization.k8s.io "edit" is forbidden: user "system:serviceaccount:rbac:escalate" (groups=["system:serviceaccounts" "system:serviceaccounts:rbac" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
+error: roles.rbac.authorization.k8s.io "edit" could not be patched: roles.rbac.authorization.k8s.io "edit" is forbidden: user "system:serviceaccount:rbac:privesc" (groups=["system:serviceaccounts" "system:serviceaccounts:rbac" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
 {APIGroups:["rbac.authorization.k8s.io"], Resources:["roles"], Verbs:["delete"]}
 ```
 Kubernetes не позволяет добавлять себе новых прав, которых ещё нет у пользователя - прав, которые не описаны в других ролях, забинденых к этому пользователю
 
-Используя админские права расширим права сервисаккаунта escalate - добавим новую роль с verb escalate и забиндим её нашему сервисаккаунту:
+Используя админские права расширим права сервисаккаунта privesc - добавим новую роль с verb escalate и забиндим её нашему сервисаккаунту:
 ```
 KUBECONFIG=~/.kube/config kubectl -n rbac create role escalate --verb=escalate --resource=role   
 role.rbac.authorization.k8s.io/escalate created
 
-KUBECONFIG=~/.kube/config kubectl -n rbac create rolebinding escalate --role=escalate --serviceaccount=rbac:escalate
+KUBECONFIG=~/.kube/config kubectl -n rbac create rolebinding escalate --role=escalate --serviceaccount=rbac:privesc
 rolebinding.rbac.authorization.k8s.io/escalate created
 ```
 
@@ -426,6 +426,7 @@ https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-ro
 
 Если прав в роли недостаточно, то ты можешь забиндить себя на другую роль.
 ![pic](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*6rzbOIuEDvpBfUnZZpeGhA.png) НАРИСОВАТЬ!
+
 
 
 
