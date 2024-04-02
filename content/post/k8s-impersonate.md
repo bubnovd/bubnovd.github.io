@@ -420,13 +420,71 @@ role.rbac.authorization.k8s.io/edit edited
     - implicitly, by giving them the permissions contained in the role.
     - explicitly, by giving them permission to perform the bind verb on the particular Role (or ClusterRole).
 
+Разрешить пользователю создавать или редактировать rolebindings можно выполнив оба условия:
+  - Дать пользователю права создавать/редактировать RoleBinding или ClusterRoleBinding
+  - Дать пользователю права биндить роль:
+    - явно, описав права в роли
+    - неявно, дав ему права `bind` на роль или кластерроль
+
 https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update
 > You can only create/update a role binding if you already have all the permissions contained in the referenced role
 что это значить? Можно ли эти пермишены получить от других ролей?
 
+`Bind` работает аналогично `escalate`. Если `escalate` разрешает редактировать `Role` или `ClusterRole` для повышения привилегий, то `bind` разрешает редактировать `RoleBinding` или `ClusterRoleBinding`. 
 Если прав в роли недостаточно, то ты можешь забиндить себя на другую роль.
 ![pic](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*6rzbOIuEDvpBfUnZZpeGhA.png) НАРИСОВАТЬ!
 
+Переключимся на админский конфиг: `export KUBECONFIG=~/.kube/config`
+
+Удалим созданные ранее роли и биндинги
+```
+kubectl -n rbac delete rolebinding view edit escalate
+kubectl -n rbac delete role view edit escalate
+```
+
+Дадим сервисаккаунту права на просмотр и редактирование rolebinding и pod в своём неймспейсе:
+```
+kubectl -n rbac create role view --verb=list,watch,get --resource=role,rolebinding,pod
+kubectl -n rbac create rolebinding view --role=view --serviceaccount=rbac:privesc
+kubectl -n rbac create role edit --verb=update,patch,create --resource=rolebinding,pod
+kubectl -n rbac create rolebinding edit --role=edit --serviceaccount=rbac:privesc
+```
+
+Отдельно создадим роли для работы с подами, но пока не будем их биндить:
+```
+kubectl -n rbac create role pod-view-edit --verb=get,list,watch,update,patch --resource=pod
+kubectl -n rbac create role delete-pod --verb=delete --resource=pod
+```
+
+Переключимся на конфиг сервисаккаунта privesc и проверим, что мы можем редактировать rolebinding:
+```
+export KUBECONFIG=~/.kube/rbac.conf
+kubectl -n rbac create rolebinding pod-view-edit --role=pod-view-edit --serviceaccount=rbac:privesc
+rolebinding.rbac.authorization.k8s.io/pod-view-edit created
+```
+Новая роль успешно забиндилась к существующему сервисаккаунту. Обратите внимание, что роль `pod-view-edit` содержит `verbs` и `resources` уже подключенные сервисаккаунту в rolebinding `view` и `edit`.
+Теперь попробуем забиндить роль с новым verb `delete`, которого ещё нет в уже подключенных к сервисаккаунту ролях:
+
+```
+kubectl -n rbac create rolebinding delete-pod --role=delete-pod --serviceaccount=rbac:privesc
+error: failed to create rolebinding: rolebindings.rbac.authorization.k8s.io "delete-pod" is forbidden: user "system:serviceaccount:rbac:privesc" (groups=["system:serviceaccounts" "system:serviceaccounts:rbac" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
+{APIGroups:[""], Resources:["pods"], Verbs:["delete"]}
+```
+
+Kubernetes не позволяет нам это сделать, несмотря на то, что у нас есть права на редактирование и создание RoleBindings. Исправить это нам поможет право `bind`. Используя админский конфиг выдадим его сервисаккаунту:
+```
+KUBECONFIG=~/.kube/config kubectl -n rbac create role bind --verb=bind --resource=role       
+role.rbac.authorization.k8s.io/bind created
+
+KUBECONFIG=~/.kube/config kubectl -n rbac create rolebinding bind --role=bind --serviceaccount=rbac:privesc
+rolebinding.rbac.authorization.k8s.io/bind created
+``` 
+
+И повторим попытку создать RoleBinding с новым verb `delete`:
+```
+kubectl -n rbac create rolebinding delete-pod --role=delete-pod --serviceaccount=rbac:privesc
+rolebinding.rbac.authorization.k8s.io/delete-pod created
+```
 
 
 
