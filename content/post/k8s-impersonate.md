@@ -369,19 +369,34 @@ rules:
   verbs:
   - update
   - patch
-  - list
+  - list   # <-- добавлена эта строка
 ```
 
 Попробуем добавить в роль новый verb (delete), который не описан в других ролях:
 ```
-kubectl -n rbac edit  role edit 
+kubectl -n rbac edit  role edit
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: edit
+  namespace: rbac
+rules:
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  verbs:
+  - update
+  - patch
+  - delete   # <-- добавлена эта строка
 
 error: roles.rbac.authorization.k8s.io "edit" could not be patched: roles.rbac.authorization.k8s.io "edit" is forbidden: user "system:serviceaccount:rbac:escalate" (groups=["system:serviceaccounts" "system:serviceaccounts:rbac" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
 {APIGroups:["rbac.authorization.k8s.io"], Resources:["roles"], Verbs:["delete"]}
 ```
 Kubernetes не позволяет добавлять себе новых прав, которых ещё нет у пользователя - прав, которые не описаны в других ролях, забинденых к этому пользователю
 
-Используя админские права добавим новую роль с verb escalate:
+Используя админские права расширим права сервисаккаунта escalate - добавим новую роль с verb escalate и забиндим её нашему сервисаккаунту:
 ```
 KUBECONFIG=~/.kube/config kubectl -n rbac create role escalate --verb=escalate --resource=role   
 role.rbac.authorization.k8s.io/escalate created
@@ -396,7 +411,8 @@ kubectl -n rbac edit  role edit
 role.rbac.authorization.k8s.io/edit edited
 ```
 
-Теперь это работает. Пользователь может повышать свои привилегии редактируя существующие роли. То есть verb escalate фактически дает права администратора, т.к. пользователь, обладающий привилегиями escalate может выписать себе любые права на неймспейс или кластер, если это указано resources.
+Теперь это работает. Пользователь может повышать свои привилегии редактируя существующие роли. То есть verb escalate фактически дает права администратора, т.к. пользователь, обладающий привилегиями escalate может выписать себе любые права на неймспейс или кластер, если это указано в resources.
+
 ### Bind
 [DOC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update): To allow a user to create/update _role bindings_:
 - Grant them a role that allows them to create/update RoleBinding or ClusterRoleBinding objects, as desired.
