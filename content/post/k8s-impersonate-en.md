@@ -408,14 +408,97 @@ It works now. User can expand his privileges by editing existing role (or by add
     - implicitly, by giving them the permissions contained in the role.
     - explicitly, by giving them permission to perform the bind verb on the particular Role (or ClusterRole).
 
-https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update
-> You can only create/update a role binding if you already have all the permissions contained in the referenced role
-что это значить? Можно ли эти пермишены получить от других ролей?
+`Bind` работает аналогично `escalate`. Если `escalate` разрешает редактировать `Role` или `ClusterRole` для повышения привилегий, то `bind` разрешает редактировать `RoleBinding` или `ClusterRoleBinding`. 
 
-Если прав в роли недостаточно, то ты можешь забиндить себя на другую роль.
-![pic](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*6rzbOIuEDvpBfUnZZpeGhA.png) НАРИСОВАТЬ!
+`Bind` works similarly `escalate`. `escalate` allows to edit `Role` or `ClusterRole` for privilege escalation, as well as `bind` allows to edit `RoleBinding` or `ClusterRoleBinding`. 
+
+Let's change kubeconfig to admin: `export KUBECONFIG=~/.kube/config`
+
+Remove old roles and bindings:
+```
+kubectl -n rbac delete rolebinding view edit escalate
+kubectl -n rbac delete role view edit escalate
+```
+
+Allow ServiceAccount to view and edit rolebinding and pod in namespace:
+```
+kubectl -n rbac create role view --verb=list,watch,get --resource=role,rolebinding,pod
+kubectl -n rbac create rolebinding view --role=view --serviceaccount=rbac:privesc
+kubectl -n rbac create role edit --verb=update,patch,create --resource=rolebinding,pod
+kubectl -n rbac create rolebinding edit --role=edit --serviceaccount=rbac:privesc
+```
+
+Create separate roles to work with pods, but still don't bind it:
+```
+kubectl -n rbac create role pod-view-edit --verb=get,list,watch,update,patch --resource=pod
+kubectl -n rbac create role delete-pod --verb=delete --resource=pod
+```
+
+Let's change kubeconfig to ServiceAccount privesc and try to edit rolebinding:
+```
+export KUBECONFIG=~/.kube/rbac.conf
+kubectl -n rbac create rolebinding pod-view-edit --role=pod-view-edit --serviceaccount=rbac:privesc
+rolebinding.rbac.authorization.k8s.io/pod-view-edit created
+```
+Новая роль успешно забиндилась к существующему сервисаккаунту. Обратите внимание, что роль `pod-view-edit` содержит `verbs` и `resources` уже подключенные сервисаккаунту в rolebinding `view` и `edit`.
+Теперь попробуем забиндить роль с новым verb `delete`, которого ещё нет в уже подключенных к сервисаккаунту ролях
 
 
+New role's binded to ServiceAccount successfully. Pay attention role `pod-view-edit` contains `verbs` abd `resources` already binded to ServiceAccount at rolebinding `view` и `edit`:
+```
+kubectl -n rbac create rolebinding delete-pod --role=delete-pod --serviceaccount=rbac:privesc
+error: failed to create rolebinding: rolebindings.rbac.authorization.k8s.io "delete-pod" is forbidden: user "system:serviceaccount:rbac:privesc" (groups=["system:serviceaccounts" "system:serviceaccounts:rbac" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
+{APIGroups:[""], Resources:["pods"], Verbs:["delete"]}
+```
+
+Kubernetes не позволяет нам это сделать, несмотря на то, что у нас есть права на редактирование и создание RoleBindings. Исправить это нам поможет право `bind`. Используя админский конфиг выдадим его сервисаккаунту
+
+Kubernetes doesn't allow to do it even with access rights to edit and create RoleBindings. You could fix it with verb `bind`. Let's do it with admin config:
+```
+KUBECONFIG=~/.kube/config kubectl -n rbac create role bind --verb=bind --resource=role       
+role.rbac.authorization.k8s.io/bind created
+
+KUBECONFIG=~/.kube/config kubectl -n rbac create rolebinding bind --role=bind --serviceaccount=rbac:privesc
+rolebinding.rbac.authorization.k8s.io/bind created
+``` 
+
+Try again to create RoleBinding with new verb `delete`:
+```
+kubectl -n rbac create rolebinding delete-pod --role=delete-pod --serviceaccount=rbac:privesc
+rolebinding.rbac.authorization.k8s.io/delete-pod created
+```
+
+It works now.
+
+## Mitigation
+Система авторизации k8s очень гибкая и позволяет гранулярно настраивать параметры доступа. Даже в тех случаях, когда пользователю необходимо управлять такими чувствительными для безопасности примитивами как Role/ClusterRole и RoleBinding/ClusterRoleBinding. При этом пользователь не сможет повысить свои привилегии и получить доступ к закрытым данным, если администратор явно не позволит ему повышать привилегии.
+
+Повысить привилегии позволяют verbs `escalate` и `bind`. Первый разрешает добавлять новые записи в Role/ClusterRole, а второй - в RoleBinding/ClusterRoleBinding. Это очень мощные инструменты, неправильное использование которых может нанести значительный урон работе кластера. Следует очень внимательно проверять любое использование этих verbs и всегда убеждаться в том, что соблюдается правило Least Privilegies - пользователь должен иметь минимальный набор привилегий, необходимый для работы.
+
+Для ограничения использования этих или любых других правил в манифестах Role/ClusterRole есть поле `resourceNames`, куда можно (и нужно!) вписать имена ресурсов, которые можно использовать.
+
+The k8s authorisation system is very flexible and allows granular configuration of access parameters. Even in cases where the user needs to manage security sensitive primitives such as Role/ClusterRole and RoleBinding/ClusterRoleBinding. The user will not be able to escalate privileges and access sensitive data unless the administrator explicitly allows the user to escalate privileges.
+
+The verbs `escalate` and `bind` allow to escalate privileges. The former allows adding new entries to Role/ClusterRole and the latter to RoleBinding/ClusterRoleBinding. These are very powerful tools, the misuse of which can cause significant damage to a cluster. You should check any use of these verbs very carefully and always make sure that the Least Privilegies rule is followed - the user must have the minimum set of privileges required to operate.
+
+To restrict the use of these or any other rules, Role/ClusterRole manifests have a `resourceNames` field where you can (and should!) enter the names of resources that can be used.
+
+Example allows create ClusterRoleBinding with `roleRef` named "admin","edit","view":
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: role-grantor
+rules:
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles"]
+  verbs: ["bind"]
+  resourceNames: ["admin","edit","view"]
+```
+
+То же самое можно сделать с escalate. С `bind` права в роли задает админ, а пользователь только может забиндить эту роль на себя, если это разрешено в `resourceNames`, то с `escalate` пользователь может внутри роли прописать любые параметры и стать админом неймспейса или кластера. То есть `escalate` дает больше возможностей, в то время как `bind` ограничивает пользователя. Имейте это в виду, когда приедтся давать эти права пользователям.
+
+The same can be done with escalate. With `bind` the rights in the role are set by the admin, and the user can only bind this role to himself if it is allowed in `resourceNames`, while with `escalate` the user can write any parameters inside the role and become the admin of a namespace or cluster. That is, `escalate` gives more options, while `bind` restricts the user. Keep this in mind when you have to give these rights to users.
 
 ### Tools
 
