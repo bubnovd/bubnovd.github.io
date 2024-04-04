@@ -251,6 +251,8 @@ https://github.com/postfinance/kubectl-sudo
   verbs: ["impersonate"]
   resourceNames: ["jane.doe@example.com"]
 ```
+
+ПРИВЕСТИ ПРИМЕРЫ!! 
 ##### Угрозы
 Наличие у пользователя неограниченных прав impersonate в неймспейсе или целом кластере может привести к получению полного контроля к неймспейсу/кластеру. И не только для авторизованных пользователей, но и для нелегитимных. Например, злоумыщленник таким образом может повысить свои привилегии из дефолтного сервисаккаунта дл кластер админа.
 
@@ -486,6 +488,30 @@ kubectl -n rbac create rolebinding delete-pod --role=delete-pod --serviceaccount
 rolebinding.rbac.authorization.k8s.io/delete-pod created
 ```
 
+Теперь RoleBinding создается.
+
+## Mitigation
+Система авторизации k8s очень гибкая и позволяет гранулярно настраивать параметры доступа. Даже в тех случаях, когда пользователю необходимо управлять такими чувствительными для безопасности примитивами как Role/ClusterRole и RoleBinding/ClusterRoleBinding. При этом пользователь не сможет повысить свои привилегии и получить доступ к закрытым данным, если администратор явно не позволит ему повышать привилегии.
+
+Повысить привилегии позволяют verbs `escalate` и `bind`. Первый разрешает добавлять новые записи в Role/ClusterRole, а второй - в RoleBinding/ClusterRoleBinding. Это очень мощные инструменты, неправильное использование которых может нанести значительный урон работе кластера. Следует очень внимательно проверять любое использование этих verbs и всегда убеждаться в том, что соблюдается правило Least Privilegies - пользователь должен иметь минимальный набор привилегий, необходимый для работы.
+
+Для ограничения использования этих или любых других правил в манифестах Role/ClusterRole есть поле `resourceNames`, куда можно (и нужно!) вписать имена ресурсов, которые можно использовать.
+В этом примере пользователю разрешено создавать ClusterRoleBinding с `roleRef` с именами "admin","edit","view":
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: role-grantor
+rules:
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles"]
+  verbs: ["bind"]
+  resourceNames: ["admin","edit","view"]
+```
+
+То же самое можно сделать с escalate. С `bind` права в роли задает админ, а пользователь только может забиндить эту роль на себя, если это разрешено в `resourceNames`, то с `escalate` пользователь может внутри роли прописать любые параметры и стать админом неймспейса или кластера. То есть `escalate` дает больше возможностей, в то время как `bind` ограничивает пользователя. Имейте это в виду, когда приедтся давать эти права пользователям.
+
+
 
 
 ### Tools
@@ -608,4 +634,4 @@ secret   Opaque   1      5m27s
 
 
 
-k get clusterrole -A -oyaml | yq '.items[] | select (.rules[].verbs[] | contains( "impersonate"))  | .metadata.name'
+k get clusterrole -A -oyaml | yq '.items[] | select (.rules[].verbs[] | contains("esalate" | "bind" | "impersonate"))  | .metadata.name'
