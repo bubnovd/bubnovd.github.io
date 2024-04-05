@@ -150,41 +150,110 @@ Verbs описывают что можно делать с ресурсом - к
 - delete, deletecollection - удалить ресурс. HTTP метод `DELETE`
 
 Описанные выше действия очевидны и не требуют пояснений. Самое интересное начинается со следующими verbs:
-- [escalate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb) - создавать и редактировать роли ЧУЖИЕ?? 
-- [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - создавать и редактировать биндинги ЧУЖИЕ?? 
+- [escalate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb) - создавать и редактировать роли, в том числе, относящиеся к другим пользователям
+- [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - создавать и редактировать биндинги, в том числе, относящиеся к другим пользователям
 - [impersonate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#impersonate-verb) - представиться k8s API другим пользователем, группой или предоставить другие данные (extra)
 
 ### ServiceAccounts, Users, Groups
 
 [ServiceAccount](https://kubernetes.io/docs/concepts/security/service-accounts/)(дальше - SA) - тип учетной записи в k8s, используемый подами, системными компонентами и всем, что не кожаный мешок. В качестве аутентификатора SA использует [токен JWT](https://www.rfc-editor.org/rfc/rfc7519.html). Посмотрим подробнее на создание SA и его JWT токен.
-Создание SA:
-`k create sa mysa`
-`k get sa mysa -oyaml`
+Создаем неймспейс:
+```
+kubectl create ns rbac
+namespace/rbac created
+```
+
+Создаем сервисаккаунт:
+```
+kubectl -n rbac create sa privesc
+serviceaccount/privesc created
+```
+Манифест сервисаккаунта выглядит так:
+`k get sa -n rbac privesc -oyaml`
 ```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: mysa
-  namespace: defaul
+  name: privesc
+  namespace: rbac
 ```
 Как видим, в манифесте SA нет ничего особенного. Но есть [нюансы](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting) =). Обратите внимаение, что SA - namespaced resource, то есть у SA всегда есть Namespace.
 
 #### JWT
-Сгенерируем токен для аутентификации от имени SA:
-`TOKEN=$(k create token mysa)`
-СГЕНЕРИТЬ И ПОКАЗАТЬ
+Сгенерируем токен для аутентификации от имени SA. Мы использовали параметр `duration`, чтобы токен работал продолжительное время. Обычно kubernetes выдает токены на короткий срок, определяемый самим kubernetes.
+`TOKEN=$(k -n rbac create token privesc --duration=8h)`
+```
+echo $TOKEN
+eyJhbGciOiJSUzI1NiIsImtpZCI6ImxrNzcybkhfVXZiZW1YSXV0S1BaZDlxNUlFOTRjX1Y1M1o3RWhvLWRsbm8ifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzEyMzI0NjYxLCJpYXQiOjE3MTIyOTU4NjEsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJyYmFjIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6InByaXZlc2MiLCJ1aWQiOiJkODc1NmY0NS01ZDJjLTQ0YjQtYWFjOS02NDU1MjcwNDViZTMifX0sIm5iZiI6MTcxMjI5NTg2MSwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OnJiYWM6cHJpdmVzYyJ9.GxJKpZevOkFwksFsA8ZPU5qLLwQdl6D3Rlt1gU-2feExcy6GadGQJlumrrpq-ih0Ufgm7YUz4jRsNld9yXT93nu27sPyxkMSjMT4rAdfFAV59Q8Z6kFyzOjuJBsEEzErB2Oft5KcGVSXBh01KWvHU8vPvBHaS_JgSV0yym3-9ruGh4eARwc3lbPZi9_PF-P8x0gCvpqaEZWF_aDjxAlcCxlkZjC2ADOHtiVlnBrDt1fqheOZ-W2BKxQ8-z9OG7PMo_x6G6VM2EQIGmY3tzyWd1gMB6bDRrWfSWjj0EPzqdXGov6w-znmzobWHJQN4BoeXBBDJA7BGUIA8VphXHu7yw
+```
 Получили JWT. 
 > Обычно по-русски пишут JWT токен, что является [плеоназмом](https://ru.wikipedia.org/wiki/%D0%90%D0%B1%D0%B1%D1%80%D0%B5%D0%B2%D0%B8%D0%B0%D1%82%D1%83%D1%80%D0%B0#%D0%A2%D0%B0%D0%B2%D1%82%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5_%D1%81%D0%BE%D0%BA%D1%80%D0%B0%D1%89%D0%B5%D0%BD%D0%B8%D0%B5): JSON Web Token токен. Поэтому я буду писать просто JWT
 
-JWT состоит из трех частей, разделенных точками. Первые две части - закодированный в base64 текст, последняя - подпись.
+JWT состоит из трех частей, разделенных точками. Первые две части - закодированный в base64 текст, последняя - подпись. Первые две части токена можно декодировать из base64 и получить читаемые даные:
 `echo $TOKEN | jq -R ' split(".") | select(length > 0) | .[0],.[1] | @base64d | fromjson'`
-ПОКАЗАТЬ ЧТО ПОЛУЧИЛОСЬ
+```json
+{
+  "alg": "RS256",
+  "kid": "lk772nH_UvbemXIutKPZd9q5IE94c_V53Z7Eho-dlno"
+}
+{
+  "aud": [
+    "https://kubernetes.default.svc.cluster.local"
+  ],
+  "exp": 1712324661,
+  "iat": 1712295861,
+  "iss": "https://kubernetes.default.svc.cluster.local",
+  "kubernetes.io": {
+    "namespace": "rbac",
+    "serviceaccount": {
+      "name": "privesc",
+      "uid": "d8756f45-5d2c-44b4-aac9-645527045be3"
+    }
+  },
+  "nbf": 1712295861,
+  "sub": "system:serviceaccount:rbac:privesc"
+}
+```
 
 #### Users, Groups
 
-Это может показаться странным, но API k8s не имеет понятия юзера или группы. Невозможно создать пользователя или группу. Но эти данные необходимы для авторизации. API Server распознает пользователя по полю CN в Subject сертификата.
-ПОКАЗАТЬТ КАК openssl x509 -noout -text -in ~/gcore/tmp/c.crt  
-
+Это может показаться странным, но API k8s не имеет понятия юзера или группы. Невозможно создать пользователя или группу. Но эти данные необходимы для авторизации. API Server распознает пользователя по полю CN в Subject сертификата. Сам сертификат закодирован в base64 в конфиге. Посмотрим на данные, содержащиеся в сертификате.
+```
+yq '.users[0].user.client-certificate-data | @base64d' ~/.kube/config | openssl x509 -text -noout
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 2201338778473110666 (0x1e8cb9f4b12e9c8a)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN = kubernetes
+        Validity
+            Not Before: Mar 22 15:21:44 2024 GMT
+            Not After : Mar 22 15:26:39 2025 GMT
+        Subject: O = system:masters, CN = kubernetes-admin
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c5:9b:5a:7a:82:cd:1e:c6:8b:d6:66:55:68:2f:
+                    ...
+                    ba:5b
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature, Key Encipherment
+            X509v3 Extended Key Usage: 
+                TLS Web Client Authentication
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Authority Key Identifier: 
+                D5:DD:0A:9A:6B:08:9B:94:73:13:11:16:93:7C:E4:C1:24:91:A3:90
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        6d:6c:58:62:4a:2a:9e:2a:70:cb:f9:52:64:05:6f:f2:18:72:
+        ...
+        1f:ad:a3:7a
+```
+В поле `Subject` есть данные пользователе и его правах: `O = system:masters, CN = kubernetes-admin`
 В качестве системы аутентификации k8s может использовать сторонние Identity Providers и интегрироваться с ними по OpenID Connect. Например, keycloak (ССЫЛКА ТУТ)
 
 ### RoleBinding
@@ -267,18 +336,6 @@ https://github.com/postfinance/kubectl-sudo
 
 [Kubernetes RBAC API не позволяет повысить привелегии доступа путем редактирования Role или RoleBinding. Это происходит на уровне API и будет работать даже если выключен RBAC authorizer](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping). Исключение из этого правила - наличие права `escalate` у роли.
 ![escalate](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*CBK_TpCOMNyaWyA32nx-bA.png) НАРИСОВАТЬ!
-
-Создаем неймспейс:
-```
-kubectl create ns rbac
-namespace/rbac created
-```
-
-Создаем сервисаккаунт:
-```
-kubectl -n rbac create sa privesc
-serviceaccount/privesc created
-```
 
 Роль с правами на просмотр подов и ролей в неймспейсе rbac:
 ```

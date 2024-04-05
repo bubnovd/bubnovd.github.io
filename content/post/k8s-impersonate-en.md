@@ -71,8 +71,8 @@ Verbs описывают что можно делать с ресурсом - к
 - delete, deletecollection - удалить ресурс. HTTP метод `DELETE`
 
 Описанные выше действия очевидны и не требуют пояснений. Самое интересное начинается со следующими verbs:
-- [escalate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb) - создавать и редактировать роли ЧУЖИЕ?? 
-- [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - создавать и редактировать биндинги ЧУЖИЕ?? 
+- [escalate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb) - создавать и редактировать роли
+- [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - создавать и редактировать биндинги
 - [impersonate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#impersonate-verb) - представиться k8s API другим пользователем, группой или предоставить другие данные (extra)
 
 
@@ -84,8 +84,8 @@ Verbs describe what can be done with a resource. Like `rwx` in `chmod`. The most
 - `delete`, `deletecollection` - delete resource. HTTP method `DELETE`
 
 These actions are obvious and require no explanation. The most interesting verbs are:
-- [escalate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb) - create and edit roles ЧУЖИЕ?? 
-- [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - create and edit rolebindings and clusterrolebindings ЧУЖИЕ?? 
+- [escalate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb) - create and edit roles
+- [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - create and edit rolebindings and clusterrolebindings
 - [impersonate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#impersonate-verb) - This verb allows users to impersonate and gain the rights of other users in the cluster, other group or get other data (extra)
 
 
@@ -106,6 +106,26 @@ metadata:
 
 
 [ServiceAccount](https://kubernetes.io/docs/concepts/security/service-accounts/)(bellow - SA) - a type of non-human account. Application Pods, system components, and entities inside and outside the cluster can use a specific ServiceAccount's credentials to identify as that ServiceAccount. As authenticator uses [JSON Web Token](https://www.rfc-editor.org/rfc/rfc7519.html). Let's look deeper at SA and its JWT.
+Create namespace:
+```
+kubectl create ns rbac
+namespace/rbac created
+```
+
+Create ServiceAccount:
+```
+kubectl -n rbac create sa privesc
+serviceaccount/privesc created
+```
+ServiceAccount manifest:
+`k get sa -n rbac privesc -oyaml`
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: privesc
+  namespace: rbac
+```
 
 #### JWT
 Сгенерируем токен для аутентификации от имени SA:
@@ -120,11 +140,37 @@ JWT состоит из трех частей, разделенных точка
 
 
 Let's generate token to authenticate as SA:
-`TOKEN=$(k create token mysa)`
-СГЕНЕРИТЬ И ПОКАЗАТЬ
-Now we have JWT. It contains 3 parts divided by dots. First and second parts - base64 encoded text, last part - signature.
+`TOKEN=$(k -n rbac create token privesc --duration=8h)`
+```
+echo $TOKEN
+eyJhbGciOiJSUzI1NiIsImtpZCI6ImxrNzcybkhfVXZiZW1YSXV0S1BaZDlxNUlFOTRjX1Y1M1o3RWhvLWRsbm8ifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzEyMzI0NjYxLCJpYXQiOjE3MTIyOTU4NjEsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJyYmFjIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6InByaXZlc2MiLCJ1aWQiOiJkODc1NmY0NS01ZDJjLTQ0YjQtYWFjOS02NDU1MjcwNDViZTMifX0sIm5iZiI6MTcxMjI5NTg2MSwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OnJiYWM6cHJpdmVzYyJ9.GxJKpZevOkFwksFsA8ZPU5qLLwQdl6D3Rlt1gU-2feExcy6GadGQJlumrrpq-ih0Ufgm7YUz4jRsNld9yXT93nu27sPyxkMSjMT4rAdfFAV59Q8Z6kFyzOjuJBsEEzErB2Oft5KcGVSXBh01KWvHU8vPvBHaS_JgSV0yym3-9ruGh4eARwc3lbPZi9_PF-P8x0gCvpqaEZWF_aDjxAlcCxlkZjC2ADOHtiVlnBrDt1fqheOZ-W2BKxQ8-z9OG7PMo_x6G6VM2EQIGmY3tzyWd1gMB6bDRrWfSWjj0EPzqdXGov6w-znmzobWHJQN4BoeXBBDJA7BGUIA8VphXHu7yw
+```
+
+Now we have JWT. It contains 3 parts divided by dots. First and second parts - base64 encoded text, last part - signature. It's possible to base64 decode first 2 parts and read data:
 `echo $TOKEN | jq -R ' split(".") | select(length > 0) | .[0],.[1] | @base64d | fromjson'`
-ПОКАЗАТЬ ЧТО ПОЛУЧИЛОСЬ
+```json
+{
+  "alg": "RS256",
+  "kid": "lk772nH_UvbemXIutKPZd9q5IE94c_V53Z7Eho-dlno"
+}
+{
+  "aud": [
+    "https://kubernetes.default.svc.cluster.local"
+  ],
+  "exp": 1712324661,
+  "iat": 1712295861,
+  "iss": "https://kubernetes.default.svc.cluster.local",
+  "kubernetes.io": {
+    "namespace": "rbac",
+    "serviceaccount": {
+      "name": "privesc",
+      "uid": "d8756f45-5d2c-44b4-aac9-645527045be3"
+    }
+  },
+  "nbf": 1712295861,
+  "sub": "system:serviceaccount:rbac:privesc"
+}
+```
 
 
 #### Users, Groups
@@ -135,10 +181,44 @@ Now we have JWT. It contains 3 parts divided by dots. First and second parts - b
 В качестве системы аутентификации k8s может использовать сторонние Identity Providers и интегрироваться с ними по OpenID Connect. Например, keycloak (ССЫЛКА ТУТ)
 
 
-It looks strange but k8s API doesn't have user and group entities. It's impossible to create user or group via kubectl. But those data are required to authorization. Kubernetes API Server gets user from CN in Subject field of Certificate.
-ПОКАЗАТЬТ КАК openssl x509 -noout -text -in ~/gcore/tmp/c.crt
-
-Kubernetes can use third-party Identity Providers as authentication system and integrate with it by OpenID Connect. For example keycloak, dex
+It looks strange but k8s API doesn't have user and group entities. It's impossible to create user or group via kubectl. But those data are required to authorization. Kubernetes API Server gets user from CN in Subject field of Certificate. Let's look at it:
+```
+yq '.users[0].user.client-certificate-data | @base64d' ~/.kube/config | openssl x509 -text -noout
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 2201338778473110666 (0x1e8cb9f4b12e9c8a)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN = kubernetes
+        Validity
+            Not Before: Mar 22 15:21:44 2024 GMT
+            Not After : Mar 22 15:26:39 2025 GMT
+        Subject: O = system:masters, CN = kubernetes-admin
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c5:9b:5a:7a:82:cd:1e:c6:8b:d6:66:55:68:2f:
+                    ...
+                    ba:5b
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Digital Signature, Key Encipherment
+            X509v3 Extended Key Usage: 
+                TLS Web Client Authentication
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Authority Key Identifier: 
+                D5:DD:0A:9A:6B:08:9B:94:73:13:11:16:93:7C:E4:C1:24:91:A3:90
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        6d:6c:58:62:4a:2a:9e:2a:70:cb:f9:52:64:05:6f:f2:18:72:
+        ...
+        1f:ad:a3:7a
+```
+Field `Subject` contains data about user and access rights:`O = system:masters, CN = kubernetes-admin`.
+Kubernetes can use third-party Identity Providers as authentication system and integrate with it by OpenID Connect. For example keycloak, dex (LINK HERE)
 
 ### RoleBinding
 Ресурс, связывающий роль и пользователя/группу/сервисаккаунт. Содержит всего два поля:
@@ -246,17 +326,6 @@ So, it is necessary to monitor Roles/ClusterRoles to `impersonate` verb and know
 [Kubernetes RBAC API doesn't allow to escalate privileges by simple redacting Role or RoleBinding. It works at API level and will work even if RBAC authorizer turned off](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping). Исключение из этого правила - наличие права `escalate` у роли.
 ![escalate](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*CBK_TpCOMNyaWyA32nx-bA.png) НАРИСОВАТЬ!
 
-Create new namespace:
-```
-kubectl create ns rbac
-namespace/rbac created
-```
-
-Create ServiceAccount:
-```
-kubectl -n rbac create sa privesc
-serviceaccount/privesc created
-```
 
 Create role allowed to read-only access to pods and roles in `rbac` namespace:
 ```
