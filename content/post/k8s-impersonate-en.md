@@ -1,4 +1,4 @@
-В kubernetes есть аналог sudo, благодаря которому можно обойти ограничения в назначенных ролях и получить доступ туда, куда не предполагалось. И эта возможность есть у любого юзера с дефолтной кластерролью edit. В этой статье попробуем разобраться что это такое и как защититься от такого легального повышения привилегий.
+В kubernetes есть аналог sudo, благодаря которому можно обойти ограничения в назначенных ролях и получить доступ туда, куда не предполагалось и прочитать скеретные данные или даже получить полный контроль над кластером.. И эта возможность есть у любого юзера с дефолтной кластерролью edit. В этой статье попробуем разобраться что это такое и как защититься от такого легального повышения привилегий.
 
 Kubernetes has its own sudo. It allows to break restrictions in roles and get access to hidden areas. Anyone with default clusterrole edit can do it. This article helps you understand what is it and how to prevent such violations
 
@@ -27,7 +27,7 @@ Kubernetes может использовать модели доступа: [Nod
 
 
 In Kubernetes you can use bellow access models: [Node, ABAC, RBAC, WebHook](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules).
-The most popular model is Role Based Access Control (RBAC). It has several related entities:
+The most popular model is Role Based Access Control (RBAC) - default system in k8s. It has several related entities:
 - role describes access rigths
 - user (can be User, Group or ServiceAccount)
 - RoleBinding - entity united roles and users
@@ -265,59 +265,7 @@ There are namespaced and non-namespaced cluster resources. It means the first al
 ## Unobvious Kubernetes RBAC nuances
 Not very popular but too dangerous nuances in k8s RBAC
 
-### Impersonate
-[DOC](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation)
-Impersonation requests first authenticate as the requesting user, then switch to the impersonated user info.
-- A user makes an API call with their credentials and impersonation headers.
-- API server authenticates the user.
-- API server ensures the authenticated users have impersonation privileges.
-- Request user info is replaced with impersonation values.
-- Request is evaluated, authorization acts on impersonated user info.
 
-Impersonate это такой sudo для k8s. С правами impersonate пользователь может представиться другим пользователем и выполнять команды от его имени. kubectl имеет опции `--as`, `--as-group`, `--as-uid`, позволяющие выполнить команду от имени юзера, группы или uid соответственно. То есть, если в одной из ролей пользователь получил impersonate, то его можно считать админом неймспейса. Или кластера в худшем варианте.
-
-Имперсонэйт удобно использовать для проверки корректности RBAC - запускать `kubectl auth can-i --as=$USERNAME -n $MANESPACE get pod`.
-
-Хорошие виндовые админы должны помнить, что даже главные админы должны использовать аккаунты с минимальными правами для ежедневных дел, а важные консоли запускать от имени другого юзера с бОльшим количеством прав. В линуксе тот же принцип обеспечивается с помощью `sudo`. Так и в кубернетес - для защиты от случайного удаления важных данных, лучше не разрешать это действие обычному юзеру, а разрешить только админу, а юзеру дать права на impersonate, чтобы он мог использовать `--as=` когда это действительно нужно.
-
-
-
-Impersonate verb is like sudo but for k8s instead of Linux. If user has `imeprsonate` access, he can authenticate as other user and run commands as other user. kubectl has options `--as`, `--as-group`, `--as-uid`, which allowed to run command as other user, other group or other uid respectively. So, we can say if any user got impersonate rights, he would be namespace admin or even cluster admin.
-
-Impersonate is usefull to check RBAC rules - admin should run `kubectl auth can-i --as=$USERNAME -n $MANESPACE get pod` and check is authorization works as designed.
-
-Good system administrators remember: even if you have domain admin access level you have to use limited account to manage your infrastructure and use privileged account only if it needed for such tasks. It called The principle of least privilege. In cloud era this principle realized by impersonate. To prevent accidentally important resources deletion it is possible to create separate ServiceAccount with verb `delete` and allow users to impersonate only with this ServicaAccount ПОКАЗАТЬ КАК!
-
-There is a project [kubectl-sudo](https://github.com/postfinance/kubectl-sudo) implemented such technique as a kubectl plugin.
-
-![impers](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*8XFhTnrLK8xLRr-eNl1PZw.png) НКАРИСОВАТЬ!
-
-https://github.com/postfinance/kubectl-sudo
-проверить 
-```yaml
-# Can impersonate the user "jane.doe@example.com"
-- apiGroups: [""]
-  resources: ["users"]
-  verbs: ["impersonate"]
-  resourceNames: ["jane.doe@example.com"]
-```
-#### Threats
-Наличие у пользователя неограниченных прав impersonate в неймспейсе или целом кластере может привести к получению полного контроля к неймспейсу/кластеру. И не только для авторизованных пользователей, но и для нелегитимных. Например, злоумыщленник таким образом может повысить свои привилегии из дефолтного сервисаккаунта дл кластер админа.
-
-Таким образом необходимо мониторить Role/ClusterRole на появление в них `impersonate` и изучать откуда эта запись появляется и, возможно, более тонко настраивать все нюансы. Для отслеживания ЧТО ПРИМЕНЯТЬ ДЛЯ АУДИТА?
-
-
-Impersonate in k8s is like sudo in Linux. So, 
-```
-    #1) Respect the privacy of others.
-    #2) Think before you type.
-    #3) With great power comes great responsibility.
-```
-It could give users more than they want. Incorrect imeprsonate configuration could allow users admin access to the whole cluster. More dangerous it could be used by unlegitimate users - hacker can escalate privileges from default serviceAccount to admin.
-
-So, it is necessary to monitor Roles/ClusterRoles to `impersonate` verb and know who or what did it. And correct RBAC manifests  if necessary 
-
-ДО СЮДА СДЕЛАЛ. Добавить ниже! 01.04.24
 ### Escalate
 [DOC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update): You can only create/update a _role_ if at least one of the following things is true:
 - You already have all the permissions contained in the role, at the same scope as the object being modified (cluster-wide for a ClusterRole, within the same namespace or cluster-wide for a Role).
@@ -539,6 +487,113 @@ rolebinding.rbac.authorization.k8s.io/delete-pod created
 
 It works now.
 
+### Impersonate
+[DOC](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation)
+Impersonation requests first authenticate as the requesting user, then switch to the impersonated user info.
+- A user makes an API call with their credentials and impersonation headers.
+- API server authenticates the user.
+- API server ensures the authenticated users have impersonation privileges.
+- Request user info is replaced with impersonation values.
+- Request is evaluated, authorization acts on impersonated user info.
+
+Impersonate это такой sudo для k8s. С правами impersonate пользователь может представиться другим пользователем и выполнять команды от его имени. kubectl имеет опции `--as`, `--as-group`, `--as-uid`, позволяющие выполнить команду от имени юзера, группы или uid соответственно. То есть, если в одной из ролей пользователь получил impersonate, то его можно считать админом неймспейса. Или кластера в худшем варианте.
+
+Имперсонэйт удобно использовать для проверки корректности RBAC - запускать `kubectl auth can-i --as=$USERNAME -n $MANESPACE get pod`.
+
+Хорошие виндовые админы должны помнить, что даже главные админы должны использовать аккаунты с минимальными правами для ежедневных дел, а важные консоли запускать от имени другого юзера с бОльшим количеством прав. В линуксе тот же принцип обеспечивается с помощью `sudo`. Так и в кубернетес - для защиты от случайного удаления важных данных, лучше не разрешать это действие обычному юзеру, а разрешить только админу, а юзеру дать права на impersonate, чтобы он мог использовать `--as=` когда это действительно нужно.
+
+
+
+Impersonate verb is like sudo but for k8s instead of Linux. If user has `imeprsonate` access, he can authenticate as other user and run commands as other user. kubectl has options `--as`, `--as-group`, `--as-uid`, which allowed to run command as other user, other group or other uid respectively. So, we can say if any user got impersonate rights, he would be namespace admin or even cluster admin.
+
+Impersonate is usefull to check RBAC rules - admin should run `kubectl auth can-i --as=$USERNAME -n $MANESPACE $VERB $RESOURCE` and check is authorization works as designed.
+
+```
+kubectl auth can-i get pod -n rbac --as=system:serviceaccount:rbac:privesc
+yes
+```
+
+Or look at all user/ServiceAccounts access rights:
+```
+kubectl auth can-i --list -n rbac --as=system:serviceaccount:rbac:privesc
+Resources                                       Non-Resource URLs                     Resource Names   Verbs
+roles.rbac.authorization.k8s.io                 []                                    [edit]           [bind escalate]
+selfsubjectaccessreviews.authorization.k8s.io   []                                    []               [create]
+selfsubjectrulesreviews.authorization.k8s.io    []                                    []               [create]
+...
+rolebindings.rbac.authorization.k8s.io          []                                    []               [update patch create bind escalate list watch get]
+roles.rbac.authorization.k8s.io                 []                                    []               [update patch create bind escalate list watch get]
+pods                                            []                                    []               [update patch create delete get list watch]
+configmaps                                      []                                    []               [update patch create delete]
+secrets                                         []                                    []               [update patch create delete]
+```
+
+Good system administrators remember: even if you have domain admin access level you have to use limited account to manage your infrastructure and use privileged account only if it needed for such tasks. It called The principle of least privilege. In cloud era this principle realized by impersonate. To prevent accidentally important resources deletion it is possible to create separate ServiceAccount with verb `delete` and allow users to impersonate only with this ServiceAccount ПОКАЗАТЬ КАК!
+
+There is a project [kubectl-sudo](https://github.com/postfinance/kubectl-sudo) implemented such technique as a kubectl plugin.
+
+![impers](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*8XFhTnrLK8xLRr-eNl1PZw.png) НКАРИСОВАТЬ!
+
+Создадим новый сервисаккаунт в неймспейсе rbac с именем impersonator, роль с правами impersonate и забиндим её на новый сервисаккаунт. Обратите внимание, что в роли мы разрешаем представляться только сервисаккаунтом `privesc` и никаким другим:
+
+Let's create new ServiceAccount `impersonator` in namespace `rbac`, role with `impersonate` verb and RoleBinding. Take a look at `--resource-name` parameter - it is allowed to impersonate only as `privesc` ServiceAccount:
+```
+KUBECONFIG=~/.kube/config kubectl -n rbac create sa impersonator
+serviceaccount/impersonator created
+
+KUBECONFIG=~/.kube/config kubectl -n rbac create role impersonate --resource=serviceaccounts --verb=impersonate --resource-name=privesc
+role.rbac.authorization.k8s.io/impersonate created
+
+KUBECONFIG=~/.kube/config kubectl -n rbac create rolebinding impersonator --role=impersonate --serviceaccount=rbac:impersonator
+rolebinding.rbac.authorization.k8s.io/impersonator created
+```
+
+Let's create new context and check access rights:
+```
+TOKEN=$(KUBECONFIG=~/.kube/config kubectl -n rbac create token impersonator --duration=8h)
+kubectl config set-credentials impersonate --token=$TOKEN   
+User "impersonate" set.
+
+kubectl config set-context impersonate@kubernetes  --user=impersonate --cluster=kubernetes       
+Context "impersonate@kubernetes" created.
+
+kubectl config use-context impersonate@kubernetes                                      
+Switched to context "impersonate@kubernetes".
+
+kubectl auth can-i --list -n rbac
+Resources                                       Non-Resource URLs                     Resource Names   Verbs
+selfsubjectaccessreviews.authorization.k8s.io   []                                    []               [create]
+selfsubjectrulesreviews.authorization.k8s.io    []                                    []               [create]
+
+...
+
+serviceaccounts                                 []                                    [privesc]        [impersonate]
+```
+
+Ничего лишнего нет - только impersonate, как и указано в роли. Но если воспользоваться правом `impersonate` и представиться как сервисаккаунт `privesc`, то видно, что права совпадают с сервисаккаунтом `privesc`:
+
+There is nothing extra - just impersonate, as specified in the role. But if you use the `impersonate` and impersonate as serviceaccount `privesc`, you can see that the rights are the same as serviceaccount `privesc`:
+
+```
+kubectl auth can-i --list -n rbac --as=system:serviceaccount:rbac:privesc
+Resources                                       Non-Resource URLs                     Resource Names   Verbs
+roles.rbac.authorization.k8s.io                 []                                    [edit]           [bind escalate]
+selfsubjectaccessreviews.authorization.k8s.io   []                                    []               [create]
+selfsubjectrulesreviews.authorization.k8s.io    []                                    []               [create]
+pods                                            []                                    []               [get list watch update patch delete create]
+
+...
+
+rolebindings.rbac.authorization.k8s.io          []                                    []               [list watch get update patch create bind escalate]
+roles.rbac.authorization.k8s.io                 []                                    []               [list watch get update patch create bind escalate]
+configmaps                                      []                                    []               [update patch create delete]
+secrets                                         []                                    []               [update patch create delete]
+```
+
+То есть с `impersonate` сервисаккаунт получил все свои права + все права сервисаккаунта, которым он может представляться.
+
+That is, with `impersonate` the serviceaccount got all its rights + all the rights of the serviceaccount it can represent itself to.
+
 ## Mitigation
 Система авторизации k8s очень гибкая и позволяет гранулярно настраивать параметры доступа. Даже в тех случаях, когда пользователю необходимо управлять такими чувствительными для безопасности примитивами как Role/ClusterRole и RoleBinding/ClusterRoleBinding. При этом пользователь не сможет повысить свои привилегии и получить доступ к закрытым данным, если администратор явно не позволит ему повышать привилегии.
 
@@ -548,7 +603,7 @@ It works now.
 
 The k8s authorisation system is very flexible and allows granular configuration of access parameters. Even in cases where the user needs to manage security sensitive primitives such as Role/ClusterRole and RoleBinding/ClusterRoleBinding. The user will not be able to escalate privileges and access sensitive data unless the administrator explicitly allows the user to escalate privileges.
 
-The verbs `escalate` and `bind` allow to escalate privileges. The former allows adding new entries to Role/ClusterRole and the latter to RoleBinding/ClusterRoleBinding. These are very powerful tools, the misuse of which can cause significant damage to a cluster. You should check any use of these verbs very carefully and always make sure that the Least Privilegies rule is followed - the user must have the minimum set of privileges required to operate.
+The verbs `escalate`, `bind` and `impersonate` allow to escalate privileges. The former allows adding new entries to Role/ClusterRole the second to RoleBinding/ClusterRoleBinding and the latter to impersonate as a different user. These are very powerful tools, the misuse of which can cause significant damage to a cluster. You should check any use of these verbs very carefully and always make sure that the Least Privilegies rule is followed - the user must have the minimum set of privileges required to operate.
 
 To restrict the use of these or any other rules, Role/ClusterRole manifests have a `resourceNames` field where you can (and should!) enter the names of resources that can be used.
 
@@ -567,126 +622,19 @@ rules:
 
 То же самое можно сделать с escalate. С `bind` права в роли задает админ, а пользователь только может забиндить эту роль на себя, если это разрешено в `resourceNames`, то с `escalate` пользователь может внутри роли прописать любые параметры и стать админом неймспейса или кластера. То есть `escalate` дает больше возможностей, в то время как `bind` ограничивает пользователя. Имейте это в виду, когда приедтся давать эти права пользователям.
 
-The same can be done with escalate. With `bind` the rights in the role are set by the admin, and the user can only bind this role to himself if it is allowed in `resourceNames`, while with `escalate` the user can write any parameters inside the role and become the admin of a namespace or cluster. That is, `escalate` gives more options, while `bind` restricts the user. Keep this in mind when you have to give these rights to users.
+The same can be done with escalate as well as impersonate. With `bind` the rights in the role are set by the admin, and the user can only bind this role to himself if it is allowed in `resourceNames`, while with `escalate` the user can write any parameters inside the role and become the admin of a namespace or cluster. That is, `escalate` gives more options, while `bind` restricts the user. Keep this in mind when you have to give these rights to users.
 
-### Tools
-
-
+To prevent unathorized access and RBAC misconfiguration you should periodically check cluster RBAC manifests:
 ```
-k create ns bubnovd
-namespace/bubnovd created
-```
+kubectl get clusterrole -A -oyaml | yq '.items[] | select (.rules[].verbs[] | contains("esalate" | "bind" | "impersonate"))  | .metadata.name'
 
-```
-k get sa -n bubnovd
-NAME      SECRETS   AGE
-default   0         21s
+kubectl get role -A -oyaml | yq '.items[] | select (.rules[].verbs[] | contains("esalate" | "bind" | "impersonate"))  | .metadata.name'
 ```
 
-берем токен, чтобы ходить в куб от имени СА default
-`TOKEN=$(k -n bubnovd  create token default)`
-
-`k config set-credentials default --token=${TOKEN}`
-
- добавляем контекст 
-`k config set-context default@my-cluster --cluster=my-cluster --user=default`
-
-проверяем, что контекст добавлен
-```
-k config get-contexts
-CURRENT   NAME                                          CLUSTER              AUTHINFO                   NAMESPACE
-          default@my-cluster                    my-cluster   default                    
-*         my-cluster-admin@my-cluster   my-cluster   my-cluster-admin
-```
-
-и проверяем, что он работает
-`k config use-context default@my-cluster`
-```
- k get pod
-Error from server (Forbidden): pods is forbidden: User "system:serviceaccount:bubnovd:default" cannot list resource "pods" in API group "" in the namespace "default"
-```
-
-так и должно быть, ведь прав мы ещё не выдали
-
-будет два СА: default, sasecret. У дефолт толкьо права на лист подов, у сикрет -на лист сикретс
-возвразаемся на админа, чтобы создать СА и роли
-`k config use-context my-cluster-admin@my-cluster`
-
-cоздаем са
-`k -n bubnovd create sa sasecret`
-и роли
-```
-k -n bubnovd create role podread --resource=pods --verb=get --verb=list --verb=watch
-role.rbac.authorization.k8s.io/podread created
-
-k -n bubnovd create role secretread --resource=secrets --verb=get --verb=list --verb=watch
-role.rbac.authorization.k8s.io/secretread created
-```
-
-биндим роли на са
-```
-k -n bubnovd create rolebinding default:podread --role=podread --serviceaccount=bubnovd:default
-rolebinding.rbac.authorization.k8s.io/default:podread created
-
-k -n bubnovd create rolebinding sasecret:secretread --role=secretread --serviceaccount=bubnovd:sasecret
-rolebinding.rbac.authorization.k8s.io/sasecret:secretread created
-```
-создадим под и сикрет, чтобы было что проверять
-```
-k -n bubnovd run nginx --image=nginx                                                                   
-pod/nginx created
-
-k -n bubnovd create secret generic secret --from-literal=key=value
-secret/secret created
-```
-
-переключаемся на СА дефолт и проверяем, что поды видно, а сикреты нет
-```
-k config use-context default@my-cluster                 
-Switched to context "default@my-cluster".
-
-k get pod -n bubnovd
-NAME    READY   STATUS              RESTARTS   AGE
-nginx   0/1     ContainerCreating   0          78s
-
-k get secret -n bubnovd
-Error from server (Forbidden): secrets is forbidden: User "system:serviceaccount:bubnovd:default" cannot list resource "secrets" in API group "" in the namespace "bubnovd"
-```
-
-
-снова идем в дамина и создаем роль имперсонате и биндинг ее на дефолт акк
-```
-k config use-context my-cluster-admin@my-cluster
-Switched to context "my-cluster-admin@my-cluster".
-
-
-k -n bubnovd  create role impersonate --resource=serviceaccounts --verb=impersonate
-role.rbac.authorization.k8s.io/impersonate created
-
-
-k -n bubnovd  create rolebinding default:impersonate --role=impersonate --serviceaccount=bubnovd:default
-rolebinding.rbac.authorization.k8s.io/default:impersonate created
-```
-
-снова переключаемся на СА 
-```
-k config use-context default@my-cluster                                  
-Switched to context "default@my-cluster".
-```
-и проверяем возможность чтения сикретов
-```
-k get secret -n bubnovd                              
-Error from server (Forbidden): secrets is forbidden: User "system:serviceaccount:bubnovd:default" cannot list resource "secrets" in API group "" in the namespace "bubnovd"
-```
-нелья
-Но если представиться другим СА, то все можно
-```
-k get secret -n bubnovd --as=system:serviceaccount:bubnovd:sasecret                                               
-NAME     TYPE     DATA   AGE
-secret   Opaque   1      5m27s
-```
+Or use automatic systems which monitor creating or editing roles with suspicious content. Falco, for example. СЮДА МОЖНО ПРИЛЕПИТЬ РЕКЛАМУ НАШЕГО Logs as a Service
 
 
 
+Kubernetes предоставляет очень гибкие возможности для управления правами доступа. Вместе с гибкостью приходят и сложность поддержки наряду с угрозами безопасности. Для обеспечения надежной и безопасной работы нужно понимать принципы функционирования системы авторизации и типы вспомогательного инструментария, снижающего риски. И помните, что безопасность всей системы равна безопасности её самого слабого звена.
 
-k get clusterrole -A -oyaml | yq '.items[] | select (.rules[].verbs[] | contains( "impersonate"))  | .metadata.name'
+Kubernetes provides very flexible options for managing access rights. Along with flexibility comes support complexity along with security threats. To ensure safe and secure operation, you need to understand how the authorisation system works and the types of support tools that mitigate risks. And remember, the security of the entire system is equal to the security of its weakest link.
