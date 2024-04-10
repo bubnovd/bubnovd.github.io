@@ -97,10 +97,6 @@ images, code
 На первый взляд система RBAC в k8s достаточно простая и безопасная, но многие забывают или не знают некоторых осоюенностей
 В kubernetes есть аналог sudo, благодаря которому можно обойти ограничения в назначенных ролях и получить доступ туда, куда не предполагалось и прочитать скеретные данные или даже получить полный контроль над кластером. И эта возможность есть у любого юзера с дефолтной кластерролью edit. В этой статье попробуем разобраться что это такое и как защититься от такого легального повышения привилегий.
 
-Зачем используетя? 
-- для дебага рбака обычно
-
-
 ## Ролевая модель доступа в Kubernetes
 
 Cуществует несколько подходов к разграничению доступа к ресурсам:
@@ -121,6 +117,7 @@ Kubernetes может использовать модели доступа: [Nod
 Про RBAC хорошо написано в [документации k8s](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) и я не буду пытаться написать ещё раз. Просто рассмотрим то, без чего остальная статья не имеет смысла. Если читатель знает концепции RBAC k8s - эту часть можно пропусать и сразу переходить к следующей НАЗВАНИЕ ЧАСТИ ТУТ
 
 ## Ресурсы kubernetes RBAC
+![sa-role-rolebinding](/img/k8s-rbac-nuances/sa-role-rolebinding-white.png)
 ### Role
 Роль состоит из списка правил. Каждое правило включает в себя:
 - apiGroups - указатель на API groups
@@ -300,7 +297,7 @@ RoleBinding отличается от ClusterRoleBinding примерно тем
 - You are granted explicit permission to perform the `escalate` verb on the roles or clusterroles resource in the rbac.authorization.k8s.io API group.
 
 [Kubernetes RBAC API не позволяет повысить привелегии доступа путем редактирования Role или RoleBinding. Это происходит на уровне API и будет работать даже если выключен RBAC authorizer](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping). Исключение из этого правила - наличие права `escalate` у роли.
-![escalate](https://miro.medium.com/v2/resize:fit:1400/format:webp/1*CBK_TpCOMNyaWyA32nx-bA.png) НАРИСОВАТЬ!
+![escalate](/img/k8s-rbac-nuances/escalate-purple-white.png) 
 
 Роль с правами на просмотр подов и ролей в неймспейсе rbac:
 ```
