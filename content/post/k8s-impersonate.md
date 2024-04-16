@@ -44,7 +44,7 @@ kubectl oidc-login setup --oidc-issuer-url https://keycloak.k-stg-1.luxembourg-2
 
 https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation
 
-
+https://rad.security/blog/what-is-kubernetes-rbac#RBACpolice
 # Topic
 - What is the general topic you want to cover?
 impersonate is urgent not so popular feature 
@@ -175,7 +175,7 @@ metadata:
   name: privesc
   namespace: rbac
 ```
-Как видим, в манифесте SA нет ничего особенного. Но есть [нюансы](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting) =). Обратите внимаение, что SA - namespaced resource, то есть у SA всегда есть Namespace.
+Как видим, в манифесте SA нет ничего особенного. Но есть [нюансы](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting) =). Обратите внимаение, что SA всегда есть Namespace, то есть это namespaced resource. Ниже мы поговрим об этом подробнее.
 
 #### JWT
 Сгенерируем токен для аутентификации от имени SA. Мы использовали параметр `duration`, чтобы токен работал продолжительное время. Обычно kubernetes выдает токены на короткий срок, определяемый самим kubernetes.
@@ -519,7 +519,7 @@ Impersonation requests first authenticate as the requesting user, then switch to
 - Request user info is replaced with impersonation values.
 - Request is evaluated, authorization acts on impersonated user info.
 
-Impersonate это такой sudo для k8s. С правами impersonate пользователь может представиться другим пользователем и выполнять команды от его имени. kubectl имеет опции `--as`, `--as-group`, `--as-uid`, позволяющие выполнить команду от имени юзера, группы или uid соответственно. То есть, если в одной из ролей пользователь получил impersonate, то его можно считать админом неймспейса. Или кластера в худшем варианте.
+Impersonate это такой sudo для k8s. С правами impersonate пользователь может представиться другим пользователем и выполнять команды от его имени. kubectl имеет опции `--as`, `--as-group`, `--as-uid`, позволяющие выполнить команду от имени юзера, группы или uid соответственно. То есть, если в одной из ролей пользователь получил impersonate, то его можно считать админом неймспейса. Или кластера в худшем варианте - когда в неймспейсе есть ServiceAccount с правами cluster-admin.
 
 Имперсонэйт удобно использовать для проверки корректности RBAC - запускать `kubectl auth can-i --as=$USERNAME -n $MANESPACE $VERB $RESOURCE`
 ```
