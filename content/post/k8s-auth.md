@@ -171,7 +171,7 @@ Certificate:
 - `CN = kubernetes-admin` - имя пользователя
 - `O = system:masters` - "группа"
 
-> `system:masters` - это супергруппа с неограниченными правами. Она даже не участвует в авторизации - ей разрешено всё. Не думаю, что стоит тут ОСОБО ВЫДЕЛЯТЬ опасность использования такого конфига. Последние версии kubeadm создают вместе с ним второй сертификат (конфиг), который "безопасно" (взял в качвычки, потому что нет абсолютной безопасности) использовать - с `Subject: O = kubeadm:cluster-admins, CN = kubernetes-admin`, где `kubeadm:cluster-admins` - обычная группа в RBAC с правами `cluster-admin`.
+> `system:masters` - это супергруппа с неограниченными правами. Она даже не участвует в авторизации - ей разрешено всё. Не думаю, что стоит тут особо выделять ОПАСНОСТЬ использования такого конфига. Последние версии kubeadm создают вместе с ним второй сертификат (конфиг), который "безопасно" (взял в качвычки, потому что нет абсолютной безопасности) использовать - с `Subject: O = kubeadm:cluster-admins, CN = kubernetes-admin`, где `kubeadm:cluster-admins` - обычная группа в RBAC с правами `cluster-admin`
 
 В сертификате для kubelet в Subject будет написано `O = system:nodes, CN = system:node:$NODENAME`, что намекает нам на то, что есть ещё группа `system:nodes`, а сам kubelet ходит в API с именем, содержащим в себе имя ноды. В качестве домашнего задания посмотрите на другие конфиги и сертификаты в `/etc/kubernetes` и `/etc/kubernetes/pki`
 
@@ -190,10 +190,39 @@ user.crt: OK
 Проверить, что ключ относится к сертификату:
 `diff <(openssl x509 -modulus -noout -in ~/certs/user.crt| openssl md5) <(openssl rsa -modulus -noout -in ~/certs/user.key| openssl md5)`
 
-Тут мы берем modulus от сертификата и ключа, считаем от них md5 хэш и сравниваем вывод. Можно сравнить и без md5 - результат не изменится. Если `diff` не нашел разницы - значит ключ подходит к сертификату.
+Тут мы берем modulus от сертификата и ключа, считаем от них md5 хэш и сравниваем вывод - он должен быть одинаков для сертификата и ключа. Можно сравнить и без md5 - результат не изменится. Если `diff` не нашел разницы - значит ключ подходит к сертификату.
 
-
-
+## Взаимодействие с kube-apiserver
+`kubectl` - всего лишь утилита, которая взаимодействует с Kubernetes посредством REST API. Отправлять запросы к API можно любым другим способом, например, с помощью curl.
+Адрес сервера берем из kubeconfig SERVER=$(yq '.clusters[0].cluster.server' ~/.kube/config). Попробуем получить список неймспейсов `curl -k $SERVER/api/v1/namespaces`:
+```json
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "forbidden: User \"system:anonymous\" cannot get path \"/api/namespaces\"",
+  "reason": "Forbidden",
+  "details": {},
+  "code": 403
+}
+```    
+Сообщение об ошибке `User "system:anonymous" cannot get path "/api/namespaces"` недвусмысленно говорит о том, что анонимный пользователь не имеет прав на просмотр списка неймспейсов.
+Сделаем то же самое, авторизовавшись с помощью наших сертификатов `curl -k --key ~/certs/user.key --cert ~/certs/user.crt --cacert ~/certs/ca.crt $SERVER/api/v1/namespaces/`:
+```json
+{
+  "kind": "NamespaceList",
+  "apiVersion": "v1",
+  "metadata": {
+    "resourceVersion": "5950120"
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "calico-apiserver",
+        ...
+```
+На этот раз запрос успешно выполнен. Синтаксис запроса такой `/api/$VERSION/namespaces/$NAMESPACE/$KIND`, например, получить список подов из неймспейса default: `curl -k --key user.key --cert user.crt --cacert ca.crt $SERVER/api/v1/namespaces/default/pods`
 
 # ServiceAccount's Token
 [ServiceAccount](https://kubernetes.io/docs/concepts/security/service-accounts/)(дальше - SA) - тип учетной записи в k8s, используемый подами, системными компонентами и всем, что не кожаный мешок. В качестве аутентификатора SA использует [токен JWT](https://www.rfc-editor.org/rfc/rfc7519.html). Посмотрим подробнее на создание SA и его JWT.
@@ -218,9 +247,9 @@ metadata:
   namespace: rbac
 ```
 Как видим, в манифесте SA нет ничего особенного. Но как всегда есть [нюансы](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting) =)
-По умолчанию при создании пода монтируются CA и JWT сервисаккаунта по пути `/var/run/secrets/kubernetes.io/serviceaccount/`. Если злоумышленник попадет внутрь пода (например, через уязвимости в приложении или неправильно настроенный nginx) и прочитает токен, то он сможет обращаться к Kubernetes API и, как минимум, читать ресурсы в своём неймспейсе. Чтобы токен не монтировался в под добавьте в манифест SA опцию `automountServiceAccountToken: false`
 
-Обратите внимание, что у SA всегда есть Namespace, то есть это namespaced resource. Ниже мы поговорим об этом подробнее.
+
+Обратите внимание, что у SA всегда есть Namespace, то есть это `namespaced resource`. Ниже мы поговорим об этом подробнее.
 
 ## JWT
 Сгенерируем токен для аутентификации от имени SA. Используем параметр `duration`, чтобы токен работал продолжительное время. Обычно kubernetes выдает токены на короткий срок, определяемый самим kubernetes.
@@ -254,6 +283,7 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6ImxrNzcybkhfVXZiZW1YSXV0S1BaZDlxNUlFOTRjX1Y1M1o3RWhv
   "sub": "system:serviceaccount:rbac:privesc"
 }
 ```
+- `kid` - Key ID
 - `sub` - Subject - кому выдан токен
 - `iss` - Issuer - кто выдал токен. Наш кластер
 - `aud` - Audience - целевая аудитория - на какие ресурсы распространяется действие токена. Опять наш кластер
@@ -262,6 +292,29 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6ImxrNzcybkhfVXZiZW1YSXV0S1BaZDlxNUlFOTRjX1Y1M1o3RWhv
 date -j -f %s 1712324661                                                                                  
 Fri Apr  5 16:44:21 EEST 2024
 ```
+
+curl позволяет авторизоваться с помощью токена вместо сертификатов `curl -k -H "Authorization: Bearer $TOKEN" $SERVER/api/v1/namespaces/rbac/pods`.
+По умолчанию при создании пода CA и JWT сервисаккаунта монтируются по пути `/var/run/secrets/kubernetes.io/serviceaccount/`. Если злоумышленник попадет внутрь пода (например, через уязвимости в приложении или неправильно настроенный nginx) и прочитает токен, то он сможет обращаться к Kubernetes API и, как минимум, читать ресурсы в своём неймспейсе.
+
+Проверим как это работает:
+- создадим под `kubectl -n rbac run  nginx --image=nginx`
+- запустим шелл внутри пода `kubectl -n rbac exec -it nginx -- /bin/bash`
+- получим адрес kube-apiserver
+```
+root@nginx:/var/run/secrets/kubernetes.io/serviceaccount# env | grep KUBERNETES
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_PORT_443_TCP=tcp://192.168.192.1:443
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+KUBERNETES_PORT_443_TCP_ADDR=192.168.192.1
+KUBERNETES_SERVICE_HOST=192.168.192.1
+KUBERNETES_PORT=tcp://192.168.192.1:443
+KUBERNETES_PORT_443_TCP_PORT=443
+```
+- провалимся в директорию с аутентификационными данными внутри пода `cd /var/run/secrets/kubernetes.io/serviceaccount/`, тут есть три файла, объяснять их содержимое не имеет смысла: `ca.crt, namespace, token`. Запишем токен в переменную `TOKEN=$(cat token)`
+- с токеном можно обращаться к API kubernetes `curl -k -H "Authorization: Bearer $TOKEN" https://$KUBERNETES_PORT_443_TCP_ADDR/api`
+
+По умолчанию поды создаются с дефолтным сервисаккаунтом, а прав у него немного. Но это не повод расслабляться - многие приложения требуют дополнительных прав. Чтобы токен не монтировался в под добавьте в манифест SA опцию `automountServiceAccountToken: false`.
 
 # Role
 Роль - всего лишь список правил, которые ещё никому не назначены. Каждое правило включает в себя:
@@ -322,8 +375,36 @@ roleRef:
 
  # ClusterRole, ClusterRoleBinding
  Ресурсы кластера делятся на namespaced и non-namespaced. Это значит, что первые всегда имеют namespace, а вторые нет (например `node`).
+ - namespaced resouces: pod, secret, ingress, configmap, ...
+ - non-namespaced resouces: namespace, node, ClusterRole, storageclasses. Больше тут `kubectl api-resources --namespaced=false`
 
-- Role - namespaced ресурс. То есть она описывает доступы только внутри namespace
-- ClusterRole - non-namespaced. Описывает права доступа на ресурсы, которые не имеют namespace. Но также может описывать и namespaced. За подробностями - в [документацию](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole)
+Распределение прав описывают ресурсы Role, RoleBinding, ClusterRole и ClusterRoleBinding
 
-RoleBinding отличается от ClusterRoleBinding примерно тем же. Подробности опять же в документации
+- Role - namespaced ресурс. То есть она описывает доступы только внутри неймспейса, в котором эта роль существует
+- ClusterRole - non-namespaced. Описывает права доступа на любые ресурсы - namespaced и non-namespaced. Например, дефолтная СlusterRole `view` разрешает читать ресурсы всех типов - namespaced и non-namespaced
+
+![role.png](/img/k8s-auth/role.png)
+![clusterrole.png](/img/k8s-auth/clusterrole1.png)
+
+- RoleBinding - биндит роли к субъектам доступа (User, Group, ServiceAccount) для описания доступа в одном неймспейсе. RoleBinding может ссылаться на Role и на ClusterRole. При использовании СlusterRole, все разрешения из ClusterRole применятся только к тому неймспейсу, в котором существует этот RoleBinding
+- ClusterRoleBinding биндит только СlusterRole и может давать доступ ко всем ресурсам кластера
+
+![rolebinding.png](/img/k8s-auth/rolebinding.png)
+![rolebinding-schema.png](/img/k8s-auth/rolebinding-schema.png)
+
+![clusterrolebinding.png](/img/k8s-auth/clusterrolebinding.png)
+![clusterrolebinding-schema.png](/img/k8s-auth/clusterrolebinding-schema.png)
+
+Хорошая презентация про RBAC и разницу между Role/ClusterRole и RoleBinding/ClusterRoleBinding [по ссылке](https://www.cncf.io/wp-content/uploads/2020/08/2020_04_Introduction-to-Kubernetes-RBAC.pdf), [видео](https://www.youtube.com/watch?v=B6Ylwugs3t0). Картинки я взял оттуда. Ещё более детально - в [документацию](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole)
+
+
+# Tools
+В больших кластерах сложно поддерживать права десятков или сотен пользователей для доступа к разным ресурсам в разных неймспейсах. 
+- [rbac-manager](https://github.com/FairwindsOps/rbac-manager) - оператор, вводящий новую сущность RBACDefinition. Позволяет биндить роли к неймспейсам по лейблам. Очень удобно
+- [rbac-lookup](https://github.com/FairwindsOps/rbac-lookup) - утилита для анализа прав и юзеров kubernetes
+- [audit2rbac](https://github.com/liggitt/audit2rbac) - генерирует RBAC манифесты из аудит логов 
+
+
+Пока я писал этот пост, в англоязычном интернете появилась [хорошая статья](https://thegreycorner.com/2023/11/15/kubernetes-auth-deep-dive.html) о том же самом. Там есть хорошие примеры про подделку сертификатов и токенов
+
+
