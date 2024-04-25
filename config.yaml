@@ -26,11 +26,11 @@ params:
   #  keybase: "f" 
   #  xing: "f"
 
-  #sidebar_about_description: "Software Developer, Open Source Enthusiast and Life Adventurer"
+  sidebar_about_description: "DevSecOps, Kubernetes, GitLab, Mikrotik Ninja"
   ##sidebar_avatar = "img/avatar-zhaohuabing.jpg"      # use absolute URL, seeing it's used in both `/` and `/about/`
-  #sidebar_avatar: "img/zhaohuabing.png"      # use absolute URL, seeing it's used in both `/` and `/about/`
+  sidebar_avatar: "img/Mikrotik_Ninja_Logo.png"      # use absolute URL, seeing it's used in both `/` and `/about/`
   bookmark_link:
-    - title: "Telegram"
+    - title: "Telegram channel"
       href: "https://t.me/mikrotikninja"
 
   addtional_menus:
