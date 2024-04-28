@@ -19,6 +19,8 @@ params:
 
   omit_categories: false
   social:
+    linkedin: https://www.linkedin.com/in/bubnovd/
+    github: https://github.com/bubnovd
   #  email: "wfg"
     telegram: "mikrotikninja"
   #  wechat: "dd"
@@ -36,3 +38,7 @@ params:
   addtional_menus:
     - title: "Archive"
       href: "/archive/"
+
+services:
+  googleAnalytics:
+    id: G-7X74GCC5TP
