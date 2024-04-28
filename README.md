@@ -1,1 +1,1 @@
-docker run -it --rm -v $(pwd):/src -p 1313:1313 klakegg/hugo:v0.101.0 serve -D --bind 0.0.0.0
+docker run -it --rm -v $(pwd):/src -p 1313:1313 peaceiris/hugo:v0.125.4 serve -D --bind 0.0.0.0
