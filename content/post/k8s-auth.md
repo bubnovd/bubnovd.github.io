@@ -1,16 +1,25 @@
-+++
-title = "Аутентификация в Kubernetes в деталях"
-date = "2024-04-25T04:02:52Z"
-author = "bubnovd"
-authorTwitter = "bubnovdnet"
-cover = ""
-tags = ["k8s", "authentication"]
-keywords = ["k8s", "kubernetes", "authentication", "certificate", "JWT", "RBAC", "openssl"]
-description = "Обзор Kuberenetes RBAC и методов аутентификации: сертификаты, JWT"
-showFullContent = false
-readingTime = true
-hideComments = false
-+++
+---
+title: "Аутентификация в Kubernetes в деталях"
+date: "2024-04-25T04:02:52Z"
+author: bubnovd
+authorTwitter: bubnovdnet
+image: "/img/k8s-auth/logo.jpg"
+description: "Обзор Kuberenetes RBAC и методов аутентификации: сертификаты, JWT"
+tags:
+- k8s
+- authentication
+keywords:
+- k8s
+- kubernetes
+- authentication
+- certificate
+- JWT
+- RBAC
+- openssl
+showFullContent: false
+readingTime: true
+hideComments: false
+---
 
 В ходе подготовки к сертификации Certified Kubernetes Security я разобрался с безопасностью в k8s и решил написать пост о не самых популярных, но очень опасных детялях в RBAC. Пост получился огромный и было решено разбить его на две части с более глубоким погружением в каждую из них, чем было в изначальном варианте. В этом посте рассмотрим систему аутентификации kubernetes, её примитивы, научимся доставать данные из сертификатов и токенов, а так же работать с kubernetes API с помощью curl
 
