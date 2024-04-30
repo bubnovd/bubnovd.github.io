@@ -1,5 +1,5 @@
 ---
-title: "Аутентификация в Kubernetes в деталях"
+title: "Аутентификация в Kubernetes в деталях. Часть 1: JWT, сертификаты"
 date: "2024-04-25T04:02:52Z"
 author: bubnovd
 authorTwitter: bubnovdnet
