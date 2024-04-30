@@ -1,87 +1,6 @@
-Azure AD, PAM, OVPN plugins
-https://medium.com/@jkroepke/openvpn-sso-via-oauth2-ab2583ee8477
-https://blog.please-open.it/openvpn-keycloak/
-https://medium.com/@hiranadikari993/openvpn-active-directory-authentication-726f3bac3546
-https://github.com/threerings/openvpn-auth-ldap
-https://community.openvpn.net/openvpn/wiki/PluginOverview
-https://github.com/OpenVPN/openvpn/blob/master/src/plugins/auth-pam/README.auth-pam
-https://github.com/ubuntu/aad-auth
-https://github.com/aad-for-linux/openvpn-auth-aad
-И PDF PAM Guide ...
-
-
-keycloak - мониторинг, kuberos, сборрка kuberos без CVE
-"serviceaccounts" - запросить id_token
-TOKEN=$(curl \
-  -d "client_id=CLIENT_ID" -d "client_secret=CLIENT_SECRET" \
-  -d "username=bserviceaccount" -d "password=1234567890" \
-  -d "grant_type=password" \
-  -d "scope=openid" \
-  "https://KEYCLOAK/realms/master/protocol/openid-connect/token" | jq -r '.id_token')
-
-Потом пойти с этим токеном в куб KUBECONFIG=~/Downloads/dev1.conf k --token $TOKEN get pod 
-в выводе токена должен быть поле name - то поле, которое указали аписерверу oidc-username-claim: name
-
-в клок добавить что если уже авторизовалмя в одном клиенте и пошел в другой, то клок может отдавать 502. Это не клок виноват. Логи ингреса " upstream sent too big header while reading response header from upstream". Надо увеличить proxy_buffers and proxy_buffers_size через аннтиоции    annotations:
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
-
-проверка авторизации клок 
-kubectl config set-credentials oidc \
-  --exec-api-version=client.authentication.k8s.io/v1beta1 \
-  --exec-command=kubectl \
-  --exec-arg=oidc-login \
-  --exec-arg=get-token \
-  --exec-arg=--oidc-issuer-url=https://keycloak.k-stg-1.luxembourg-2.cloud.gc.onl/realms/realmWithLdap \
-  --exec-arg=--oidc-client-id=ed-16-k-stg-1 \
-  --exec-arg=--oidc-client-secret=нделепалклаплка
-
-
-
-
-kubectl oidc-login setup --oidc-issuer-url https://keycloak.k-stg-1.luxembourg-2.cloud.gc.onl/realms/realmWithLdap --oidc-client-id ed-16-k-stg-1 --oidc-client-secret ун4цугн3ун5у4г
-
-
-
 https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation
 
-
-# Topic
-- What is the general topic you want to cover?
-impersonate is urgent not so popular feature 
-- Do you already have a potential title in mind? (If not, come up with 3 viable options together.)
-Some non-obvious features  Kubernetes RBAC, Impersonate it
-- Are there any particular subtopics you would like to focus on? (Outline specific headings together.)
-bellow
-- Are there any relevant topics that should be avoided?
-no
-- Are there any existing pieces of content that you would like us to reference or align with?
-k8s documentation
-# Audience
-- Who is the primary target audience for this content? What job titles do they have?
-devops jun+/middle
-- Are there any secondary audiences we should keep in mind?
-developers, devops junior
-- Is the reader a beginner, intermediate, or expert?
-intermediate
-- What value do you hope the audience will gain from this content? What is the key takeaway?
-know about nonobvious features of k8s rbac
-- Are there any common questions or concerns of the audience that we should address?
-# Purpose
-- What is the primary purpose or goal of this content? (E.g., new product awareness, existing product purchase, increase traffic to product page)
-threat awareness 
-- Is there a secondary purpose or goal we should consider?
-better understanding of k8s rbac
-- Are you hoping to promote a specific product or service through this content?
-managed kubernetes
-- How will you measure the success of this content?
-likes and reposts
-# Length and Genre
-- Do you have a preferred length for this content?
-7-10 minutes read
-- Is there a specific genre or style you're aiming for (blog post, white paper, case study, etc.)?
-
-- Are there any visual elements (graphs, charts, images, etc.) that need to be included?
-images, code
+https://rad.security/blog/what-is-kubernetes-rbac#RBACpolice
 
 
 - inro
@@ -92,29 +11,12 @@ images, code
 - обзор инструментов
 
 Ещё одна угроза - Фggregated ClusterRole 
-[Хорошая презентация про RBAC](https://www.cncf.io/wp-content/uploads/2020/08/2020_04_Introduction-to-Kubernetes-RBAC.pdf), [видео](https://www.youtube.com/watch?v=B6Ylwugs3t0)
 
 На первый взляд система RBAC в k8s достаточно простая и безопасная, но многие забывают или не знают некоторых осоюенностей
 В kubernetes есть аналог sudo, благодаря которому можно обойти ограничения в назначенных ролях и получить доступ туда, куда не предполагалось и прочитать скеретные данные или даже получить полный контроль над кластером. И эта возможность есть у любого юзера с дефолтной кластерролью edit. В этой статье попробуем разобраться что это такое и как защититься от такого легального повышения привилегий.
 
 ## Ролевая модель доступа в Kubernetes
 
-Cуществует несколько подходов к разграничению доступа к ресурсам:
-- ABAC - Attribute Based Access Control
-- RBAC - Role Based Access Control
-- PBAC - Policy Based Access Control
-- DAC - Discretionary Access Control
-- MAC - Mandatory Access Control
-- MLS/MCS - Multi Level Security /  Multi Category Security
-
-Kubernetes может использовать модели доступа: [Node, ABAC, RBAC, WebHook](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules).
-Чаще всего приходится работать с ролевой моделью доступа - RBAC, т.к. она используется в k8s по умлочанию. В ней есть несколько взаимосвязанных сущностей:
-- роль, описывающая доступ к ресурсам
-- пользователь (это может быть User, Group или ServiceAccount)
-- Rolebinding - то, что объединяет роли и пользователей 
-
-На самом деле этих сущностей немного больше. Рассмотрим их детальней.
-Про RBAC хорошо написано в [документации k8s](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) и я не буду пытаться написать ещё раз. Просто рассмотрим то, без чего остальная статья не имеет смысла. Если читатель знает концепции RBAC k8s - эту часть можно пропусать и сразу переходить к следующей НАЗВАНИЕ ЧАСТИ ТУТ
 
 ## Ресурсы kubernetes RBAC
 ![sa-role-rolebinding](/img/k8s-rbac-nuances/sa-role-rolebinding-white.png)
@@ -152,108 +54,6 @@ Verbs описывают что можно делать с ресурсом - к
 - [bind](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb) - создавать и редактировать биндинги, в том числе, относящиеся к другим пользователям
 - [impersonate](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#impersonate-verb) - представиться k8s API другим пользователем, группой или предоставить другие данные (extra)
 
-### ServiceAccounts, Users, Groups
-
-[ServiceAccount](https://kubernetes.io/docs/concepts/security/service-accounts/)(дальше - SA) - тип учетной записи в k8s, используемый подами, системными компонентами и всем, что не кожаный мешок. В качестве аутентификатора SA использует [токен JWT](https://www.rfc-editor.org/rfc/rfc7519.html). Посмотрим подробнее на создание SA и его JWT токен.
-Создаем неймспейс:
-```
-kubectl create ns rbac
-namespace/rbac created
-```
-
-Создаем сервисаккаунт:
-```
-kubectl -n rbac create sa privesc
-serviceaccount/privesc created
-```
-Манифест сервисаккаунта выглядит так:
-`k get sa -n rbac privesc -oyaml`
-```yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: privesc
-  namespace: rbac
-```
-Как видим, в манифесте SA нет ничего особенного. Но есть [нюансы](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting) =). Обратите внимаение, что SA - namespaced resource, то есть у SA всегда есть Namespace.
-
-#### JWT
-Сгенерируем токен для аутентификации от имени SA. Мы использовали параметр `duration`, чтобы токен работал продолжительное время. Обычно kubernetes выдает токены на короткий срок, определяемый самим kubernetes.
-`TOKEN=$(k -n rbac create token privesc --duration=8h)`
-```
-echo $TOKEN
-eyJhbGciOiJSUzI1NiIsImtpZCI6ImxrNzcybkhfVXZiZW1YSXV0S1BaZDlxNUlFOTRjX1Y1M1o3RWhvLWRsbm8ifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzEyMzI0NjYxLCJpYXQiOjE3MTIyOTU4NjEsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJyYmFjIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6InByaXZlc2MiLCJ1aWQiOiJkODc1NmY0NS01ZDJjLTQ0YjQtYWFjOS02NDU1MjcwNDViZTMifX0sIm5iZiI6MTcxMjI5NTg2MSwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OnJiYWM6cHJpdmVzYyJ9.GxJKpZevOkFwksFsA8ZPU5qLLwQdl6D3Rlt1gU-2feExcy6GadGQJlumrrpq-ih0Ufgm7YUz4jRsNld9yXT93nu27sPyxkMSjMT4rAdfFAV59Q8Z6kFyzOjuJBsEEzErB2Oft5KcGVSXBh01KWvHU8vPvBHaS_JgSV0yym3-9ruGh4eARwc3lbPZi9_PF-P8x0gCvpqaEZWF_aDjxAlcCxlkZjC2ADOHtiVlnBrDt1fqheOZ-W2BKxQ8-z9OG7PMo_x6G6VM2EQIGmY3tzyWd1gMB6bDRrWfSWjj0EPzqdXGov6w-znmzobWHJQN4BoeXBBDJA7BGUIA8VphXHu7yw
-```
-Получили JWT. 
-> Обычно по-русски пишут JWT токен, что является [плеоназмом](https://ru.wikipedia.org/wiki/%D0%90%D0%B1%D0%B1%D1%80%D0%B5%D0%B2%D0%B8%D0%B0%D1%82%D1%83%D1%80%D0%B0#%D0%A2%D0%B0%D0%B2%D1%82%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5_%D1%81%D0%BE%D0%BA%D1%80%D0%B0%D1%89%D0%B5%D0%BD%D0%B8%D0%B5): JSON Web Token токен. Поэтому я буду писать просто JWT
-
-JWT состоит из трех частей, разделенных точками. Первые две части - закодированный в base64 текст, последняя - подпись. Первые две части токена можно декодировать из base64 и получить читаемые даные:
-`echo $TOKEN | jq -R ' split(".") | select(length > 0) | .[0],.[1] | @base64d | fromjson'`
-```json
-{
-  "alg": "RS256",
-  "kid": "lk772nH_UvbemXIutKPZd9q5IE94c_V53Z7Eho-dlno"
-}
-{
-  "aud": [
-    "https://kubernetes.default.svc.cluster.local"
-  ],
-  "exp": 1712324661,
-  "iat": 1712295861,
-  "iss": "https://kubernetes.default.svc.cluster.local",
-  "kubernetes.io": {
-    "namespace": "rbac",
-    "serviceaccount": {
-      "name": "privesc",
-      "uid": "d8756f45-5d2c-44b4-aac9-645527045be3"
-    }
-  },
-  "nbf": 1712295861,
-  "sub": "system:serviceaccount:rbac:privesc"
-}
-```
-
-#### Users, Groups
-
-Это может показаться странным, но API k8s не имеет понятия юзера или группы. Невозможно создать пользователя или группу. Но эти данные необходимы для авторизации. API Server распознает пользователя по полю CN в Subject сертификата. Сам сертификат закодирован в base64 в конфиге. Посмотрим на данные, содержащиеся в сертификате.
-```
-yq '.users[0].user.client-certificate-data | @base64d' ~/.kube/config | openssl x509 -text -noout
-Certificate:
-    Data:
-        Version: 3 (0x2)
-        Serial Number: 2201338778473110666 (0x1e8cb9f4b12e9c8a)
-        Signature Algorithm: sha256WithRSAEncryption
-        Issuer: CN = kubernetes
-        Validity
-            Not Before: Mar 22 15:21:44 2024 GMT
-            Not After : Mar 22 15:26:39 2025 GMT
-        Subject: O = system:masters, CN = kubernetes-admin
-        Subject Public Key Info:
-            Public Key Algorithm: rsaEncryption
-                Public-Key: (2048 bit)
-                Modulus:
-                    00:c5:9b:5a:7a:82:cd:1e:c6:8b:d6:66:55:68:2f:
-                    ...
-                    ba:5b
-                Exponent: 65537 (0x10001)
-        X509v3 extensions:
-            X509v3 Key Usage: critical
-                Digital Signature, Key Encipherment
-            X509v3 Extended Key Usage: 
-                TLS Web Client Authentication
-            X509v3 Basic Constraints: critical
-                CA:FALSE
-            X509v3 Authority Key Identifier: 
-                D5:DD:0A:9A:6B:08:9B:94:73:13:11:16:93:7C:E4:C1:24:91:A3:90
-    Signature Algorithm: sha256WithRSAEncryption
-    Signature Value:
-        6d:6c:58:62:4a:2a:9e:2a:70:cb:f9:52:64:05:6f:f2:18:72:
-        ...
-        1f:ad:a3:7a
-```
-В поле `Subject` есть данные пользователе и его правах: `O = system:masters, CN = kubernetes-admin`
-В качестве системы аутентификации k8s может использовать сторонние Identity Providers и интегрироваться с ними по OpenID Connect. Например, keycloak (ССЫЛКА ТУТ)
-
 ### RoleBinding
 Ресурс, связывающий роль и пользователя/группу/сервисаккаунт. Содержит всего два поля:
 - список Subjects, в котором перечислены субъекты доступа: пользователи и/или группы и/или сервисаккаунты
@@ -287,6 +87,10 @@ roleRef:
 
 RoleBinding отличается от ClusterRoleBinding примерно тем же. Подробности опять же в документации
 
+```bash
+kubectl create ns rbac
+kubectl -n rbac create sa privesc
+```
 ## Неочевидные нюансы k8s RBAC
 Наконец-то добрались до того, ради чего писался этот пост.
 Не самые популярные, но опасные нюансы в RBAC.
@@ -296,17 +100,16 @@ RoleBinding отличается от ClusterRoleBinding примерно тем
 - You already have all the permissions contained in the role, at the same scope as the object being modified (cluster-wide for a ClusterRole, within the same namespace or cluster-wide for a Role).
 - You are granted explicit permission to perform the `escalate` verb on the roles or clusterroles resource in the rbac.authorization.k8s.io API group.
 
-[Kubernetes RBAC API не позволяет повысить привелегии доступа путем редактирования Role или RoleBinding. Это происходит на уровне API и будет работать даже если выключен RBAC authorizer](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping). Исключение из этого правила - наличие права `escalate` у роли.
-![escalate](/img/k8s-rbac-nuances/escalate-purple-white.png) 
+[Kubernetes RBAC API не позволяет повысить привелегии путем редактирования Role или RoleBinding. Это происходит на уровне API и будет работать даже если выключен RBAC authorizer](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping). Исключение из этого правила - наличие права `escalate` у роли. То есть МОЖНО создавать и редактировать роли, но НЕЛЬЗЯ добавлять юзерам новые права - можно только оперировать лишь теми, которые уже есть у юзера в других ролях
+![escalate](/img/k8s-rbac-nuances/escalate-purple-white.png)
 
-Роль с правами на просмотр подов и ролей в неймспейсе rbac:
-```
-kubectl -n rbac create role view --verb=list,watch,get --resource=role,pod
-role.rbac.authorization.k8s.io/view created 
-```
+Создадим роль `view` с правами только на чтение и роль `edit` с правами на редактирование и проверим может ли пользователь повысить себе привилегии, добавляя новые verbs в роли.
 
-Биндим созданный ранее сервисаккаунт к нашей роли:
-```
+Создаём роль с правами на просмотр и редактирование ролей в неймспейсе rbac и биндим её к SA:
+```bash
+kubectl -n rbac create role  --verb=list,watch,get --resource=role
+role.rbac.authorization.k8s.io/view created
+
 kubectl -n rbac create rolebinding view --role=view --serviceaccount=rbac:privesc
 rolebinding.rbac.authorization.k8s.io/view created
 ```
@@ -319,21 +122,19 @@ yes
 kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:privesc 
 no
 ```
+Сервисаккаунту `privesc` разрешено читать роли, но нельзя их редактировать.
 
-Сделаем роль с правами на редактирование ролей в неймспейсе rbac:
+Сделаем роль с правами на чтение и редактирование ролей в неймспейсе rbac:
 ```
 kubectl -n rbac create role edit --verb=update,patch --resource=role                              
 role.rbac.authorization.k8s.io/edit created
-```
 
-Биндим к нашему сервисаккаунту:
-```
 kubectl -n rbac create rolebinding edit --role=edit --serviceaccount=rbac:privesc
 rolebinding.rbac.authorization.k8s.io/edit created
 ```
 
-Проверим:
-```
+Проверяем:
+```bash
 kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:privesc   
 yes
 
@@ -341,11 +142,13 @@ kubectl auth can-i delete role -n rbac --as=system:serviceaccount:rbac:privesc
 no
 ```
 
-Теперь для чистоты эксперимента проверим возможности нашего сервисаккаунта. Для этого используем его токен в конфиге. 
+Редактировать роли разрешено, а удалять запрещено. Всё как написано в ранее созданных ролях.
+
+Теперь для чистоты эксперимента проверим возможности нашего сервисаккаунта, залогинившись в k8s от его имени. Для этого используем его токен в конфиге. 
 `TOKEN=$(kubectl -n rbac create token privesc --duration=8h)`
 
-Придется удалить из конфига старые параметры аутентификации, т.к. [k8s сначала проверяет сертификат пользователя и не будет проверять токен, если данные о сертификате переданы](https://stackoverflow.com/questions/60083889/kubectl-token-token-doesnt-run-with-the-permissions-of-the-token).
-```
+Придется удалить из конфига старые параметры аутентификации, так как [k8s сначала проверяет сертификат пользователя и не будет проверять токен, если данные о сертификате переданы](https://stackoverflow.com/questions/60083889/kubectl-token-token-doesnt-run-with-the-permissions-of-the-token).
+```bash
 cp ~/.kube/config ~/.kube/rbac.conf
 export KUBECONFIG=~/.kube/rbac.conf
 kubectl config delete-user kubernetes-admin
@@ -353,7 +156,7 @@ kubectl config set-credentials privesc --token=$TOKEN
 kubectl config set-context --current --user=privesc
 ```
 
-В роли edit написано, что мы имеем права не редактирование ролей:
+В роли edit написано, что мы имеем права на редактирование ролей:
 `kubectl -n rbac get role edit -oyaml`
 ```
 apiVersion: rbac.authorization.k8s.io/v1
@@ -371,12 +174,12 @@ rules:
   - patch
 ```
 
-Попробуем добавить в роль новый verb (list), который уже имеется в другой роли (view)
+Попробуем добавить в роль новый verb `list`, который уже имеется в другой роли `view`
 ```
 kubectl -n rbac edit  role edit 
 OK
 ```
-```
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -393,10 +196,9 @@ rules:
   - list   # <-- добавлена эта строка
 ```
 
-Попробуем добавить в роль новый verb (delete), который не описан в других ролях:
-```
-kubectl -n rbac edit  role edit
-
+Попробуем добавить в роль новый verb `delete`, который не описан в других ролях:
+`kubectl -n rbac edit  role edit`
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -415,10 +217,10 @@ rules:
 error: roles.rbac.authorization.k8s.io "edit" could not be patched: roles.rbac.authorization.k8s.io "edit" is forbidden: user "system:serviceaccount:rbac:privesc" (groups=["system:serviceaccounts" "system:serviceaccounts:rbac" "system:authenticated"]) is attempting to grant RBAC permissions not currently held:
 {APIGroups:["rbac.authorization.k8s.io"], Resources:["roles"], Verbs:["delete"]}
 ```
-Kubernetes не позволяет добавлять себе новых прав, которых ещё нет у пользователя - прав, которые не описаны в других ролях, забинденых к этому пользователю
+Kubernetes не позволяет добавлять новых прав, которых ещё нет у пользователя - прав, которые не описаны в других ролях, забинденых к этому пользователю. Попробуем пофиксить это.
 
-Используя админские права расширим права сервисаккаунта privesc - добавим новую роль с verb escalate и забиндим её нашему сервисаккаунту:
-```
+Как мы убедились - повысить привилегии самому себе нельзя, поэтому дальнейшие действия будем делать от админа - об этом говорит задание переменной `KUBECONFIG=~/.kube/config` перед командой. Расширим права сервисаккаунта privesc - добавим новую роль с verb `escalate` и забиндим её нашему сервисаккаунту:
+```bash
 KUBECONFIG=~/.kube/config kubectl -n rbac create role escalate --verb=escalate --resource=role   
 role.rbac.authorization.k8s.io/escalate created
 
@@ -427,12 +229,27 @@ rolebinding.rbac.authorization.k8s.io/escalate created
 ```
 
 Повторяем то, что не удалось сделать без escalate - добавить delete в существующую роль:
-```
+```bash
 kubectl -n rbac edit  role edit 
 role.rbac.authorization.k8s.io/edit edited
 ```
-
-Теперь это работает. Пользователь может повышать свои привилегии редактируя существующие роли. То есть verb escalate фактически дает права администратора, т.к. пользователь, обладающий привилегиями escalate может выписать себе любые права на неймспейс или кластер, если это указано в resources.
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: edit
+  namespace: rbac
+rules:
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  verbs:
+  - update
+  - patch
+  - delete   # <-- добавлена эта строка
+```
+Теперь это работает. Пользователь может повышать свои привилегии редактируя существующие роли. То есть verb `escalate` фактически дает права администратора, т.к. пользователь, обладающий привилегиями escalate может выписать себе любые права на неймспейс или кластер, если это указано в resources.
 
 ### Bind
 [DOC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update): To allow a user to create/update _role bindings_:
@@ -519,7 +336,7 @@ Impersonation requests first authenticate as the requesting user, then switch to
 - Request user info is replaced with impersonation values.
 - Request is evaluated, authorization acts on impersonated user info.
 
-Impersonate это такой sudo для k8s. С правами impersonate пользователь может представиться другим пользователем и выполнять команды от его имени. kubectl имеет опции `--as`, `--as-group`, `--as-uid`, позволяющие выполнить команду от имени юзера, группы или uid соответственно. То есть, если в одной из ролей пользователь получил impersonate, то его можно считать админом неймспейса. Или кластера в худшем варианте.
+Impersonate это такой sudo для k8s. С правами impersonate пользователь может представиться другим пользователем и выполнять команды от его имени. kubectl имеет опции `--as`, `--as-group`, `--as-uid`, позволяющие выполнить команду от имени юзера, группы или uid соответственно. То есть, если в одной из ролей пользователь получил impersonate, то его можно считать админом неймспейса. Или кластера в худшем варианте - когда в неймспейсе есть ServiceAccount с правами cluster-admin.
 
 Имперсонэйт удобно использовать для проверки корректности RBAC - запускать `kubectl auth can-i --as=$USERNAME -n $MANESPACE $VERB $RESOURCE`
 ```
