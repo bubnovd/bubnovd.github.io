@@ -1,0 +1,358 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:site_name" content="Админская фамилия"><meta property="og:type" content="article"><meta property="og:image" content="/img/k8s-auth/logo.jpg"><meta property="twitter:image" content="/img/k8s-auth/logo.jpg"><meta name=title content="Аутентификация в Kubernetes в деталях. Часть 1: JWT, сертификаты"><meta property="og:title" content="Аутентификация в Kubernetes в деталях. Часть 1: JWT, сертификаты"><meta property="twitter:title" content="Аутентификация в Kubernetes в деталях. Часть 1: JWT, сертификаты"><meta name=description content="Обзор Kuberenetes RBAC и методов аутентификации: сертификаты, JWT"><meta property="og:description" content="Обзор Kuberenetes RBAC и методов аутентификации: сертификаты, JWT"><meta property="twitter:description" content="Обзор Kuberenetes RBAC и методов аутентификации: сертификаты, JWT"><meta property="twitter:card" content="summary"><meta name=keyword content><link rel="shortcut icon" href=/img/favicon.ico><title>Аутентификация в Kubernetes в деталях. Часть 1: JWT, сертификаты | </title><link rel=canonical href=/post/k8s-auth/><link rel=stylesheet href=/css/bootstrap.min.css><link rel=stylesheet href=/css/hugo-theme-cleanwhite.min.css><link rel=stylesheet href=/css/zanshang.css><link rel=stylesheet href=/css/font-awesome.all.min.css><script src=/js/jquery.min.js></script><script src=/js/bootstrap.min.js></script><script src=/js/hux-blog.min.js></script><script src=/js/lazysizes.min.js></script></head><script async src="https://www.googletagmanager.com/gtag/js?id=G-TEHWVZ1W9Q"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TEHWVZ1W9Q")}</script><nav class="navbar navbar-default navbar-custom navbar-fixed-top"><div class=container-fluid><div class="navbar-header page-scroll"><button type=button class=navbar-toggle>
+<span class=sr-only>Toggle navigation</span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+</button>
+<a class=navbar-brand href=/>Админская фамилия</a></div><div id=huxblog_navbar><div class=navbar-collapse><ul class="nav navbar-nav navbar-right"><li><a href=/>All Posts</a></li><li><a href=/archive//>Archive</a></li><li><a href=/search><i class="fa fa-search"></i></a></li></ul></div></div></div></nav><script>var $body=document.body,$toggle=document.querySelector(".navbar-toggle"),$navbar=document.querySelector("#huxblog_navbar"),$collapse=document.querySelector(".navbar-collapse");$toggle.addEventListener("click",handleMagic);function handleMagic(){$navbar.className.indexOf("in")>0?($navbar.className=" ",setTimeout(function(){$navbar.className.indexOf("in")<0&&($collapse.style.height="0px")},400)):($collapse.style.height="auto",$navbar.className+=" in")}</script><style type=text/css>header.intro-header{background-image:url(/img/k8s-auth/logo.jpg)}</style><header class=intro-header><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class=post-heading><div class=tags><a class=tag href=/tags/k8s title=k8s>k8s
+</a><a class=tag href=/tags/authentication title=authentication>authentication</a></div><h1>Аутентификация в Kubernetes в деталях. Часть 1: JWT, сертификаты</h1><h2 class=subheading></h2><span class=meta>Posted by
+bubnovd
+on
+Thursday, April 25, 2024
+<span id=/post/k8s-auth/ class="leancloud_visitors meta_data_item" data-flag-title><span class=post-meta-item-icon><span class="octicon octicon-eye"></span>
+</span><i class="fa fa-eye"></i>
+<span class=old-visitors-count style=display:none></span>
+<span class=leancloud-visitors-count></span>
+</span><script src=https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js></script><script>AV.initialize("","")</script><script type=text/javascript>function showTime(e){var n=new AV.Query(e),t=[],s=$(".leancloud_visitors");s.each(function(){t.push($(this).attr("id").trim())}),n.containedIn("url",t),n.find().done(function(e){for(var s,o,i,a,r,l,c=".leancloud-visitors-count",d=".old-visitors-count",n=0;n<e.length;n++)a=e[n],o=a.get("url"),l=a.get("time"),s=document.getElementById(o),$(s).find(c).text(l);for(n=0;n<t.length;n++)o=t[n],s=document.getElementById(o),i=$(s).find(c),i.text()==""&&(r=$(s).find(d).text(),r!=""?i.text(0+parseInt(r)):i.text(0))}).fail(function(e,t){console.log("Error: "+t.code+" "+t.message)})}function addCount(e){var n=$(".leancloud_visitors"),t=n.attr("id").trim(),o=n.attr("data-flag-title").trim(),s=new AV.Query(e);s.equalTo("url",t),s.find({success:function(n){if(n.length>0){var s,i,r,c,l,a=n[0];a.fetchWhenSave(!0),a.increment("time"),a.save(null,{success:function(e){var n=$(document.getElementById(t));n.find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to save Visitor num, with error message: "+t.message)}})}else s=new e,i=new AV.ACL,i.setPublicReadAccess(!0),i.setPublicWriteAccess(!0),s.setACL(i),s.set("title",o),s.set("url",t),c=".old-visitors-count",l=$(document.getElementById(t)),r=l.find(c).text(),r!=""?s.set("time",parseInt(r)+1):s.set("time",1),s.save(null,{success:function(e){var n=$(document.getElementById(t));n.find(".leancloud-visitors-count").text(e.get("time"))},error:function(){console.log("Failed to create")}})},error:function(e){console.log("Error:"+e.code+" "+e.message)}})}$(function(){var e=AV.Object.extend("Counter");$(".leancloud_visitors").length==1?addCount(e):showTime(e)})</script></span></div></div></div></div></header><article><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+post-container"><p>В ходе подготовки к сертификации Certified Kubernetes Security я разобрался с безопасностью в k8s и решил написать пост о не самых популярных, но очень опасных детялях в RBAC. Пост получился огромный и было решено разбить его на две части с более глубоким погружением в каждую из них, чем было в изначальном варианте. В этом посте рассмотрим систему аутентификации kubernetes, её примитивы, научимся доставать данные из сертификатов и токенов, а так же работать с kubernetes API с помощью curl</p><h1 id=ролевая-модель-доступа-в-kubernetes>Ролевая модель доступа в Kubernetes</h1><p>Cуществует несколько подходов к разграничению доступа к ресурсам:</p><ul><li>ABAC - Attribute Based Access Control</li><li>RBAC - Role Based Access Control</li><li>PBAC - Policy Based Access Control</li><li>DAC - Discretionary Access Control</li><li>MAC - Mandatory Access Control</li><li>MLS/MCS - Multi Level Security / Multi Category Security</li></ul><p>Kubernetes может использовать модели доступа: <a href=https://kubernetes.io/docs/reference/access-authn-authz/authorization/#authorization-modules>Node, ABAC, RBAC, WebHook</a>. Модель доступа устанавливается через параметр запуска kube-apiserver, проверить можно так:</p><pre tabindex=0><code>kubectl  -n kube-system get pod  -l component=kube-apiserver  -oyaml | grep authorization
+      - --authorization-mode=Node,RBAC
+      - --authorization-mode=Node,RBAC
+      - --authorization-mode=Node,RBAC
+</code></pre><p>Чаще всего приходится работать с ролевой моделью доступа - RBAC. Она используется в k8s по умлочанию и оперирует несколькими взаимосвязанными сущностями. Самые важные для нас сегодня:</p><ul><li>роль, описывающая доступ к ресурсам</li><li>пользователь (это может быть User, Group или ServiceAccount)</li><li>Rolebinding - то, что объединяет роли и пользователей</li></ul><p>Про RBAC хорошо написано в <a href=https://kubernetes.io/docs/reference/access-authn-authz/rbac/>документации k8s</a>. Самая актуальная информация всегда там. В этой статье рассмотрим взаимосвязь компонентов RBAC и инструменты для дебага.</p><p>Для аутентификации Kubernetes может использовать две категории пользователей:</p><ul><li>User - используется кожаным мешком для работы с k8s. Для аутентификации использует X.509 сертификат</li><li>ServiceAccount - учетная запись для систем, работающих внутри кластера. Для аутентификации использует JWT токен</li></ul><blockquote><p>Обычно по-русски пишут JWT токен, что является <a href=https://ru.wikipedia.org/wiki/%D0%90%D0%B1%D0%B1%D1%80%D0%B5%D0%B2%D0%B8%D0%B0%D1%82%D1%83%D1%80%D0%B0#%D0%A2%D0%B0%D0%B2%D1%82%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5_%D1%81%D0%BE%D0%BA%D1%80%D0%B0%D1%89%D0%B5%D0%BD%D0%B8%D0%B5>плеоназмом</a>: JSON Web Token токен. Поэтому я буду писать просто JWT</p></blockquote><h1 id=users-certificate>User&rsquo;s Certificate</h1><p>Это может показаться странным, но API k8s не имеет понятия юзера или группы. Невозможно создать пользователя или группу внутри кластера. Но эти данные необходимы для авторизации. API Server распознает пользователя по полю CN в Subject сертификата.</p><p>Итак, обычные пользователи для аутентификации используют X.509 сертификаты. Эти сертфиикаты можно найти в kubeconfig:
+<code>cat ~/.kube/config</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>clusters</span>:
+</span></span><span style=display:flex><span>-   <span style=color:#f92672>cluster</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>certificate-authority-data</span>: <span style=color:#ae81ff>LS0tLS1CRUdJTicGl1...UlRJRklDQVRFLS0tLS0K</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>server</span>: <span style=color:#ae81ff>https://10.95.189.14:6443</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>kubernetes</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>contexts</span>:
+</span></span><span style=display:flex><span>-   <span style=color:#f92672>context</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>cluster</span>: <span style=color:#ae81ff>kubernetes</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>user</span>: <span style=color:#ae81ff>kubernetes-admin</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>kubernetes-admin@kubernetes</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>current-context</span>: <span style=color:#ae81ff>kubernetes-admin@kubernetes</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Config</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>preferences</span>: {}
+</span></span><span style=display:flex><span><span style=color:#f92672>users</span>:
+</span></span><span style=display:flex><span>-   <span style=color:#f92672>name</span>: <span style=color:#ae81ff>kubernetes-admin</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>user</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>client-certificate-data</span>: <span style=color:#ae81ff>LS0t...S0tLS0tCg==</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>client-key-data</span>: <span style=color:#ae81ff>LS0tLS1...ktLS0tLQo=</span>
+</span></span></code></pre></div><p>Здесь есть три поля, относящиеся к сертфикатам. Все они закодированы в base64:</p><ul><li><code>certificate-authority-data</code> - Certificate Authority (CA)</li><li><code>client-certificate-data</code> - сертификат пользователя</li><li><code>client-key-data</code> - ключ пользователя</li></ul><p><code>certificate-authority-data</code> относится ко всему кластеру, а не к конкретному юзеру. Во всех конфигах это поле будет одинаково.</p><h2 id=посмотрим-что-содержится-внутри-сертификатов>Посмотрим что содержится внутри сертификатов</h2><p>Все можно сделать вручную, но я буду применять утилиту <code>yq</code> для удобного парсинга <code>yaml</code> файлов. Ещё нам понадобится <code>openssl</code>. Как правило, он уже есть в большинстве дистрибутивов.</p><h2 id=ca>CA</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>mkdir ~/certs
+</span></span><span style=display:flex><span>yq <span style=color:#e6db74>&#39;.clusters[0].cluster.certificate-authority-data | @base64d&#39;</span> ~/.kube/config  &gt; ~/certs/ca.crt
+</span></span><span style=display:flex><span>cat ~/certs/ca.crt
+</span></span><span style=display:flex><span>-----BEGIN CERTIFICATE-----
+</span></span><span style=display:flex><span>MIIC+jCCAeKgAwIBAgIUPAavs+pcqhHexQ63ql2yGzCDMxIwDQYJKoZIhvcNAQEL
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>yE68Y3UxfwoqnTC5r+vpqyboRreg1H6t5RnKgzO6UfGKs/LZweA4LNz9qG8rhw<span style=color:#f92672>==</span>
+</span></span><span style=display:flex><span>-----END CERTIFICATE-----
+</span></span></code></pre></div><p>На первый взгляд - просто набор символов. На второй тоже лучше не станет. Чтобы посмотреть содержимое сертификата используем openssl:
+<code>openssl x509 -text -noout -in ~/certs/ca.crt</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>Certificate:       
+</span></span><span style=display:flex><span>    Data:
+</span></span><span style=display:flex><span>        Version: <span style=color:#ae81ff>3</span> <span style=color:#f92672>(</span>0x2<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>        Serial Number:
+</span></span><span style=display:flex><span>            3c:06:af:b3:ea:5c:aa:11:de:c5:0e:b7:aa:5d:b2:1b:30:83:33:12
+</span></span><span style=display:flex><span>        Signature Algorithm: sha256WithRSAEncryption
+</span></span><span style=display:flex><span>        Issuer: CN <span style=color:#f92672>=</span> kubernetes
+</span></span><span style=display:flex><span>        Validity
+</span></span><span style=display:flex><span>            Not Before: Mar <span style=color:#ae81ff>22</span> 15:21:44 <span style=color:#ae81ff>2024</span> GMT
+</span></span><span style=display:flex><span>            Not After : Mar <span style=color:#ae81ff>20</span> 15:21:44 <span style=color:#ae81ff>2034</span> GMT
+</span></span><span style=display:flex><span>        Subject: CN <span style=color:#f92672>=</span> kubernetes
+</span></span><span style=display:flex><span>        Subject Public Key Info:
+</span></span><span style=display:flex><span>            Public Key Algorithm: rsaEncryption
+</span></span><span style=display:flex><span>                Public-Key: <span style=color:#f92672>(</span><span style=color:#ae81ff>2048</span> bit<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>                Modulus:
+</span></span><span style=display:flex><span>                    00:e0:63:6e:11:73:8a:89:3c:de:34:eb:1c:84:43:
+</span></span><span style=display:flex><span>                    ...
+</span></span><span style=display:flex><span>                    98:27
+</span></span><span style=display:flex><span>                Exponent: <span style=color:#ae81ff>65537</span> <span style=color:#f92672>(</span>0x10001<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>        X509v3 extensions:
+</span></span><span style=display:flex><span>            X509v3 Key Usage: critical
+</span></span><span style=display:flex><span>                Certificate Sign
+</span></span><span style=display:flex><span>            X509v3 Basic Constraints: critical
+</span></span><span style=display:flex><span>                CA:TRUE
+</span></span><span style=display:flex><span>            X509v3 Subject Key Identifier: 
+</span></span><span style=display:flex><span>                D5:DD:0A:9A:6B:08:9B:94:73:13:11:16:93:7C:E4:C1:24:91:A3:90
+</span></span><span style=display:flex><span>    Signature Algorithm: sha256WithRSAEncryption
+</span></span><span style=display:flex><span>    Signature Value:
+</span></span><span style=display:flex><span>        20:c7:1f:48:d5:36:b6:6e:2e:8d:3e:e2:78:12:8c:1f:1d:97:
+</span></span><span style=display:flex><span>        ...
+</span></span><span style=display:flex><span>        a8:6f:2b:87
+</span></span></code></pre></div><blockquote><p>Можно было избежать создания файла и отправить вывод <code>yq</code> в stdin <code>openssl</code>: <code>openssl x509 -text -noout -in &lt;(yq '.clusters[0].cluster.certificate-authority-data | @base64d' ~/.kube/config)</code></p></blockquote><p>Важные для нас поля в сертификате:</p><ul><li>X509v3 Basic Constraints содержит <code>CA:TRUE</code>, что указывает на СA. Этот сертификат может использоваться для подписи и проверки подлинности других сертификатов</li><li>Subject <code>CN = kubernetes</code> - &ldquo;имя пользователя&rdquo;</li><li>Issuer <code>CN = kubernetes</code> - кто выдал сертификат. В СA это поле такое же, как Subject. Потому что сертификат выдан сам себе</li><li>X509v3 Key Usage - как можно использовать сертфиикат</li><li>X509v3 Subject Key Identifier - идентификатор сертфиката. Его мы увидим в сертификатах, подписанных этим СA</li><li>Validity - срок действия сертификата. Если вы теряли кластер потому что проспали обновление сертов - пишите в комменты =)</li></ul><h2 id=client-certificate>Client Certificate</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>yq <span style=color:#e6db74>&#39;.users[0].user.client-certificate-data | @base64d&#39;</span> ~/.kube/config  &gt; ~/certs/user.crt
+</span></span><span style=display:flex><span>openssl x509 -text -noout -in ~/certs/user.crt
+</span></span><span style=display:flex><span>Certificate:                                                                                            
+</span></span><span style=display:flex><span>    Data:
+</span></span><span style=display:flex><span>        Version: <span style=color:#ae81ff>3</span> <span style=color:#f92672>(</span>0x2<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>        Serial Number: <span style=color:#ae81ff>2201338778473110666</span> <span style=color:#f92672>(</span>0x1e8cb9f4b12e9c8a<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>        Signature Algorithm: sha256WithRSAEncryption
+</span></span><span style=display:flex><span>        Issuer: CN <span style=color:#f92672>=</span> kubernetes
+</span></span><span style=display:flex><span>        Validity
+</span></span><span style=display:flex><span>            Not Before: Mar <span style=color:#ae81ff>22</span> 15:21:44 <span style=color:#ae81ff>2024</span> GMT
+</span></span><span style=display:flex><span>            Not After : Mar <span style=color:#ae81ff>22</span> 15:26:39 <span style=color:#ae81ff>2025</span> GMT
+</span></span><span style=display:flex><span>        Subject: O <span style=color:#f92672>=</span> system:masters, CN <span style=color:#f92672>=</span> kubernetes-admin
+</span></span><span style=display:flex><span>        Subject Public Key Info:
+</span></span><span style=display:flex><span>            Public Key Algorithm: rsaEncryption
+</span></span><span style=display:flex><span>                Public-Key: <span style=color:#f92672>(</span><span style=color:#ae81ff>2048</span> bit<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>                Modulus:
+</span></span><span style=display:flex><span>                    00:c5:9b:5a:7a:82:cd:1e:c6:8b:d6:66:55:68:2f:
+</span></span><span style=display:flex><span>                    ...
+</span></span><span style=display:flex><span>                    ba:5b
+</span></span><span style=display:flex><span>                Exponent: <span style=color:#ae81ff>65537</span> <span style=color:#f92672>(</span>0x10001<span style=color:#f92672>)</span>
+</span></span><span style=display:flex><span>        X509v3 extensions:
+</span></span><span style=display:flex><span>            X509v3 Key Usage: critical
+</span></span><span style=display:flex><span>                Digital Signature, Key Encipherment
+</span></span><span style=display:flex><span>            X509v3 Extended Key Usage: 
+</span></span><span style=display:flex><span>                TLS Web Client Authentication
+</span></span><span style=display:flex><span>            X509v3 Basic Constraints: critical
+</span></span><span style=display:flex><span>                CA:FALSE
+</span></span><span style=display:flex><span>            X509v3 Authority Key Identifier: 
+</span></span><span style=display:flex><span>                D5:DD:0A:9A:6B:08:9B:94:73:13:11:16:93:7C:E4:C1:24:91:A3:90
+</span></span><span style=display:flex><span>    Signature Algorithm: sha256WithRSAEncryption
+</span></span><span style=display:flex><span>    Signature Value:
+</span></span><span style=display:flex><span>        6d:6c:58:62:4a:2a:9e:2a:70:cb:f9:52:64:05:6f:f2:18:72:
+</span></span><span style=display:flex><span>        ...
+</span></span><span style=display:flex><span>        1f:ad:a3:7a
+</span></span></code></pre></div><p>Обратите внимание, что <code>X509v3 Authority Key Identifier</code> в сертификате совпадает с <code>X509v3 Subject Key Identifier</code> в СA. Это говорит о том, что сертификат подписан нашим СA.</p><p>Тут в поле <code>Subject</code> есть данные пользователе и его правах: <code>O = system:masters, CN = kubernetes-admin</code>:</p><ul><li><code>CN = kubernetes-admin</code> - имя пользователя</li><li><code>O = system:masters</code> - &ldquo;группа&rdquo;</li></ul><blockquote><p><code>system:masters</code> - это супергруппа с неограниченными правами. Она даже не участвует в авторизации - ей разрешено всё. Не думаю, что стоит тут особо выделять ОПАСНОСТЬ использования такого конфига. Последние версии kubeadm создают вместе с ним второй сертификат (конфиг), который &ldquo;безопасно&rdquo; (взял в качвычки, потому что нет абсолютной безопасности) использовать - с <code>Subject: O = kubeadm:cluster-admins, CN = kubernetes-admin</code>, где <code>kubeadm:cluster-admins</code> - обычная группа в RBAC с правами <code>cluster-admin</code></p></blockquote><p>В сертификате для kubelet в Subject будет написано <code>O = system:nodes, CN = system:node:$NODENAME</code>, что намекает нам на то, что есть ещё группа <code>system:nodes</code>, а сам kubelet ходит в API с именем, содержащим в себе имя ноды. В качестве домашнего задания посмотрите на другие конфиги и сертификаты в <code>/etc/kubernetes</code> и <code>/etc/kubernetes/pki</code></p><blockquote><p>В качестве системы аутентификации k8s может использовать сторонние Identity Providers и интегрироваться с ними по OpenID Connect. Например, <a href=https://bubnovd.net/post/keycloak-iac/>keycloak</a></p></blockquote><h2 id=openssl>OpenSSL</h2><p>Поле key сертификата рассматривать не будем - сейчас там для нас нет ничего интересного. Просто выгрузим его в файл по аналогии с СA и User Certificate:
+<code>yq '.users[0].user.client-key-data | @base64d' ~/.kube/config > ~/certs/user.key</code></p><p>Посмотрим как с помощью openssl проверить цепочку сертификатов и ключей. Проверить, что сертификат подписан СA:</p><pre tabindex=0><code>openssl verify -CAfile ~/certs/ca.crt ~/certs/user.crt
+user.crt: OK
+</code></pre><p>Проверить, что ключ относится к сертификату:
+<code>diff &lt;(openssl x509 -modulus -noout -in ~/certs/user.crt| openssl md5) &lt;(openssl rsa -modulus -noout -in ~/certs/user.key| openssl md5)</code></p><p>Тут мы берем modulus от сертификата и ключа, считаем от них md5 хэш и сравниваем вывод - он должен быть одинаков для сертификата и ключа. Можно сравнить и без md5 - результат не изменится. Если <code>diff</code> не нашел разницы - значит ключ подходит к сертификату.</p><h2 id=взаимодействие-с-kube-apiserver>Взаимодействие с kube-apiserver</h2><p><code>kubectl</code> - всего лишь утилита, которая взаимодействует с Kubernetes посредством REST API. Отправлять запросы к API можно любым другим способом, например, с помощью curl.
+Адрес сервера берем из kubeconfig</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>SERVER<span style=color:#f92672>=</span><span style=color:#66d9ef>$(</span>yq <span style=color:#e6db74>&#39;.clusters[0].cluster.server&#39;</span> ~/.kube/config<span style=color:#66d9ef>)</span>
+</span></span></code></pre></div><p>Попробуем получить список неймспейсов <code>curl -k $SERVER/api/v1/namespaces</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;kind&#34;</span>: <span style=color:#e6db74>&#34;Status&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;apiVersion&#34;</span>: <span style=color:#e6db74>&#34;v1&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;metadata&#34;</span>: {},
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;status&#34;</span>: <span style=color:#e6db74>&#34;Failure&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;message&#34;</span>: <span style=color:#e6db74>&#34;forbidden: User \&#34;system:anonymous\&#34; cannot get path \&#34;/api/namespaces\&#34;&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;reason&#34;</span>: <span style=color:#e6db74>&#34;Forbidden&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;details&#34;</span>: {},
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;code&#34;</span>: <span style=color:#ae81ff>403</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Сообщение об ошибке <code>User "system:anonymous" cannot get path "/api/namespaces"</code> недвусмысленно говорит о том, что анонимный пользователь не имеет прав на просмотр списка неймспейсов. А наша попытка была без авторизации, поэтому мы anonymous.
+Сделаем то же самое, авторизовавшись с помощью наших сертификатов</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>curl -k --key ~/certs/user.key --cert ~/certs/user.crt --cacert ~/certs/ca.crt $SERVER/api/v1/namespaces/
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;kind&#34;</span>: <span style=color:#e6db74>&#34;NamespaceList&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;apiVersion&#34;</span>: <span style=color:#e6db74>&#34;v1&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;metadata&#34;</span>: {
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&#34;resourceVersion&#34;</span>: <span style=color:#e6db74>&#34;5950120&#34;</span>
+</span></span><span style=display:flex><span>  },
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;items&#34;</span>: [
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;metadata&#34;</span>: {
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;calico-apiserver&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#960050;background-color:#1e0010>...</span>
+</span></span></code></pre></div><p>На этот раз запрос успешно выполнен. Синтаксис запроса такой <code>$SERVER/api/$VERSION/namespaces/$NAMESPACE/$KIND</code>, например, получить список подов из неймспейса default:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>curl -k --key user.key --cert user.crt --cacert ca.crt $SERVER/api/v1/namespaces/default/pods
+</span></span></code></pre></div><p>Ответ от сервера я не привожу - он будет в виде JSON, содержащего список подов.</p><h1 id=serviceaccounts-token>ServiceAccount&rsquo;s Token</h1><p><a href=https://kubernetes.io/docs/concepts/security/service-accounts/>ServiceAccount</a>(дальше - SA) - тип учетной записи в k8s, используемый подами, системными компонентами и всем, что не кожаный мешок. В качестве аутентификатора SA использует <a href=https://www.rfc-editor.org/rfc/rfc7519.html>токен JWT</a>. Посмотрим подробнее на создание SA и его JWT.
+Создаем неймспейс:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl create ns rbac
+</span></span><span style=display:flex><span>namespace/rbac created
+</span></span></code></pre></div><p>Создаем сервисаккаунт:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl -n rbac create sa privesc
+</span></span><span style=display:flex><span>serviceaccount/privesc created
+</span></span></code></pre></div><p>Манифест сервисаккаунта выглядит так:
+<code>kubectl get sa -n rbac privesc -oyaml</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ServiceAccount</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>privesc</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>rbac</span>
+</span></span></code></pre></div><p>Как видим, в манифесте SA нет ничего особенного. Но как всегда есть <a href=https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting>нюансы</a> =)</p><p>Обратите внимание, что у SA всегда есть Namespace, то есть это <code>namespaced resource</code>. Ниже мы поговорим об этом подробнее.</p><h2 id=jwt>JWT</h2><p>Сгенерируем токен для аутентификации от имени SA. Используем параметр <code>duration</code>, чтобы токен работал продолжительное время. Обычно kubernetes выдает токены на короткий срок, определяемый самим kubernetes.
+<code>TOKEN=$(k -n rbac create token privesc --duration=8h)</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>echo $TOKEN
+</span></span><span style=display:flex><span>eyJhbGciOiJSUzI1NiIsImtpZCI6ImxrNzcybkhfVXZiZW1YSXV0S1BaZDlxNUlFOTRjX1Y1M1o3RWhvLWRsbm8ifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNzEyMzI0NjYxLCJpYXQiOjE3MTIyOTU4NjEsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJyYmFjIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6InByaXZlc2MiLCJ1aWQiOiJkODc1NmY0NS01ZDJjLTQ0YjQtYWFjOS02NDU1MjcwNDViZTMifX0sIm5iZiI6MTcxMjI5NTg2MSwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OnJiYWM6cHJpdmVzYyJ9.GxJKpZevOkFwksFsA8ZPU5qLLwQdl6D3Rlt1gU-2feExcy6GadGQJlumrrpq-ih0Ufgm7YUz4jRsNld9yXT93nu27sPyxkMSjMT4rAdfFAV59Q8Z6kFyzOjuJBsEEzErB2Oft5KcGVSXBh01KWvHU8vPvBHaS_JgSV0yym3-9ruGh4eARwc3lbPZi9_PF-P8x0gCvpqaEZWF_aDjxAlcCxlkZjC2ADOHtiVlnBrDt1fqheOZ-W2BKxQ8-z9OG7PMo_x6G6VM2EQIGmY3tzyWd1gMB6bDRrWfSWjj0EPzqdXGov6w-znmzobWHJQN4BoeXBBDJA7BGUIA8VphXHu7yw
+</span></span></code></pre></div><p>Получили JWT. Он состоит из трех частей, разделенных точками. Первые две части - закодированный в base64 текст, последняя - подпись. Первые две части токена можно декодировать из base64 и получить читаемые даные:
+<code>echo $TOKEN | jq -R ' split(".") | select(length > 0) | .[0],.[1] | @base64d | fromjson'</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;alg&#34;</span>: <span style=color:#e6db74>&#34;RS256&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;kid&#34;</span>: <span style=color:#e6db74>&#34;lk772nH_UvbemXIutKPZd9q5IE94c_V53Z7Eho-dlno&#34;</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;aud&#34;</span>: [
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;https://kubernetes.default.svc.cluster.local&#34;</span>
+</span></span><span style=display:flex><span>  ],
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;exp&#34;</span>: <span style=color:#ae81ff>1712324661</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;iat&#34;</span>: <span style=color:#ae81ff>1712295861</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;iss&#34;</span>: <span style=color:#e6db74>&#34;https://kubernetes.default.svc.cluster.local&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;kubernetes.io&#34;</span>: {
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&#34;namespace&#34;</span>: <span style=color:#e6db74>&#34;rbac&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&#34;serviceaccount&#34;</span>: {
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;name&#34;</span>: <span style=color:#e6db74>&#34;privesc&#34;</span>,
+</span></span><span style=display:flex><span>      <span style=color:#f92672>&#34;uid&#34;</span>: <span style=color:#e6db74>&#34;d8756f45-5d2c-44b4-aac9-645527045be3&#34;</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  },
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;nbf&#34;</span>: <span style=color:#ae81ff>1712295861</span>,
+</span></span><span style=display:flex><span>  <span style=color:#f92672>&#34;sub&#34;</span>: <span style=color:#e6db74>&#34;system:serviceaccount:rbac:privesc&#34;</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Содержимое токена:</p><ul><li><code>kid</code> - Key ID</li><li><code>sub</code> - Subject - кому выдан токен</li><li><code>iss</code> - Issuer - кто выдал токен. Наш кластер</li><li><code>aud</code> - Audience - целевая аудитория - на какие ресурсы распространяется действие токена. Опять наш кластер</li><li><code>exp</code> - время действия токена в UnixTime. Перевести в человеческий вид:</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>date -j -f %s <span style=color:#ae81ff>1712324661</span>                                                                                  
+</span></span><span style=display:flex><span>Fri Apr  <span style=color:#ae81ff>5</span> 16:44:21 EEST <span style=color:#ae81ff>2024</span>
+</span></span></code></pre></div><p>Подробнее о содержимом токена - в <a href=https://www.rfc-editor.org/rfc/rfc7519.html>RFC</a>.</p><p>curl позволяет авторизоваться с помощью токена вместо сертификатов <code>curl -k -H "Authorization: Bearer $TOKEN" $SERVER/api/v1/namespaces/rbac/pods</code>.
+По умолчанию при создании пода CA и JWT сервисаккаунта монтируются по пути <code>/var/run/secrets/kubernetes.io/serviceaccount/</code>. Если злоумышленник попадет внутрь пода (например, через уязвимости в приложении или неправильно настроенный nginx) и прочитает токен, то он сможет обращаться к Kubernetes API и получать или изменять данные в кластере, а может и пойти дальше - повысить привилегии, используя некорректные настройки кластера и стать админом.</p><p>Проверим как это работает:</p><ul><li>создадим под <code>kubectl -n rbac run nginx --image=nginx</code></li><li>запустим шелл внутри пода <code>kubectl -n rbac exec -it nginx -- /bin/bash</code></li><li>получим адрес kube-apiserver</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>root@nginx:/var/run/secrets/kubernetes.io/serviceaccount# env | grep KUBERNETES
+</span></span><span style=display:flex><span>KUBERNETES_SERVICE_PORT_HTTPS<span style=color:#f92672>=</span><span style=color:#ae81ff>443</span>
+</span></span><span style=display:flex><span>KUBERNETES_SERVICE_PORT<span style=color:#f92672>=</span><span style=color:#ae81ff>443</span>
+</span></span><span style=display:flex><span>KUBERNETES_PORT_443_TCP<span style=color:#f92672>=</span>tcp://192.168.192.1:443
+</span></span><span style=display:flex><span>KUBERNETES_PORT_443_TCP_PROTO<span style=color:#f92672>=</span>tcp
+</span></span><span style=display:flex><span>KUBERNETES_PORT_443_TCP_ADDR<span style=color:#f92672>=</span>192.168.192.1
+</span></span><span style=display:flex><span>KUBERNETES_SERVICE_HOST<span style=color:#f92672>=</span>192.168.192.1
+</span></span><span style=display:flex><span>KUBERNETES_PORT<span style=color:#f92672>=</span>tcp://192.168.192.1:443
+</span></span><span style=display:flex><span>KUBERNETES_PORT_443_TCP_PORT<span style=color:#f92672>=</span><span style=color:#ae81ff>443</span>
+</span></span></code></pre></div><ul><li>провалимся в директорию с аутентификационными данными внутри пода <code>cd /var/run/secrets/kubernetes.io/serviceaccount/</code>, тут есть три файла, объяснять их содержимое не имеет смысла: <code>ca.crt, namespace, token</code>. Запишем токен в переменную <code>TOKEN=$(cat token)</code></li><li>с токеном можно обращаться к API kubernetes <code>curl -k -H "Authorization: Bearer $TOKEN" https://$KUBERNETES_PORT_443_TCP_ADDR/api</code></li><li>voila - из пода можно ходить в kube-api. И кто знает что с этим сделает хакер</li></ul><p>По умолчанию поды создаются с дефолтным сервисаккаунтом, а прав у него немного. Но это не повод расслабляться - многие приложения требуют дополнительных прав. Чтобы токен не монтировался в под добавьте в манифест SA опцию <code>automountServiceAccountToken: false</code>.</p><h1 id=role>Role</h1><p>Роль - всего лишь список правил, которые ещё никому не назначены. Каждое правило включает в себя:</p><ul><li>apiGroups - указатель на API groups</li><li>resources - список ресурсов, к которым будет применяться правило. Тут может быть <code>pods</code>, <code>configmaps</code>, <code>secrets</code>, &mldr;</li><li>verbs - доступные операции с перечисленными ресурсами</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>pod-reader</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>- <span style=color:#f92672>apiGroups</span>: [<span style=color:#e6db74>&#34;&#34;</span>] <span style=color:#75715e># &#34;&#34; indicates the core API group</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resources</span>: [<span style=color:#e6db74>&#34;pods&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#f92672>verbs</span>: [<span style=color:#e6db74>&#34;get&#34;</span>, <span style=color:#e6db74>&#34;watch&#34;</span>, <span style=color:#e6db74>&#34;list&#34;</span>]
+</span></span></code></pre></div><h2 id=verbs>Verbs</h2><p><a href=https://kubernetes.io/docs/reference/access-authn-authz/authorization/#determine-the-request-verb>Request Verbs</a></p><p>Verbs описывают что можно делать с ресурсом - как <code>rwx</code> в <code>chmod</code>. В роли могут использоваться следующие verbs:</p><ul><li><code>create</code> - создать ресурс. HTTP метод <code>POST</code></li><li><code>get</code>, <code>list</code>, <code>watch</code> - прочитать ресурс. HTTP метод <code>GET</code>, <code>HEAD</code></li><li><code>update</code> - редактировать ресурс. HTTP метод <code>PUT</code></li><li><code>patch</code> - редактировать ресурс. HTTP метод <code>PATCH</code></li><li><code>delete</code>, <code>deletecollection</code> - удалить ресурс. HTTP метод <code>DELETE</code></li></ul><h1 id=rolebinding>RoleBinding</h1><p>Ресурс, связывающий роль и пользователя/группу/сервисаккаунт. Содержит всего два поля:</p><ul><li>список Subjects, в котором перечислены субъекты доступа: пользователи и/или группы и/или сервисаккаунты</li><li>roleRef - роль, которая привязывается к перечисленным субъектам</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># This role binding allows &#34;jane&#34; to read pods in the &#34;default&#34; namespace.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># You need to already have a Role named &#34;pod-reader&#34; in that namespace.</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>RoleBinding</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>read-pods</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>subjects</span>:
+</span></span><span style=display:flex><span><span style=color:#75715e># You can specify more than one &#34;subject&#34;</span>
+</span></span><span style=display:flex><span>- <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>User</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>jane</span> <span style=color:#75715e># &#34;name&#34; is case sensitive</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>apiGroup</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io</span>
+</span></span><span style=display:flex><span>- <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ServiceAccount</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>privesc</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>apiGroup</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>roleRef</span>:
+</span></span><span style=display:flex><span>  <span style=color:#75715e># &#34;roleRef&#34; specifies the binding to a Role / ClusterRole</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span> <span style=color:#75715e>#this must be Role or ClusterRole</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>pod-reader</span> <span style=color:#75715e># this must match the name of the Role or ClusterRole you wish to bind to</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>apiGroup</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io</span>
+</span></span></code></pre></div><h1 id=clusterrole-clusterrolebinding>ClusterRole, ClusterRoleBinding</h1><p>Ресурсы кластера делятся на namespaced и non-namespaced. Это значит, что первые всегда имеют namespace, а вторые нет (например <code>node</code>).</p><ul><li>namespaced resouces: <code>pod</code>, <code>secret</code>, <code>ingress</code>, <code>configmap</code>, &mldr;</li><li>non-namespaced resouces: <code>namespace</code>, <code>node</code>, <code>ClusterRole</code>, <code>storageclasses</code>. Больше тут <code>kubectl api-resources --namespaced=false</code></li></ul><p>Распределение прав описывают ресурсы Role, RoleBinding, ClusterRole и ClusterRoleBinding</p><p><img src=/img/k8s-auth/role-clusterrole.png alt="Role VS ClusteRole"></p><ul><li>Role - namespaced ресурс. То есть она описывает доступы только внутри неймспейса, в котором эта роль существует. Логично, что если роль работает внутри неймспейса, то и права она может регулировать только для <code>namespaced</code> ресурсов</li><li>ClusterRole - non-namespaced. Описывает права доступа на любые ресурсы - namespaced и non-namespaced. Например, дефолтная СlusterRole <code>view</code> разрешает читать ресурсы всех типов - <code>namespaced</code> и <code>non-namespaced</code></li></ul><p><img src=/img/k8s-auth/binding-clusterbinding.png alt="RoleBinding VS ClusterRoleBinding"></p><p><img src=/img/k8s-auth/rolebinding-schema.png alt=rolebinding-schema.png></p><ul><li>RoleBinding - биндит роли к субъектам доступа (User, Group, ServiceAccount) для описания доступа в одном неймспейсе. RoleBinding может ссылаться на Role и на ClusterRole. При использовании СlusterRole, все разрешения из ClusterRole применятся только к тому неймспейсу, в котором существует этот RoleBinding
+<img src=/img/k8s-auth/clusterrolebinding-schema.png alt=clusterrolebinding-schema.png></li><li>ClusterRoleBinding биндит только СlusterRole и может давать доступ ко всем ресурсам кластера</li></ul><p>Хорошая презентация про RBAC и разницу между Role/ClusterRole и RoleBinding/ClusterRoleBinding <a href=https://www.cncf.io/wp-content/uploads/2020/08/2020_04_Introduction-to-Kubernetes-RBAC.pdf>по ссылке</a>, <a href="https://www.youtube.com/watch?v=B6Ylwugs3t0">видео</a>. Картинки я взял оттуда. Ещё более детально - в <a href=https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole>документации</a></p><h1 id=tools>Tools</h1><p>В больших кластерах сложно поддерживать права десятков или сотен пользователей для доступа к разным ресурсам в разных неймспейсах. Вот несколько инструментов, упрощающих жизнь:</p><ul><li><a href=https://github.com/FairwindsOps/rbac-manager>rbac-manager</a> - оператор, вводящий новую сущность RBACDefinition. Позволяет биндить роли к неймспейсам по лейблам, а также биндить роли к нескольким субъектам(юзерам) в одном ямле. Очень удобно. Я даже сделал <a href=https://github.com/bubnovd/rbac-definition-helm>чарт</a> для деплоя ролей, кластерролей и манифестов для rbac-manager из единого места</li><li><a href=https://github.com/FairwindsOps/rbac-lookup>rbac-lookup</a> - утилита для анализа прав и юзеров kubernetes</li><li><a href=https://github.com/liggitt/audit2rbac>audit2rbac</a> - генерирует RBAC манифесты из аудит логов</li></ul><hr><p>Этот пост родился в ходе написания другого поста - про особенности некоторых <code>verbs</code> в ролях и их влияние на безопасность. Тот пост получился слишком большим, поэтому я решил опубликовать основы отдельно. Статья про безопасность будет опубликована в ближайшее время, а тут появится ссылка на неё. Так же она будет продублирована в телеграм канале <a href=https://t.me/mikrotikninja>Mikrotik Ninja</a>.</p><p>Пока я писал этот пост, в англоязычном интернете появилась <a href=https://thegreycorner.com/2023/11/15/kubernetes-auth-deep-dive.html>хорошая статья</a> о том же самом. Там есть хорошие примеры про подделку сертификатов и токенов.</p><hr><ul class=pager><li class=previous><a href=/post/keycloak-iac/ data-toggle=tooltip data-placement=top title="Keycloak. Configuration as Code">&larr;
+Previous Post</a></li></ul><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//bubnovd-github-io.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="col-lg-2 col-lg-offset-0
+visible-lg-block
+sidebar-container
+catalog-container"><div class=side-catalog><hr class="hidden-sm hidden-xs"><h5><a class=catalog-toggle href=#>CATALOG</a></h5><ul class=catalog-body></ul></div></div><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+sidebar-container"><section><hr class="hidden-sm hidden-xs"><h5><a href=/tags/>FEATURED TAGS</a></h5><div class=tags><a href=/tags/#sysadminka title=#sysadminka>#sysadminka
+</a><a href=/tags/1%D1%81 title=1с>1с
+</a><a href=/tags/about title=about>about
+</a><a href=/tags/active-directory title="active directory">active directory
+</a><a href=/tags/ad title=ad>ad
+</a><a href=/tags/asterisk title=asterisk>asterisk
+</a><a href=/tags/bandwidth title=bandwidth>bandwidth
+</a><a href=/tags/best-practice title="best practice">best practice
+</a><a href=/tags/bgp title=bgp>bgp
+</a><a href=/tags/books title=books>books
+</a><a href=/tags/certification title=certification>certification
+</a><a href=/tags/cisco title=cisco>cisco
+</a><a href=/tags/cmd title=cmd>cmd
+</a><a href=/tags/cureit title=cureit>cureit
+</a><a href=/tags/d-link title=d-link>d-link
+</a><a href=/tags/ddos title=ddos>ddos
+</a><a href=/tags/debian title=debian>debian
+</a><a href=/tags/dhcp title=dhcp>dhcp
+</a><a href=/tags/dns title=dns>dns
+</a><a href=/tags/dpi title=dpi>dpi
+</a><a href=/tags/dr.web title=dr.web>dr.web
+</a><a href=/tags/eoip title=eoip>eoip
+</a><a href=/tags/failover title=failover>failover
+</a><a href=/tags/firewall title=firewall>firewall
+</a><a href=/tags/freebsd title=freebsd>freebsd
+</a><a href=/tags/groups title=groups>groups
+</a><a href=/tags/hack title=hack>hack
+</a><a href=/tags/hardware title=hardware>hardware
+</a><a href=/tags/hdd title=hdd>hdd
+</a><a href=/tags/history title=history>history
+</a><a href=/tags/hyper-v title=hyper-v>hyper-v
+</a><a href=/tags/internet title=internet>internet
+</a><a href=/tags/ip-%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD%D0%B8%D1%8F title=ip-телефония>ip-телефония
+</a><a href=/tags/ipam title=ipam>ipam
+</a><a href=/tags/iptables title=iptables>iptables
+</a><a href=/tags/iso title=iso>iso
+</a><a href=/tags/keepass title=keepass>keepass
+</a><a href=/tags/l2 title=l2>l2
+</a><a href=/tags/link title=link>link
+</a><a href=/tags/links title=links>links
+</a><a href=/tags/linux title=linux>linux
+</a><a href=/tags/linux-firewalls title="linux firewalls">linux firewalls
+</a><a href=/tags/linux-server title="linux server">linux server
+</a><a href=/tags/microsoft title=microsoft>microsoft
+</a><a href=/tags/midnightcommander title=midnightcommander>midnightcommander
+</a><a href=/tags/mikrotik title=mikrotik>mikrotik
+</a><a href=/tags/monitoring title=monitoring>monitoring
+</a><a href=/tags/mpls title=mpls>mpls
+</a><a href=/tags/ms title=ms>ms
+</a><a href=/tags/mss title=mss>mss
+</a><a href=/tags/mtcna title=mtcna>mtcna
+</a><a href=/tags/mtcre title=mtcre>mtcre
+</a><a href=/tags/mtu title=mtu>mtu
+</a><a href=/tags/mum title=mum>mum
+</a><a href=/tags/mva title=mva>mva
+</a><a href=/tags/network title=network>network
+</a><a href=/tags/oreilly title="o'reilly">o'reilly
+</a><a href=/tags/open-source title="open source">open source
+</a><a href=/tags/ospf title=ospf>ospf
+</a><a href=/tags/password title=password>password
+</a><a href=/tags/powershell title=powershell>powershell
+</a><a href=/tags/pptp title=pptp>pptp
+</a><a href=/tags/presentation title=presentation>presentation
+</a><a href=/tags/python title=python>python
+</a><a href=/tags/qos title=qos>qos
+</a><a href=/tags/raid title=raid>raid
+</a><a href=/tags/rdp title=rdp>rdp
+</a><a href=/tags/routerboard title=routerboard>routerboard
+</a><a href=/tags/routeros title=routeros>routeros
+</a><a href=/tags/routing title=routing>routing
+</a><a href=/tags/script title=script>script
+</a><a href=/tags/sdn title=sdn>sdn
+</a><a href=/tags/security title=security>security
+</a><a href=/tags/server title=server>server
+</a><a href=/tags/snmp title=snmp>snmp
+</a><a href=/tags/snmpv3 title=snmpv3>snmpv3
+</a><a href=/tags/ssh title=ssh>ssh
+</a><a href=/tags/ssl title=ssl>ssl
+</a><a href=/tags/tcp title=tcp>tcp
+</a><a href=/tags/terminal title=terminal>terminal
+</a><a href=/tags/the-dude title="the dude">the dude
+</a><a href=/tags/ubuntu title=ubuntu>ubuntu
+</a><a href=/tags/vpn title=vpn>vpn
+</a><a href=/tags/webmin title=webmin>webmin
+</a><a href=/tags/wi-fi title=wi-fi>wi-fi
+</a><a href=/tags/wifi title=wifi>wifi
+</a><a href=/tags/windows title=windows>windows
+</a><a href=/tags/%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=автоматизация>автоматизация
+</a><a href=/tags/%D0%B0%D0%BD%D1%82%D0%B8%D0%B2%D0%B8%D1%80%D1%83%D1%81-%D0%BA%D0%B0%D1%81%D0%BF%D0%B5%D1%80%D1%81%D0%BA%D0%BE%D0%B3%D0%BE title="антивирус касперского">антивирус касперского
+</a><a href=/tags/%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=безопасность>безопасность
+</a><a href=/tags/%D0%B1%D0%BB%D0%BE%D0%B3 title=блог>блог
+</a><a href=/tags/%D0%B2%D0%B8%D1%80%D1%82%D1%83%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=виртуализация>виртуализация
+</a><a href=/tags/%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D1%8B title=группы>группы
+</a><a href=/tags/%D0%B4%D0%BB%D1%8F-%D1%87%D0%B0%D0%B9%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2 title="для чайников">для чайников
+</a><a href=/tags/%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C title=жизнь>жизнь
+</a><a href=/tags/%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD title=закон>закон
+</a><a href=/tags/%D0%B8%D0%B1 title=иб>иб
+</a><a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BD%D0%BE%D0%B5 title=интересное>интересное
+</a><a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82 title=интернет>интернет
+</a><a href=/tags/%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title="информационная безопасность">информационная безопасность
+</a><a href=/tags/%D0%B8%D1%81%D0%BF%D0%B4%D0%BD title=испдн>испдн
+</a><a href=/tags/%D0%BA%D0%BD%D0%B8%D0%B3%D0%B8 title=книги>книги
+</a><a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%82%D0%BE%D1%80 title=коммутатор>коммутатор
+</a><a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%86%D0%B8%D1%8F title=коммутация>коммутация
+</a><a href=/tags/%D0%BA%D1%83%D1%80%D1%81%D1%8B title=курсы>курсы
+</a><a href=/tags/%D0%BB%D0%B8%D0%BD%D1%83%D0%BA%D1%81 title=линукс>линукс
+</a><a href=/tags/%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0 title=настройка>настройка
+</a><a href=/tags/%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5 title=обучение>обучение
+</a><a href=/tags/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=оптимизация>оптимизация
+</a><a href=/tags/%D0%BE%D1%84%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B title="официальные документы">официальные документы
+</a><a href=/tags/%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C title=пароль>пароль
+</a><a href=/tags/%D0%BF%D0%B4%D0%BD title=пдн>пдн
+</a><a href=/tags/%D0%BF%D0%BE%D0%BB%D0%B5%D0%B7%D0%BD%D0%BE%D0%B5 title=полезное>полезное
+</a><a href=/tags/%D0%BF%D1%80%D0%B8%D0%BA%D0%B0%D0%B7 title=приказ>приказ
+</a><a href=/tags/%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=производительность>производительность
+</a><a href=/tags/%D0%BF%D1%80%D0%BE%D1%84%D0%B5%D1%81%D1%81%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%BC title=профессионализм>профессионализм
+</a><a href=/tags/%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0 title=работа>работа
+</a><a href=/tags/%D1%81%D0%B5%D1%80%D1%82%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F title=сертификация>сертификация
+</a><a href=/tags/%D1%81%D0%B5%D1%82%D1%8C title=сеть>сеть
+</a><a href=/tags/%D1%81%D0%BA%D0%B7%D0%B8 title=скзи>скзи
+</a><a href=/tags/%D1%81%D0%BA%D0%BE%D1%80%D0%BE%D1%81%D1%82%D1%8C title=скорость>скорость
+</a><a href=/tags/%D1%81%D0%BA%D1%80%D0%B8%D0%BF%D1%82 title=скрипт>скрипт
+</a><a href=/tags/%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B8 title=ссылки>ссылки
+</a><a href=/tags/%D1%82%D1%83%D1%80%D0%B8%D0%B7%D0%BC title=туризм>туризм
+</a><a href=/tags/%D1%86%D0%BE%D0%B4 title=цод>цод
+</a><a href=/tags/%D1%87%D0%B5%D0%BB%D1%8F%D0%B1%D0%B8%D0%BD%D1%81%D0%BA title=челябинск>челябинск
+</a><a href=/tags/%D1%8E%D0%B7%D0%B2%D0%B5%D1%80%D0%B8 title=юзвери>юзвери</a></div></section></div></div></div></article><footer><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center"><li><a target=_blank href=https://github.com/bubnovd><span class="fa-stack fa-lg"><i class="fas fa-circle fa-stack-2x"></i>
+<i class="fab fa-github fa-stack-1x fa-inverse"></i></span></a></li><li><a target=_blank href=https://www.linkedin.com/in/bubnovd/><span class="fa-stack fa-lg"><i class="fas fa-circle fa-stack-2x"></i>
+<i class="fab fa-linkedin fa-stack-1x fa-inverse"></i></span></a></li></ul><p class="copyright text-muted">Copyright &copy; Админская фамилия 2024</p></div></div></div></footer><script>function loadAsync(e,t){var s=document,o="script",n=s.createElement(o),i=s.getElementsByTagName(o)[0];n.src=e,t&&n.addEventListener("load",function(e){t(null,e)},!1),i.parentNode.insertBefore(n,i)}</script><script>$("#tag_cloud").length!==0&&loadAsync("/js/jquery.tagcloud.js",function(){$.fn.tagcloud.defaults={color:{start:"#bbbbee",end:"#0085a1"}},$("#tag_cloud a").tagcloud()})</script><script>loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js",function(){var e=document.querySelector("nav");e&&FastClick.attach(e)})</script><script type=text/javascript>function generateCatalog(e){_containerSelector="div.post-container";var t,n,s,o,i,a=$(_containerSelector),r=a.find("h1,h2,h3,h4,h5,h6");return $(e).html(""),r.each(function(){t=$(this).prop("tagName").toLowerCase(),o="#"+$(this).prop("id"),n=$(this).text(),i=$('<a href="'+o+'" rel="nofollow">'+n+"</a>"),s=$('<li class="'+t+'_nav"></li>').append(i),$(e).append(s)}),!0}generateCatalog(".catalog-body"),$(".catalog-toggle").click(function(e){e.preventDefault(),$(".side-catalog").toggleClass("fold")}),loadAsync("/js/jquery.nav.js",function(){$(".catalog-body").onePageNav({currentClass:"active",changeHash:!1,easing:"swing",filter:"",scrollSpeed:700,scrollOffset:0,scrollThreshold:.2,begin:null,end:null,scrollChange:null,padding:80})})</script></body></html>
