@@ -9,6 +9,7 @@ https://github.com/ubuntu/aad-auth
 https://github.com/aad-for-linux/openvpn-auth-aad
 И PDF PAM Guide ...
 
+пост про bastion/bastillion
 
 keycloak - мониторинг, kuberos, сборрка kuberos без CVE
 "serviceaccounts" - запросить id_token
