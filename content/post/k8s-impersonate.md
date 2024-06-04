@@ -1,7 +1,11 @@
 https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation
 
 https://rad.security/blog/what-is-kubernetes-rbac#RBACpolice
+https://arthurchiao.art/blog/cracking-k8s-authz-rbac/
+https://www.aquasec.com/blog/kubernetes-verbs/
+https://www.aquasec.com/blog/leveraging-kubernetes-rbac-to-backdoor-clusters/
 
+https://github.com/aquasecurity/kubectl-who-can
 
 - inro
 - rbac
@@ -391,7 +395,51 @@ https://github.com/postfinance/kubectl-sudo
   resourceNames: ["jane.doe@example.com"]
 ```
 
-### AggregatedRole
+### Aggregated ClusterRoles
+Помимо "стандартных" ресурсов (pod, secret, service, ...) в кластере могут появляться дополнительные ресурсы, описываемые CRD (certificates, kafkas, prometheuses, ...). Очевидно, что в дефолтных ролях из коробки невозможно предусмотреть ресурсы, которые будут установлены в будущем через CRD и дать необходимые привилегии для управления ими. Для работы с этим ограничением существует Aggregated ClusterRole - она аггрегирует в себе правила из других ролей, при этом сама может ни одного правила не содержать. Примеры таких ролей - дефолтные admin, view, edit. Все они содержат параметр `aggregationRule`, в котором перечислены лейблы, по которым идентифируются кластерроли, правила из которых будут аггрегированы в целевую кластерроль.
+ПЕРЕПИСАТЬ ЭТО ПРЕДЛОЖЕНИЕ!!
+
+`k get clusterrole admin -oyaml | yq | head -n 20`
+```yaml
+aggregationRule:
+  clusterRoleSelectors:
+    - matchLabels:
+        rbac.authorization.k8s.io/aggregate-to-admin: "true"
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: admin
+...
+```
+
+То есть в роли `admin` будут все правила, явно описанные в `admin`, а так же все правила всех ролей с лэйблом `rbac.authorization.k8s.io/aggregate-to-admin: "true"`. Например, `k get clusterrole cert-manager-view -oyaml`:
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+  name: cert-manager-view
+rules:
+  - apiGroups:
+      - cert-manager.io
+    resources:
+      - certificates
+      - certificaterequests
+      - issuers
+    verbs:
+      - get
+      - list
+      - watch
+...
+```
+
+Хоть дефолтные роли `admin`, `view` и `edit` ничего не знают о сущности `certificates`, после создания кластерроли `cert-manager-view` контроллер `clusterrole-aggregation-controller` увидит, что роль содержит необходимые лейблы и роли с соттветствующим `aggregationRule` смогут манипулировать `certificates` и другими сущностями.
+Важно тут то, что сама роль с `aggregationRule` - `admin` в нашем случае - никак не изменится. Дополнительные правила в неё не добавятся и обычным `kubectl get clusterrole admin -o yaml` эти привелегии не увидеть. Что создает возможности для злоумышленника или проблемы для админа. Некоторые Aggregated ClusterRole могут совсем не содержать никаких `rules`, а только `aggregationRule`. Хороший пример есть в [документации](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles).
 
 ## Mitigation
 Система авторизации k8s очень гибкая и позволяет гранулярно настраивать параметры доступа. Даже в тех случаях, когда пользователю необходимо управлять такими чувствительными для безопасности примитивами как Role/ClusterRole и RoleBinding/ClusterRoleBinding. При этом пользователь не сможет повысить свои привилегии и получить доступ к закрытым данным, если администратор явно не позволит ему повышать привилегии.
