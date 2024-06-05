@@ -1,18 +1,26 @@
-
-
-
-
-
-
-
-- inro
-- rbac
+---
+title: "Аутентификация в Kubernetes в деталях. Часть 2: опасные verbs"
+date: "2024-06-05T04:02:52Z"
+author: bubnovd
+authorTwitter: bubnovdnet
+image: "/img/k8s-auth/logo.jpg"
+description: "Угрозы Kuberenetes RBAС и легальное повышение привилегий"
+tags:
+- k8s
+- authentication
+keywords:
+- k8s
+- kubernetes
+- authentication
+- RBAC
+- escalate
+- bind
 - impersonate
-- угрозы
-- как защититься
-- обзор инструментов
-
-Ещё одна угроза - Фggregated ClusterRole 
+- aggregatedClusterRole
+showFullContent: false
+readingTime: true
+hideComments: false
+---
 
 На первый взляд система RBAC в k8s достаточно простая и безопасная, но многие забывают или не знают некоторых особенностей.
 
