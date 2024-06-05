@@ -40,3 +40,14 @@ kubectl config set-credentials oidc \
 
 
 kubectl oidc-login setup --oidc-issuer-url https://keycloak.k-stg-1.luxembourg-2.cloud.gc.onl/realms/realmWithLdap --oidc-client-id ed-16-k-stg-1 --oidc-client-secret ун4цугн3ун5у4г
+
+
+Вместе с гибкостью приходят и сложность поддержки наряду с угрозами безопасности. Для обеспечения надежной и безопасной работы нужно понимать принципы функционирования системы авторизации и типы вспомогательного инструментария, снижающего риски. И помните, что безопасность всей системы равна безопасности её самого слабого звена.
+
+
+В следующей части 
+НАПИСАТЬ ТУТ ЧТО БУДЕТ В СЛЕДУЩЕЙ АСТИ:
+- CA
+- keycloak OIDC
+- piopeline OIDC & rbac-definition
+- bastion/bastillion
