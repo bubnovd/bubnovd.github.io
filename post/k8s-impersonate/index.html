@@ -1,0 +1,392 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:site_name" content="Админская фамилия"><meta property="og:type" content="article"><meta property="og:image" content="/img/k8s-rbac-nuances/logo.jpeg"><meta property="twitter:image" content="/img/k8s-rbac-nuances/logo.jpeg"><meta name=title content="Аутентификация в Kubernetes в деталях. Часть 2: опасные verbs"><meta property="og:title" content="Аутентификация в Kubernetes в деталях. Часть 2: опасные verbs"><meta property="twitter:title" content="Аутентификация в Kubernetes в деталях. Часть 2: опасные verbs"><meta name=description content="Угрозы Kuberenetes RBAС и легальное повышение привилегий"><meta property="og:description" content="Угрозы Kuberenetes RBAС и легальное повышение привилегий"><meta property="twitter:description" content="Угрозы Kuberenetes RBAС и легальное повышение привилегий"><meta property="twitter:card" content="summary"><meta name=keyword content><link rel="shortcut icon" href=/img/favicon.ico><title>Аутентификация в Kubernetes в деталях. Часть 2: опасные verbs | </title><link rel=canonical href=/post/k8s-impersonate/><link rel=stylesheet href=/css/bootstrap.min.css><link rel=stylesheet href=/css/hugo-theme-cleanwhite.min.css><link rel=stylesheet href=/css/zanshang.css><link rel=stylesheet href=/css/font-awesome.all.min.css><script src=/js/jquery.min.js></script><script src=/js/bootstrap.min.js></script><script src=/js/hux-blog.min.js></script><script src=/js/lazysizes.min.js></script></head><script async src="https://www.googletagmanager.com/gtag/js?id=G-TEHWVZ1W9Q"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TEHWVZ1W9Q")}</script><nav class="navbar navbar-default navbar-custom navbar-fixed-top"><div class=container-fluid><div class="navbar-header page-scroll"><button type=button class=navbar-toggle>
+<span class=sr-only>Toggle navigation</span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+<span class=icon-bar></span>
+</button>
+<a class=navbar-brand href=/>Админская фамилия</a></div><div id=huxblog_navbar><div class=navbar-collapse><ul class="nav navbar-nav navbar-right"><li><a href=/>All Posts</a></li><li><a href=/archive//>Archive</a></li><li><a href=/search><i class="fa fa-search"></i></a></li></ul></div></div></div></nav><script>var $body=document.body,$toggle=document.querySelector(".navbar-toggle"),$navbar=document.querySelector("#huxblog_navbar"),$collapse=document.querySelector(".navbar-collapse");$toggle.addEventListener("click",handleMagic);function handleMagic(){$navbar.className.indexOf("in")>0?($navbar.className=" ",setTimeout(function(){$navbar.className.indexOf("in")<0&&($collapse.style.height="0px")},400)):($collapse.style.height="auto",$navbar.className+=" in")}</script><style type=text/css>header.intro-header{background-image:url(/img/k8s-rbac-nuances/logo.jpeg)}</style><header class=intro-header><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><div class=post-heading><div class=tags><a class=tag href=/tags/k8s title=k8s>k8s
+</a><a class=tag href=/tags/authentication title=authentication>authentication</a></div><h1>Аутентификация в Kubernetes в деталях. Часть 2: опасные verbs</h1><h2 class=subheading></h2><span class=meta>Posted by
+bubnovd
+on
+Wednesday, June 5, 2024
+<span id=/post/k8s-impersonate/ class="leancloud_visitors meta_data_item" data-flag-title><span class=post-meta-item-icon><span class="octicon octicon-eye"></span>
+</span><i class="fa fa-eye"></i>
+<span class=old-visitors-count style=display:none></span>
+<span class=leancloud-visitors-count></span>
+</span><script src=https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js></script><script>AV.initialize("","")</script><script type=text/javascript>function showTime(e){var n=new AV.Query(e),t=[],s=$(".leancloud_visitors");s.each(function(){t.push($(this).attr("id").trim())}),n.containedIn("url",t),n.find().done(function(e){for(var s,o,i,a,r,l,c=".leancloud-visitors-count",d=".old-visitors-count",n=0;n<e.length;n++)a=e[n],o=a.get("url"),l=a.get("time"),s=document.getElementById(o),$(s).find(c).text(l);for(n=0;n<t.length;n++)o=t[n],s=document.getElementById(o),i=$(s).find(c),i.text()==""&&(r=$(s).find(d).text(),r!=""?i.text(0+parseInt(r)):i.text(0))}).fail(function(e,t){console.log("Error: "+t.code+" "+t.message)})}function addCount(e){var n=$(".leancloud_visitors"),t=n.attr("id").trim(),o=n.attr("data-flag-title").trim(),s=new AV.Query(e);s.equalTo("url",t),s.find({success:function(n){if(n.length>0){var s,i,r,c,l,a=n[0];a.fetchWhenSave(!0),a.increment("time"),a.save(null,{success:function(e){var n=$(document.getElementById(t));n.find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to save Visitor num, with error message: "+t.message)}})}else s=new e,i=new AV.ACL,i.setPublicReadAccess(!0),i.setPublicWriteAccess(!0),s.setACL(i),s.set("title",o),s.set("url",t),c=".old-visitors-count",l=$(document.getElementById(t)),r=l.find(c).text(),r!=""?s.set("time",parseInt(r)+1):s.set("time",1),s.save(null,{success:function(e){var n=$(document.getElementById(t));n.find(".leancloud-visitors-count").text(e.get("time"))},error:function(){console.log("Failed to create")}})},error:function(e){console.log("Error:"+e.code+" "+e.message)}})}$(function(){var e=AV.Object.extend("Counter");$(".leancloud_visitors").length==1?addCount(e):showTime(e)})</script></span></div></div></div></div></header><article><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+post-container"><p><em>Обложка: На улицах Киринии 28.10.2023</em></p><p>На первый взляд система RBAC в k8s достаточно простая и безопасная, но многие забывают или не знают некоторых особенностей.</p><p>В kubernetes есть аналог sudo, благодаря которому можно обойти ограничения в назначенных ролях и получить доступ туда, куда не предполагалось и прочитать секретные данные или даже получить полный контроль над кластером. И эта возможность есть у любого юзера с дефолтной кластерролью edit. В этой статье попробуем разобраться что это такое и как защититься от такого легального повышения привилегий.</p><h2 id=ресурсы-kubernetes-rbac>Ресурсы kubernetes RBAC</h2><p>Работа системы аутентификации была подробно описана в <a href=/post/k8s-auth>первой части</a>. Рекомендую прочитать её сначала. Тут очень кратко о том, что пригодится дальше.
+<img src=/img/k8s-rbac-nuances/sa-role-rolebinding-white.png alt=sa-role-rolebinding></p><h3 id=role>Role</h3><p>Роль состоит из списка правил. Каждое правило включает в себя:</p><ul><li>apiGroups - указатель на API groups</li><li>resources - список ресурсов, к которым будет применяться правило. Тут может быть <code>pods</code>, <code>configmaps</code>, <code>secrets</code>, &mldr;</li><li>verbs - доступные операции с перечисленными ресурсами</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>pod-reader</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>- <span style=color:#f92672>apiGroups</span>: [<span style=color:#e6db74>&#34;&#34;</span>] <span style=color:#75715e># &#34;&#34; indicates the core API group</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resources</span>: [<span style=color:#e6db74>&#34;pods&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#f92672>verbs</span>: [<span style=color:#e6db74>&#34;get&#34;</span>, <span style=color:#e6db74>&#34;watch&#34;</span>, <span style=color:#e6db74>&#34;list&#34;</span>]
+</span></span></code></pre></div><h4 id=verbs>Verbs</h4><p><a href=https://kubernetes.io/docs/reference/access-authn-authz/authorization/#determine-the-request-verb>Request Verbs</a></p><p>Verbs описывают что можно делать с ресурсом - как <code>rwx</code> в <code>chmod</code>. В роли могут использоваться следующие verbs:</p><ul><li><code>create</code> - создать ресурс. HTTP метод <code>POST</code></li><li>get, list, watch - прочитать ресурс. HTTP метод <code>GET</code>, <code>HEAD</code></li><li>update - редактировать ресурс. HTTP метод <code>PUT</code></li><li>patch - редактировать ресурс. HTTP метод <code>PATCH</code></li><li>delete, deletecollection - удалить ресурс. HTTP метод <code>DELETE</code></li></ul><p>Описанные выше действия очевидны и не требуют пояснений. Самое интересное начинается со следующими verbs:</p><ul><li><a href=https://kubernetes.io/docs/concepts/security/rbac-good-practices/#escalate-verb>escalate</a> - создавать и редактировать роли, в том числе, относящиеся к другим пользователям</li><li><a href=https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb>bind</a> - создавать и редактировать биндинги, в том числе, относящиеся к другим пользователям</li><li><a href=https://kubernetes.io/docs/concepts/security/rbac-good-practices/#impersonate-verb>impersonate</a> - представиться k8s API другим пользователем, группой или предоставить другие данные (extra)</li></ul><h3 id=escalate>Escalate</h3><p><a href=https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-creation-or-update>DOC</a>: You can only create/update a <em>role</em> if at least one of the following things is true:</p><ul><li>You already have all the permissions contained in the role, at the same scope as the object being modified (cluster-wide for a ClusterRole, within the same namespace or cluster-wide for a Role).</li><li>You are granted explicit permission to perform the <code>escalate</code> verb on the roles or clusterroles resource in the rbac.authorization.k8s.io API group.</li></ul><p><a href=https://kubernetes.io/docs/reference/access-authn-authz/rbac/#privilege-escalation-prevention-and-bootstrapping>Kubernetes RBAC API не позволяет повысить привелегии путем редактирования Role или RoleBinding. Это происходит на уровне API и будет работать даже если выключен RBAC authorizer</a>. Исключение из этого правила - наличие права <code>escalate</code> у роли. То есть МОЖНО создавать и редактировать роли, но НЕЛЬЗЯ добавлять юзерам новые права - можно оперировать лишь теми правами, которые уже есть у юзера в других ролях
+<img src=/img/k8s-rbac-nuances/escalate-purple-white.png alt=escalate></p><p>Проверим как это работает:</p><p>Для начала создадим неймспейс и сервисаккаунт, с которыми будем работать:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl create ns rbac
+</span></span><span style=display:flex><span>kubectl create sa -n rbac privesc
+</span></span></code></pre></div><p>Создадим роль <code>view</code> с правами только на чтение и роль <code>edit</code> с правами на редактирование и проверим может ли пользователь повысить себе привилегии, добавляя новые verbs в роли.</p><p>Создаём роль с правами на просмотр ролей в неймспейсе <code>rbac</code> и биндим её к SA:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl -n rbac create role  --verb<span style=color:#f92672>=</span>list,watch,get --resource<span style=color:#f92672>=</span>role
+</span></span><span style=display:flex><span>role.rbac.authorization.k8s.io/view created
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>kubectl -n rbac create rolebinding view --role<span style=color:#f92672>=</span>view --serviceaccount<span style=color:#f92672>=</span>rbac:privesc
+</span></span><span style=display:flex><span>rolebinding.rbac.authorization.k8s.io/view created
+</span></span></code></pre></div><p>Проверяем:</p><pre tabindex=0><code>kubectl auth can-i get role -n rbac --as=system:serviceaccount:rbac:privesc 
+yes
+
+kubectl auth can-i update role -n rbac --as=system:serviceaccount:rbac:privesc 
+no
+</code></pre><p>Сервисаккаунту <code>privesc</code> разрешено читать роли, но нельзя их редактировать.</p><p>Дадим права на редактирование ролей в неймспейсе <code>rbac</code>:</p><pre tabindex=0><code>kubectl -n rbac create role edit --verb=update,patch --resource=role                              
+role.rbac.authorization.k8s.io/edit created
+
+kubectl -n rbac create rolebinding edit --role=edit --serviceaccount=rbac:privesc
+rolebinding.rbac.authorization.k8s.io/edit created
+</code></pre><p>Проверяем:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl auth can-i update role -n rbac --as<span style=color:#f92672>=</span>system:serviceaccount:rbac:privesc   
+</span></span><span style=display:flex><span>yes
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>kubectl auth can-i delete role -n rbac --as<span style=color:#f92672>=</span>system:serviceaccount:rbac:privesc
+</span></span><span style=display:flex><span>no
+</span></span></code></pre></div><p>Редактировать роли разрешено, а удалять запрещено. Всё как написано в ранее созданных ролях.</p><p>Теперь для чистоты эксперимента проверим возможности нашего сервисаккаунта, залогинившись в k8s от его имени. Для этого используем его токен в конфиге. Как это работает - смотрите в <a href=/post/k8s-auth>первой части</a>.
+<code>TOKEN=$(kubectl -n rbac create token privesc --duration=8h)</code></p><p>Придется удалить из конфига старые параметры аутентификации, так как <a href=https://stackoverflow.com/questions/60083889/kubectl-token-token-doesnt-run-with-the-permissions-of-the-token>k8s сначала проверяет сертификат пользователя и не будет проверять токен, если данные о сертификате переданы</a>.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>cp ~/.kube/config ~/.kube/rbac.conf
+</span></span><span style=display:flex><span>export KUBECONFIG<span style=color:#f92672>=</span>~/.kube/rbac.conf
+</span></span><span style=display:flex><span>kubectl config delete-user kubernetes-admin
+</span></span><span style=display:flex><span>kubectl config set-credentials privesc --token<span style=color:#f92672>=</span>$TOKEN
+</span></span><span style=display:flex><span>kubectl config set-context --current --user<span style=color:#f92672>=</span>privesc
+</span></span></code></pre></div><p>В роли edit написано, что мы имеем права на редактирование ролей:
+<code>kubectl -n rbac get role edit -oyaml</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>edit</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>rbac</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>- <span style=color:#f92672>apiGroups</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>rbac.authorization.k8s.io</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resources</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>roles</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>verbs</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>update</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>patch</span>
+</span></span></code></pre></div><p>Попробуем добавить в роль новый verb <code>list</code>, который уже имеется в другой роли <code>view</code></p><pre tabindex=0><code>kubectl -n rbac edit  role edit 
+OK
+</code></pre><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>edit</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>rbac</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>- <span style=color:#f92672>apiGroups</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>rbac.authorization.k8s.io</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resources</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>roles</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>verbs</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>update</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>patch</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>list  </span> <span style=color:#75715e># &lt;-- добавлена эта строка</span>
+</span></span></code></pre></div><p>Работает!</p><p>Теперь попробуем добавить в роль новый verb <code>delete</code>, который не описан в других ролях:
+<code>kubectl -n rbac edit role edit</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>edit</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>rbac</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>- <span style=color:#f92672>apiGroups</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>rbac.authorization.k8s.io</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resources</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>roles</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>verbs</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>update</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>patch</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>delete  </span> <span style=color:#75715e># &lt;-- добавлена эта строка</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>error</span>: <span style=color:#ae81ff>roles.rbac.authorization.k8s.io &#34;edit&#34; could not be patched: roles.rbac.authorization.k8s.io &#34;edit&#34; is forbidden: user &#34;system:serviceaccount:rbac:privesc&#34; (groups=[&#34;system:serviceaccounts&#34; &#34;system:serviceaccounts:rbac&#34; &#34;system:authenticated&#34;]) is attempting to grant RBAC permissions not currently held:</span>
+</span></span><span style=display:flex><span>{<span style=color:#ae81ff>APIGroups:[&#34;rbac.authorization.k8s.io&#34;], Resources:[&#34;roles&#34;], Verbs:[&#34;delete&#34;]}</span>
+</span></span></code></pre></div><p>Kubernetes не позволяет добавлять новых прав, которых ещё нет у пользователя - прав, которые не описаны в других ролях, забинденых к этому пользователю. Попробуем обойти это.</p><p>Как мы убедились в последнем примере - повысить привилегии самому себе нельзя, поэтому дальнейшие действия будем делать от админа - об этом говорит задание переменной <code>KUBECONFIG=~/.kube/config</code> перед командой. Расширим права сервисаккаунта privesc - добавим новую роль с verb <code>escalate</code> и забиндим её нашему сервисаккаунту:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>KUBECONFIG<span style=color:#f92672>=</span>~/.kube/config kubectl -n rbac create role escalate --verb<span style=color:#f92672>=</span>escalate --resource<span style=color:#f92672>=</span>role   
+</span></span><span style=display:flex><span>role.rbac.authorization.k8s.io/escalate created
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>KUBECONFIG<span style=color:#f92672>=</span>~/.kube/config kubectl -n rbac create rolebinding escalate --role<span style=color:#f92672>=</span>escalate --serviceaccount<span style=color:#f92672>=</span>rbac:privesc
+</span></span><span style=display:flex><span>rolebinding.rbac.authorization.k8s.io/escalate created
+</span></span></code></pre></div><p>Теперь с уже расширенными правами повторяем то, что не удалось сделать без <code>escalate</code> - добавить <code>delete</code> в существующую роль:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl -n rbac edit  role edit 
+</span></span><span style=display:flex><span>role.rbac.authorization.k8s.io/edit edited
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>edit</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>rbac</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>- <span style=color:#f92672>apiGroups</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>rbac.authorization.k8s.io</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resources</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>roles</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>verbs</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>update</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>patch</span>
+</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>delete  </span> <span style=color:#75715e># &lt;-- добавлена эта строка</span>
+</span></span></code></pre></div><p>Теперь это работает. Пользователь может повышать свои привилегии редактируя существующие роли. То есть verb <code>escalate</code> фактически дает права администратора, т.к. пользователь, обладающий привилегиями <code>escalate</code> может выписать себе любые права на неймспейс или даже кластер.</p><h3 id=bind>Bind</h3><p><a href=https://kubernetes.io/docs/reference/access-authn-authz/rbac/#restrictions-on-role-binding-creation-or-update>DOC</a>: To allow a user to create/update <em>role bindings</em>:</p><ul><li>Grant them a role that allows them to create/update RoleBinding or ClusterRoleBinding objects, as desired.</li><li>Grant them permissions needed to bind a particular role:<ul><li>implicitly, by giving them the permissions contained in the role.</li><li>explicitly, by giving them permission to perform the bind verb on the particular Role (or ClusterRole).</li></ul></li></ul><p>Разрешить пользователю создавать или редактировать rolebindings можно выполнив оба условия:</p><ul><li>Дать пользователю права создавать/редактировать RoleBinding или ClusterRoleBinding</li><li>Дать пользователю права биндить роль:<ul><li>явно, описав права в роли</li><li>неявно, дав ему права <code>bind</code> на роль или кластерроль</li></ul></li></ul><p><code>Bind</code> работает аналогично <code>escalate</code>. Если <code>escalate</code> разрешает редактировать <code>Role</code> или <code>ClusterRole</code> для повышения привилегий, то <code>bind</code> разрешает редактировать <code>RoleBinding</code> или <code>ClusterRoleBinding</code>.
+Если прав в роли недостаточно, то пользователь может забиндить себя на другую роль.
+<img src=/img/k8s-rbac-nuances/bind-purple-white.png alt=pic></p><p>Переключимся на админский конфиг: <code>export KUBECONFIG=~/.kube/config</code></p><p>Удалим созданные ранее роли и биндинги</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl -n rbac delete rolebinding view edit escalate
+</span></span><span style=display:flex><span>kubectl -n rbac delete role view edit escalate
+</span></span></code></pre></div><p>Дадим сервисаккаунту права на просмотр и редактирование rolebinding и pod в своём неймспейсе:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl -n rbac create role view --verb<span style=color:#f92672>=</span>list,watch,get --resource<span style=color:#f92672>=</span>role,rolebinding,pod
+</span></span><span style=display:flex><span>kubectl -n rbac create rolebinding view --role<span style=color:#f92672>=</span>view --serviceaccount<span style=color:#f92672>=</span>rbac:privesc
+</span></span><span style=display:flex><span>kubectl -n rbac create role edit --verb<span style=color:#f92672>=</span>update,patch,create --resource<span style=color:#f92672>=</span>rolebinding,pod
+</span></span><span style=display:flex><span>kubectl -n rbac create rolebinding edit --role<span style=color:#f92672>=</span>edit --serviceaccount<span style=color:#f92672>=</span>rbac:privesc
+</span></span></code></pre></div><p>Отдельно создадим роли для работы с подами, но пока не будем их биндить. Нам нужны эти роли, чтобы проверить способность сервисакаунта биндить новые роли:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl -n rbac create role pod-view-edit --verb<span style=color:#f92672>=</span>get,list,watch,update,patch --resource<span style=color:#f92672>=</span>pod
+</span></span><span style=display:flex><span>kubectl -n rbac create role delete-pod --verb<span style=color:#f92672>=</span>delete --resource<span style=color:#f92672>=</span>pod
+</span></span></code></pre></div><p>Переключимся на конфиг сервисаккаунта privesc и проверим, что мы можем редактировать rolebinding:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>export KUBECONFIG<span style=color:#f92672>=</span>~/.kube/rbac.conf
+</span></span><span style=display:flex><span>kubectl -n rbac create rolebinding pod-view-edit --role<span style=color:#f92672>=</span>pod-view-edit --serviceaccount<span style=color:#f92672>=</span>rbac:privesc
+</span></span><span style=display:flex><span>rolebinding.rbac.authorization.k8s.io/pod-view-edit created
+</span></span></code></pre></div><p>Новая роль успешно забиндилась к существующему сервисаккаунту. Обратите внимание, что роль <code>pod-view-edit</code> содержит <code>verbs</code> и <code>resources</code> уже подключенные сервисаккаунту в rolebinding <code>view</code> и <code>edit</code>.
+Теперь попробуем забиндить роль с новым verb <code>delete</code>, которого ещё нет в уже подключенных к сервисаккаунту ролях:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl -n rbac create rolebinding delete-pod --role<span style=color:#f92672>=</span>delete-pod --serviceaccount<span style=color:#f92672>=</span>rbac:privesc
+</span></span><span style=display:flex><span>error: failed to create rolebinding: rolebindings.rbac.authorization.k8s.io <span style=color:#e6db74>&#34;delete-pod&#34;</span> is forbidden: user <span style=color:#e6db74>&#34;system:serviceaccount:rbac:privesc&#34;</span> <span style=color:#f92672>(</span>groups<span style=color:#f92672>=[</span><span style=color:#e6db74>&#34;system:serviceaccounts&#34;</span> <span style=color:#e6db74>&#34;system:serviceaccounts:rbac&#34;</span> <span style=color:#e6db74>&#34;system:authenticated&#34;</span><span style=color:#f92672>])</span> is attempting to grant RBAC permissions not currently held:
+</span></span><span style=display:flex><span><span style=color:#f92672>{</span>APIGroups:<span style=color:#f92672>[</span><span style=color:#e6db74>&#34;&#34;</span><span style=color:#f92672>]</span>, Resources:<span style=color:#f92672>[</span><span style=color:#e6db74>&#34;pods&#34;</span><span style=color:#f92672>]</span>, Verbs:<span style=color:#f92672>[</span><span style=color:#e6db74>&#34;delete&#34;</span><span style=color:#f92672>]}</span>
+</span></span></code></pre></div><p>Kubernetes не позволяет нам это сделать, несмотря на то, что у нас есть права на редактирование и создание RoleBindings. Исправить это нам поможет право <code>bind</code>. Используя админский конфиг выдадим его сервисаккаунту:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>KUBECONFIG<span style=color:#f92672>=</span>~/.kube/config kubectl -n rbac create role bind --verb<span style=color:#f92672>=</span>bind --resource<span style=color:#f92672>=</span>role       
+</span></span><span style=display:flex><span>role.rbac.authorization.k8s.io/bind created
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>KUBECONFIG<span style=color:#f92672>=</span>~/.kube/config kubectl -n rbac create rolebinding bind --role<span style=color:#f92672>=</span>bind --serviceaccount<span style=color:#f92672>=</span>rbac:privesc
+</span></span><span style=display:flex><span>rolebinding.rbac.authorization.k8s.io/bind created
+</span></span></code></pre></div><p>И повторим попытку создать RoleBinding с новым verb <code>delete</code>:</p><pre tabindex=0><code>kubectl -n rbac create rolebinding delete-pod --role=delete-pod --serviceaccount=rbac:privesc
+rolebinding.rbac.authorization.k8s.io/delete-pod created
+</code></pre><p>Теперь RoleBinding создается. Verb <code>bind</code> позволяет биндить любые роли и повышать привилегии.</p><h3 id=impersonate>Impersonate</h3><p><a href=https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation>DOC</a>
+Impersonation requests first authenticate as the requesting user, then switch to the impersonated user info.</p><ul><li>A user makes an API call with their credentials and impersonation headers.</li><li>API server authenticates the user.</li><li>API server ensures the authenticated users have impersonation privileges.</li><li>Request user info is replaced with impersonation values.</li><li>Request is evaluated, authorization acts on impersonated user info.</li></ul><p><code>Impersonate</code> это такой <code>sudo</code> для k8s. С правами <code>impersonate</code> пользователь может представиться другим пользователем и выполнять команды от его имени. kubectl имеет опции <code>--as</code>, <code>--as-group</code>, <code>--as-uid</code>, позволяющие выполнить команду от имени юзера, группы или uid соответственно. То есть, если в одной из ролей пользователь получил <code>impersonate</code>, то его можно считать админом неймспейса. Или кластера в худшем варианте - когда в неймспейсе есть ServiceAccount с правами cluster-admin.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#75715e># Can impersonate the user &#34;jane.doe@example.com&#34;</span>
+</span></span><span style=display:flex><span>- <span style=color:#f92672>apiGroups</span>: [<span style=color:#e6db74>&#34;&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resources</span>: [<span style=color:#e6db74>&#34;users&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#f92672>verbs</span>: [<span style=color:#e6db74>&#34;impersonate&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resourceNames</span>: [<span style=color:#e6db74>&#34;jane.doe@example.com&#34;</span>]
+</span></span></code></pre></div><p>Имперсонэйт удобно использовать для проверки корректности RBAC - запускать <code>kubectl auth can-i --as=$USERNAME -n $NAMESPACE $VERB $RESOURCE</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl auth can-i get pod -n rbac --as<span style=color:#f92672>=</span>system:serviceaccount:rbac:privesc
+</span></span><span style=display:flex><span>yes
+</span></span></code></pre></div><p>Или вывести все права пользователя:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl auth can-i --list -n rbac --as<span style=color:#f92672>=</span>system:serviceaccount:rbac:privesc
+</span></span><span style=display:flex><span>Resources                                       Non-Resource URLs                     Resource Names   Verbs
+</span></span><span style=display:flex><span>roles.rbac.authorization.k8s.io                 <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[</span>edit<span style=color:#f92672>]</span>           <span style=color:#f92672>[</span>bind escalate<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>selfsubjectaccessreviews.authorization.k8s.io   <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[]</span>               <span style=color:#f92672>[</span>create<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>selfsubjectrulesreviews.authorization.k8s.io    <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[]</span>               <span style=color:#f92672>[</span>create<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>rolebindings.rbac.authorization.k8s.io          <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[]</span>               <span style=color:#f92672>[</span>update patch create bind escalate list watch get<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>roles.rbac.authorization.k8s.io                 <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[]</span>               <span style=color:#f92672>[</span>update patch create bind escalate list watch get<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>pods                                            <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[]</span>               <span style=color:#f92672>[</span>update patch create delete get list watch<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>configmaps                                      <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[]</span>               <span style=color:#f92672>[</span>update patch create delete<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>secrets                                         <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[]</span>               <span style=color:#f92672>[</span>update patch create delete<span style=color:#f92672>]</span>
+</span></span></code></pre></div><p>Хорошие виндовые админы должны помнить, что даже главные админы должны использовать аккаунты с минимальными правами для ежедневных дел, а важные консоли запускать от имени другого юзера с бОльшим количеством прав. В линуксе тот же принцип обеспечивается с помощью <code>sudo</code>. Так и в кубернетес - для защиты от случайного удаления важных данных, лучше не разрешать это действие обычному юзеру - разрешить только админу, а юзеру дать права на <code>impersonate</code>, чтобы он мог использовать <code>--as=</code> когда это действительно нужно.</p><p><img src=/img/k8s-rbac-nuances/impersonate-white.png alt=impersonate></p><p>Создадим новый сервисаккаунт в неймспейсе <code>rbac</code> с именем <code>impersonator</code>, роль с правами <code>impersonate</code> и забиндим её на новый сервисаккаунт. Обратите внимание, что в роли мы разрешаем представляться только сервисаккаунтом <code>privesc</code> и никаким другим:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>KUBECONFIG<span style=color:#f92672>=</span>~/.kube/config kubectl -n rbac create sa impersonator
+</span></span><span style=display:flex><span>serviceaccount/impersonator created
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>KUBECONFIG<span style=color:#f92672>=</span>~/.kube/config kubectl -n rbac create role impersonate --resource<span style=color:#f92672>=</span>serviceaccounts --verb<span style=color:#f92672>=</span>impersonate --resource-name<span style=color:#f92672>=</span>privesc
+</span></span><span style=display:flex><span>role.rbac.authorization.k8s.io/impersonate created
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>KUBECONFIG<span style=color:#f92672>=</span>~/.kube/config kubectl -n rbac create rolebinding impersonator --role<span style=color:#f92672>=</span>impersonate --serviceaccount<span style=color:#f92672>=</span>rbac:impersonator
+</span></span><span style=display:flex><span>rolebinding.rbac.authorization.k8s.io/impersonator created
+</span></span></code></pre></div><p>Создадим новый контекст и проверим права нового сервисаккаунта:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>TOKEN<span style=color:#f92672>=</span><span style=color:#66d9ef>$(</span>KUBECONFIG<span style=color:#f92672>=</span>~/.kube/config kubectl -n rbac create token impersonator --duration<span style=color:#f92672>=</span>8h<span style=color:#66d9ef>)</span>
+</span></span><span style=display:flex><span>kubectl config set-credentials impersonate --token<span style=color:#f92672>=</span>$TOKEN   
+</span></span><span style=display:flex><span>User <span style=color:#e6db74>&#34;impersonate&#34;</span> set.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>kubectl config set-context impersonate@kubernetes  --user<span style=color:#f92672>=</span>impersonate --cluster<span style=color:#f92672>=</span>kubernetes       
+</span></span><span style=display:flex><span>Context <span style=color:#e6db74>&#34;impersonate@kubernetes&#34;</span> created.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>kubectl config use-context impersonate@kubernetes                                      
+</span></span><span style=display:flex><span>Switched to context <span style=color:#e6db74>&#34;impersonate@kubernetes&#34;</span>.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>kubectl auth can-i --list -n rbac
+</span></span><span style=display:flex><span>Resources                                       Non-Resource URLs                     Resource Names   Verbs
+</span></span><span style=display:flex><span>selfsubjectaccessreviews.authorization.k8s.io   <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[]</span>               <span style=color:#f92672>[</span>create<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>selfsubjectrulesreviews.authorization.k8s.io    <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[]</span>               <span style=color:#f92672>[</span>create<span style=color:#f92672>]</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>serviceaccounts                                 <span style=color:#f92672>[]</span>                                    <span style=color:#f92672>[</span>privesc<span style=color:#f92672>]</span>        <span style=color:#f92672>[</span>impersonate<span style=color:#f92672>]</span>
+</span></span></code></pre></div><p>Ничего лишнего нет - только <code>impersonate</code>, как и указано в роли. Но если воспользоваться правом <code>impersonate</code> и представиться как сервисаккаунт <code>privesc</code>, то видно, что права совпадают с сервисаккаунтом <code>privesc</code>:</p><pre tabindex=0><code>kubectl auth can-i --list -n rbac --as=system:serviceaccount:rbac:privesc
+Resources                                       Non-Resource URLs                     Resource Names   Verbs
+roles.rbac.authorization.k8s.io                 []                                    [edit]           [bind escalate]
+selfsubjectaccessreviews.authorization.k8s.io   []                                    []               [create]
+selfsubjectrulesreviews.authorization.k8s.io    []                                    []               [create]
+pods                                            []                                    []               [get list watch update patch delete create]
+
+...
+
+rolebindings.rbac.authorization.k8s.io          []                                    []               [list watch get update patch create bind escalate]
+roles.rbac.authorization.k8s.io                 []                                    []               [list watch get update patch create bind escalate]
+configmaps                                      []                                    []               [update patch create delete]
+secrets                                         []                                    []               [update patch create delete]
+</code></pre><p>То есть с <code>impersonate</code> сервисаккаунт получил все свои права + все права сервисаккаунта, которым он может представляться, фактически получив неограниченный доступ к неймспейсу.</p><p>Возвращаясь к примеру с sudo: чтобы защититься от человеческой ошибки можно создать два сервисаккаунта - один &ldquo;привелигированный&rdquo; с правами на редактирование, а второй &ldquo;обычный&rdquo; - чтение и impersonate. Если юзер случайно попробует удалить ресурсы, то система авторизации не даст этого сделать, пока к команде не добавят <code>--as=system:serviceaccount:rbac:privileged-sa</code>. Конечно, это будет работать только в том случае, если у юзера есть мозги и он не использует <code>impersonate</code> бездумно для всех операций.</p><p>Для более удобной реализации этого подхода можно использовать плагин <a href=https://github.com/postfinance/kubectl-sudo>kubectl-sudo</a></p><h3 id=aggregated-clusterroles>Aggregated ClusterRoles</h3><p>Помимо &ldquo;стандартных&rdquo; ресурсов (<code>pod</code>, <code>secret</code>, <code>service</code>, &mldr;) в кластере могут появляться дополнительные ресурсы, описываемые CRD (<code>certificates</code>, <code>kafkas</code>, <code>prometheuses</code>, &mldr;). Очевидно, что в дефолтных ролях из коробки невозможно предусмотреть ресурсы, которые будут установлены в будущем через CRD и дать необходимые привилегии для управления ими. Для работы с этим ограничением существует Aggregated ClusterRole - она аггрегирует в себе правила из других ролей, при этом сама может ни одного правила не содержать. Примеры таких ролей - дефолтные admin, view, edit. Все они содержат параметр <code>aggregationRule</code> c лейблами, по которым идентифируются кластерроли, правила из которых будут агрегированы в целевую кластерроль.</p><p><code>k get clusterrole admin -oyaml</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>aggregationRule</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>clusterRoleSelectors</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>matchLabels</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>rbac.authorization.k8s.io/aggregate-to-admin</span>: <span style=color:#e6db74>&#34;true&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ClusterRole</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>annotations</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>rbac.authorization.kubernetes.io/autoupdate</span>: <span style=color:#e6db74>&#34;true&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>admin</span>
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>То есть в роли <code>admin</code> будут все правила, явно описанные в <code>admin</code>, а так же все правила всех ролей с лэйблом <code>rbac.authorization.k8s.io/aggregate-to-admin: "true"</code>. Например, <code>cert-manager-view</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ClusterRole</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>labels</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>rbac.authorization.k8s.io/aggregate-to-admin</span>: <span style=color:#e6db74>&#34;true&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>rbac.authorization.k8s.io/aggregate-to-edit</span>: <span style=color:#e6db74>&#34;true&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>rbac.authorization.k8s.io/aggregate-to-view</span>: <span style=color:#e6db74>&#34;true&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>cert-manager-view</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#f92672>apiGroups</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>cert-manager.io</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>resources</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>certificates</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>certificaterequests</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>issuers</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>verbs</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>get</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>list</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>watch</span>
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>Хоть дефолтные роли <code>admin</code>, <code>view</code> и <code>edit</code> ничего не знают о сущности <code>certificates</code>, после создания кластерроли <code>cert-manager-view</code> контроллер <code>clusterrole-aggregation-controller</code> увидит, что роль содержит необходимые лейблы и роли с соттветствующим <code>aggregationRule</code> смогут манипулировать <code>certificates</code> и другими сущностями.
+Важно тут то, что сама роль с <code>aggregationRule</code> - <code>admin</code> в нашем случае - никак не изменится. Дополнительные правила в неё не добавятся и обычным <code>kubectl get clusterrole admin -o yaml</code> эти привелегии не увидеть. Что создает возможности для злоумышленника или проблемы для админа. Некоторые Aggregated ClusterRole могут совсем не содержать никаких <code>rules</code>, а только <code>aggregationRule</code>. Хороший пример есть в <a href=https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles>документации</a>.</p><h2 id=mitigation>Mitigation</h2><p>Система авторизации k8s очень гибкая и позволяет гранулярно настраивать параметры доступа. Даже в тех случаях, когда пользователю необходимо управлять такими чувствительными для безопасности примитивами как <code>Role</code>/<code>ClusterRole</code> и <code>RoleBinding</code>/<code>ClusterRoleBinding</code>. При этом пользователь не сможет повысить свои привилегии и получить доступ к закрытым данным, если администратор явно не позволит ему повышать привилегии.</p><p>Повысить привилегии позволяют verbs <code>escalate</code>, <code>bind</code> и <code>impersonate</code>. Первый разрешает добавлять новые записи в Role/ClusterRole, второй - в RoleBinding/ClusterRoleBinding, а третий - представляться другим пользователем. Это очень мощные инструменты, неправильное использование которых может нанести значительный урон работе кластера. Следует очень внимательно проверять любое использование этих verbs и всегда убеждаться в том, что соблюдается правило Least Privilegies - пользователь должен иметь минимальный набор привилегий, необходимый для работы.</p><p>Для ограничения использования этих или любых других правил в манифестах <code>Role</code>/<code>ClusterRole</code> есть поле <code>resourceNames</code>, куда можно (и нужно!) вписать имена ресурсов, которые можно использовать.
+В этом примере пользователю разрешено создавать ClusterRoleBinding с <code>roleRef</code> с именами <code>admin</code>,<code>edit</code>,<code>view</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ClusterRole</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>role-grantor</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>- <span style=color:#f92672>apiGroups</span>: [<span style=color:#e6db74>&#34;rbac.authorization.k8s.io&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resources</span>: [<span style=color:#e6db74>&#34;clusterroles&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#f92672>verbs</span>: [<span style=color:#e6db74>&#34;bind&#34;</span>]
+</span></span><span style=display:flex><span>  <span style=color:#f92672>resourceNames</span>: [<span style=color:#e6db74>&#34;admin&#34;</span>,<span style=color:#e6db74>&#34;edit&#34;</span>,<span style=color:#e6db74>&#34;view&#34;</span>]
+</span></span></code></pre></div><p>То же самое можно сделать с <code>escalate</code> или <code>impersonate</code>. Если с <code>bind</code> права в роли задает админ, а пользователь только может забиндить эту роль на себя, если это разрешено в <code>resourceNames</code>, то с <code>escalate</code> пользователь может внутри роли прописать любые параметры и стать админом неймспейса или кластера. То есть <code>escalate</code> дает больше возможностей, в то время как <code>bind</code> ограничивает пользователя. Имейте это в виду, когда приедтся давать эти права пользователям.</p><p>Для контроля за этими опасными нюансами следует периодически проверять их наличие в кластере:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl get clusterrole -A -oyaml | yq <span style=color:#e6db74>&#39;.items[] | select (.rules[].verbs[] | contains(&#34;esalate&#34; | &#34;bind&#34; | &#34;impersonate&#34;))  | .metadata.name&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>kubectl get role -A -oyaml | yq <span style=color:#e6db74>&#39;.items[] | select (.rules[].verbs[] | contains(&#34;esalate&#34; | &#34;bind&#34; | &#34;impersonate&#34;))  | .metadata.name&#39;</span>
+</span></span></code></pre></div><p>Так же следует следить за появлением ролей с <code>aggregationRule</code> - такие роли, кажущиеся абсолютно невинными, поскольку в <code>rules</code> у них может быть пусто, могут иметь полные права на неймспейс:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl get clusterrole -A -oyaml | yq <span style=color:#e6db74>&#39;.items[] | select (.aggregationRule) | .metadata.name&#39;</span>
+</span></span></code></pre></div><p>Или настроить автоматизированные системы, следящие за созданием или редактированием ролей с подозрительным содержанием, например <a href=https://falco.org/>Falco</a> или <a href=https://tetragon.io/>Tetragon</a>.</p><p><a href=https://github.com/aquasecurity/kubectl-who-can>kubectl-who-can</a> позволяет увидеть все субъекты, способные выполнять определенные действия</p><hr><p>Kubernetes предоставляет очень гибкие возможности для управления правами доступа. Несмотря на это, до сих пор не существует механизма отзыва сертификатов. То есть kubeconfig будет действовать ровно до того момента, пока не истек срок действия его сертификата, что заставляет беречь сертификаты с молоду, а не &ldquo;потом разберемся&rdquo;. Об этом поговорим в следующей части. Ссылка будет тут и в телеграм канале <a href=https://t.me/mikrotikninja>Mikrotik Ninja</a>.</p><hr><ul class=pager><li class=previous><a href=/post/k8s-auth/ data-toggle=tooltip data-placement=top title="Аутентификация в Kubernetes в деталях. Часть 1: JWT, сертификаты">&larr;
+Previous Post</a></li></ul><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//bubnovd-github-io.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="col-lg-2 col-lg-offset-0
+visible-lg-block
+sidebar-container
+catalog-container"><div class=side-catalog><hr class="hidden-sm hidden-xs"><h5><a class=catalog-toggle href=#>CATALOG</a></h5><ul class=catalog-body></ul></div></div><div class="col-lg-8 col-lg-offset-2
+col-md-10 col-md-offset-1
+sidebar-container"><section><hr class="hidden-sm hidden-xs"><h5><a href=/tags/>FEATURED TAGS</a></h5><div class=tags><a href=/tags/#sysadminka title=#sysadminka>#sysadminka
+</a><a href=/tags/1%D1%81 title=1с>1с
+</a><a href=/tags/about title=about>about
+</a><a href=/tags/active-directory title="active directory">active directory
+</a><a href=/tags/ad title=ad>ad
+</a><a href=/tags/asterisk title=asterisk>asterisk
+</a><a href=/tags/authentication title=authentication>authentication
+</a><a href=/tags/bandwidth title=bandwidth>bandwidth
+</a><a href=/tags/best-practice title="best practice">best practice
+</a><a href=/tags/bgp title=bgp>bgp
+</a><a href=/tags/books title=books>books
+</a><a href=/tags/certification title=certification>certification
+</a><a href=/tags/cisco title=cisco>cisco
+</a><a href=/tags/cmd title=cmd>cmd
+</a><a href=/tags/cureit title=cureit>cureit
+</a><a href=/tags/d-link title=d-link>d-link
+</a><a href=/tags/ddos title=ddos>ddos
+</a><a href=/tags/debian title=debian>debian
+</a><a href=/tags/dhcp title=dhcp>dhcp
+</a><a href=/tags/dns title=dns>dns
+</a><a href=/tags/dpi title=dpi>dpi
+</a><a href=/tags/dr.web title=dr.web>dr.web
+</a><a href=/tags/eoip title=eoip>eoip
+</a><a href=/tags/failover title=failover>failover
+</a><a href=/tags/firewall title=firewall>firewall
+</a><a href=/tags/freebsd title=freebsd>freebsd
+</a><a href=/tags/groups title=groups>groups
+</a><a href=/tags/hack title=hack>hack
+</a><a href=/tags/hardware title=hardware>hardware
+</a><a href=/tags/hdd title=hdd>hdd
+</a><a href=/tags/history title=history>history
+</a><a href=/tags/hyper-v title=hyper-v>hyper-v
+</a><a href=/tags/internet title=internet>internet
+</a><a href=/tags/ip-%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD%D0%B8%D1%8F title=ip-телефония>ip-телефония
+</a><a href=/tags/ipam title=ipam>ipam
+</a><a href=/tags/iptables title=iptables>iptables
+</a><a href=/tags/iso title=iso>iso
+</a><a href=/tags/k8s title=k8s>k8s
+</a><a href=/tags/keepass title=keepass>keepass
+</a><a href=/tags/l2 title=l2>l2
+</a><a href=/tags/link title=link>link
+</a><a href=/tags/links title=links>links
+</a><a href=/tags/linux title=linux>linux
+</a><a href=/tags/linux-firewalls title="linux firewalls">linux firewalls
+</a><a href=/tags/linux-server title="linux server">linux server
+</a><a href=/tags/microsoft title=microsoft>microsoft
+</a><a href=/tags/midnightcommander title=midnightcommander>midnightcommander
+</a><a href=/tags/mikrotik title=mikrotik>mikrotik
+</a><a href=/tags/monitoring title=monitoring>monitoring
+</a><a href=/tags/mpls title=mpls>mpls
+</a><a href=/tags/ms title=ms>ms
+</a><a href=/tags/mss title=mss>mss
+</a><a href=/tags/mtcna title=mtcna>mtcna
+</a><a href=/tags/mtcre title=mtcre>mtcre
+</a><a href=/tags/mtu title=mtu>mtu
+</a><a href=/tags/mum title=mum>mum
+</a><a href=/tags/mva title=mva>mva
+</a><a href=/tags/network title=network>network
+</a><a href=/tags/oreilly title="o'reilly">o'reilly
+</a><a href=/tags/open-source title="open source">open source
+</a><a href=/tags/ospf title=ospf>ospf
+</a><a href=/tags/password title=password>password
+</a><a href=/tags/powershell title=powershell>powershell
+</a><a href=/tags/pptp title=pptp>pptp
+</a><a href=/tags/presentation title=presentation>presentation
+</a><a href=/tags/python title=python>python
+</a><a href=/tags/qos title=qos>qos
+</a><a href=/tags/raid title=raid>raid
+</a><a href=/tags/rdp title=rdp>rdp
+</a><a href=/tags/routerboard title=routerboard>routerboard
+</a><a href=/tags/routeros title=routeros>routeros
+</a><a href=/tags/routing title=routing>routing
+</a><a href=/tags/script title=script>script
+</a><a href=/tags/sdn title=sdn>sdn
+</a><a href=/tags/security title=security>security
+</a><a href=/tags/server title=server>server
+</a><a href=/tags/snmp title=snmp>snmp
+</a><a href=/tags/snmpv3 title=snmpv3>snmpv3
+</a><a href=/tags/ssh title=ssh>ssh
+</a><a href=/tags/ssl title=ssl>ssl
+</a><a href=/tags/tcp title=tcp>tcp
+</a><a href=/tags/terminal title=terminal>terminal
+</a><a href=/tags/the-dude title="the dude">the dude
+</a><a href=/tags/ubuntu title=ubuntu>ubuntu
+</a><a href=/tags/vpn title=vpn>vpn
+</a><a href=/tags/webmin title=webmin>webmin
+</a><a href=/tags/wi-fi title=wi-fi>wi-fi
+</a><a href=/tags/wifi title=wifi>wifi
+</a><a href=/tags/windows title=windows>windows
+</a><a href=/tags/%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=автоматизация>автоматизация
+</a><a href=/tags/%D0%B0%D0%BD%D1%82%D0%B8%D0%B2%D0%B8%D1%80%D1%83%D1%81-%D0%BA%D0%B0%D1%81%D0%BF%D0%B5%D1%80%D1%81%D0%BA%D0%BE%D0%B3%D0%BE title="антивирус касперского">антивирус касперского
+</a><a href=/tags/%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=безопасность>безопасность
+</a><a href=/tags/%D0%B1%D0%BB%D0%BE%D0%B3 title=блог>блог
+</a><a href=/tags/%D0%B2%D0%B8%D1%80%D1%82%D1%83%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=виртуализация>виртуализация
+</a><a href=/tags/%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D1%8B title=группы>группы
+</a><a href=/tags/%D0%B4%D0%BB%D1%8F-%D1%87%D0%B0%D0%B9%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2 title="для чайников">для чайников
+</a><a href=/tags/%D0%B6%D0%B8%D0%B7%D0%BD%D1%8C title=жизнь>жизнь
+</a><a href=/tags/%D0%B7%D0%B0%D0%BA%D0%BE%D0%BD title=закон>закон
+</a><a href=/tags/%D0%B8%D0%B1 title=иб>иб
+</a><a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D0%BD%D0%BE%D0%B5 title=интересное>интересное
+</a><a href=/tags/%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82 title=интернет>интернет
+</a><a href=/tags/%D0%B8%D0%BD%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F-%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D1%8C title="информационная безопасность">информационная безопасность
+</a><a href=/tags/%D0%B8%D1%81%D0%BF%D0%B4%D0%BD title=испдн>испдн
+</a><a href=/tags/%D0%BA%D0%BD%D0%B8%D0%B3%D0%B8 title=книги>книги
+</a><a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%82%D0%BE%D1%80 title=коммутатор>коммутатор
+</a><a href=/tags/%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D1%82%D0%B0%D1%86%D0%B8%D1%8F title=коммутация>коммутация
+</a><a href=/tags/%D0%BA%D1%83%D1%80%D1%81%D1%8B title=курсы>курсы
+</a><a href=/tags/%D0%BB%D0%B8%D0%BD%D1%83%D0%BA%D1%81 title=линукс>линукс
+</a><a href=/tags/%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0 title=настройка>настройка
+</a><a href=/tags/%D0%BE%D0%B1%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5 title=обучение>обучение
+</a><a href=/tags/%D0%BE%D0%BF%D1%82%D0%B8%D0%BC%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F title=оптимизация>оптимизация
+</a><a href=/tags/%D0%BE%D1%84%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B title="официальные документы">официальные документы
+</a><a href=/tags/%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C title=пароль>пароль
+</a><a href=/tags/%D0%BF%D0%B4%D0%BD title=пдн>пдн
+</a><a href=/tags/%D0%BF%D0%BE%D0%BB%D0%B5%D0%B7%D0%BD%D0%BE%D0%B5 title=полезное>полезное
+</a><a href=/tags/%D0%BF%D1%80%D0%B8%D0%BA%D0%B0%D0%B7 title=приказ>приказ
+</a><a href=/tags/%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D1%8C title=производительность>производительность
+</a><a href=/tags/%D0%BF%D1%80%D0%BE%D1%84%D0%B5%D1%81%D1%81%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%BC title=профессионализм>профессионализм
+</a><a href=/tags/%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0 title=работа>работа
+</a><a href=/tags/%D1%81%D0%B5%D1%80%D1%82%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F title=сертификация>сертификация
+</a><a href=/tags/%D1%81%D0%B5%D1%82%D1%8C title=сеть>сеть
+</a><a href=/tags/%D1%81%D0%BA%D0%B7%D0%B8 title=скзи>скзи
+</a><a href=/tags/%D1%81%D0%BA%D0%BE%D1%80%D0%BE%D1%81%D1%82%D1%8C title=скорость>скорость
+</a><a href=/tags/%D1%81%D0%BA%D1%80%D0%B8%D0%BF%D1%82 title=скрипт>скрипт
+</a><a href=/tags/%D1%81%D1%81%D1%8B%D0%BB%D0%BA%D0%B8 title=ссылки>ссылки
+</a><a href=/tags/%D1%82%D1%83%D1%80%D0%B8%D0%B7%D0%BC title=туризм>туризм
+</a><a href=/tags/%D1%86%D0%BE%D0%B4 title=цод>цод
+</a><a href=/tags/%D1%87%D0%B5%D0%BB%D1%8F%D0%B1%D0%B8%D0%BD%D1%81%D0%BA title=челябинск>челябинск
+</a><a href=/tags/%D1%8E%D0%B7%D0%B2%D0%B5%D1%80%D0%B8 title=юзвери>юзвери</a></div></section></div></div></div></article><footer><div class=container><div class=row><div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1"><ul class="list-inline text-center"><li><a target=_blank href=https://github.com/bubnovd><span class="fa-stack fa-lg"><i class="fas fa-circle fa-stack-2x"></i>
+<i class="fab fa-github fa-stack-1x fa-inverse"></i></span></a></li><li><a target=_blank href=https://www.linkedin.com/in/bubnovd/><span class="fa-stack fa-lg"><i class="fas fa-circle fa-stack-2x"></i>
+<i class="fab fa-linkedin fa-stack-1x fa-inverse"></i></span></a></li></ul><p class="copyright text-muted">Copyright &copy; Админская фамилия 2024</p></div></div></div></footer><script>function loadAsync(e,t){var s=document,o="script",n=s.createElement(o),i=s.getElementsByTagName(o)[0];n.src=e,t&&n.addEventListener("load",function(e){t(null,e)},!1),i.parentNode.insertBefore(n,i)}</script><script>$("#tag_cloud").length!==0&&loadAsync("/js/jquery.tagcloud.js",function(){$.fn.tagcloud.defaults={color:{start:"#bbbbee",end:"#0085a1"}},$("#tag_cloud a").tagcloud()})</script><script>loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js",function(){var e=document.querySelector("nav");e&&FastClick.attach(e)})</script><script type=text/javascript>function generateCatalog(e){_containerSelector="div.post-container";var t,n,s,o,i,a=$(_containerSelector),r=a.find("h1,h2,h3,h4,h5,h6");return $(e).html(""),r.each(function(){t=$(this).prop("tagName").toLowerCase(),o="#"+$(this).prop("id"),n=$(this).text(),i=$('<a href="'+o+'" rel="nofollow">'+n+"</a>"),s=$('<li class="'+t+'_nav"></li>').append(i),$(e).append(s)}),!0}generateCatalog(".catalog-body"),$(".catalog-toggle").click(function(e){e.preventDefault(),$(".side-catalog").toggleClass("fold")}),loadAsync("/js/jquery.nav.js",function(){$(".catalog-body").onePageNav({currentClass:"active",changeHash:!1,easing:"swing",filter:"",scrollSpeed:700,scrollOffset:0,scrollThreshold:.2,begin:null,end:null,scrollChange:null,padding:80})})</script></body></html>
