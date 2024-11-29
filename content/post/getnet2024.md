@@ -1,6 +1,6 @@
 +++
 title = "Ссылки из моей презентациии на GetNet 2024: BDSM"
-date = "2024-11-29T17:02:52Z"
+date = "2024-11-29T01:02:00Z"
 author = "bubnovd"
 authorTwitter = "bubnovdnet"
 cover = ""
