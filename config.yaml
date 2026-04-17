@@ -3,8 +3,6 @@ languageCode: 'en-us'
 title: 'Админская фамилия'
 theme: "hugo-theme-cleanwhite"
 
-disqusShortname: bubnovd-github-io
-
 params:
   header_image: "img/aksai.jpg"
   description: "Make Sysadmins Great Again"
@@ -38,6 +36,20 @@ params:
   addtional_menus:
     - title: "Archive"
       href: "/archive/"
+
+  giscus:
+    data-repo: "bubnovd/bubnovd.github.io"
+    data-repo-id: "R_kgDOH3j2Yg"
+    data-category: "Announcements"
+    data-category-id: "DIC_kwDOH3j2Ys4C65a7"
+    data-mapping: "title"
+    data-strict: "0"
+    data-reactions-enabled: "1"
+    data-emit-metadata: "0"
+    data-input-position: "bottom"
+    data-theme: "light"
+    data-lang: "en"
+    crossorigin: "anonymous"
 
 services:
   googleAnalytics:
