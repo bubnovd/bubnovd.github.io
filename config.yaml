@@ -40,8 +40,8 @@ params:
   giscus:
     repo: "bubnovd/bubnovd.github.io"
     repo-id: "R_kgDOH3j2Yg"
-    category: "Announcements"
-    category-id: "DIC_kwDOH3j2Ys4C65a7"
+    category: "General"
+    category-id: "DIC_kwDOH3j2Ys4C65a8"
     mapping: "title"
     strict: "0"
     reactions-enabled: "1"
