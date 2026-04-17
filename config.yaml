@@ -39,12 +39,12 @@ params:
 
   giscus:
     repo: "bubnovd/bubnovd.github.io"
-    repo-id: "R_kgDOH3j2Yg"
+    repo_id: "R_kgDOH3j2Yg"
     category: "General"
-    category-id: "DIC_kwDOH3j2Ys4C65a8"
+    category_id: "DIC_kwDOH3j2Ys4C65a8"
     mapping: "title"
     strict: "0"
-    reactions-enabled: "1"
+    reactions_enabled: "1"
     emit-metadata: "0"
     input-position: "bottom"
     theme: "light"
