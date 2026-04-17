@@ -1,4 +1,15 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Conference on Админская фамилия</title><link>https://bubnovd.net/tags/conference/</link><description>Recent content in Conference on Админская фамилия</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Mon, 19 Sep 2022 04:22:41 +0000</lastBuildDate><atom:link href="https://bubnovd.net/tags/conference/index.xml" rel="self" type="application/rss+xml"/><item><title>KazHackStan 2022</title><link>https://bubnovd.net/post/kazhackstan2022/</link><pubDate>Mon, 19 Sep 2022 04:22:41 +0000</pubDate><guid>https://bubnovd.net/post/kazhackstan2022/</guid><description>Посетил конференцию по ИБ в Алмате. Кратко, о том, что увидел, услышал и успел записать дилетант из докладов о безопасности и безопасной разработке
-Вызовы безопасной гибридной облачной инфраструктуры Спикер: Эльдар kyprizel Заитов (Yandex)
-для IAM можно использовать Azure AD и SCIM для аудита нужен реестр сервис аккаунтов cloudquery Как сделать SAMM оценку процессов appsec, и как с этим работать в будущем Спикер: Ольга Свиридова
-SAMM: Security Assurance Maturity Model от OWASP.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Conference on Админская фамилия</title><link>https://bubnovd.net/tags/conference/</link><description>Recent content in Conference on Админская фамилия</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Mon, 19 Sep 2022 04:22:41 +0000</lastBuildDate><atom:link href="https://bubnovd.net/tags/conference/index.xml" rel="self" type="application/rss+xml"/><item><title>KazHackStan 2022</title><link>https://bubnovd.net/post/kazhackstan2022/</link><pubDate>Mon, 19 Sep 2022 04:22:41 +0000</pubDate><guid>https://bubnovd.net/post/kazhackstan2022/</guid><description>&lt;p>Посетил конференцию по ИБ в Алмате. Кратко, о том, что увидел, услышал и успел записать дилетант из докладов о безопасности и безопасной разработке&lt;/p>
+&lt;h2 id="вызовы-безопасной-гибридной-облачной-инфраструктуры">Вызовы безопасной гибридной облачной инфраструктуры&lt;/h2>
+&lt;p>Спикер: Эльдар kyprizel Заитов (Yandex)&lt;/p>
+&lt;ul>
+&lt;li>для IAM можно использовать Azure AD и SCIM&lt;/li>
+&lt;li>для аудита нужен реестр сервис аккаунтов &lt;a href="https://www.cloudquery.io/">cloudquery&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2 id="как-сделать-samm-оценку-процессов-appsec-и-как-с-этим-работать-в-будущем">Как сделать SAMM оценку процессов appsec, и как с этим работать в будущем&lt;/h2>
+&lt;p>Спикер: Ольга Свиридова&lt;/p>
+&lt;ul>
+&lt;li>SAMM: Security Assurance Maturity Model от OWASP. Есть аналог от MS. Модель обеспечения зрелости безопасности. Позволяет оценить текущий уровень безопасности и спланировать его улучшение&lt;/li>
+&lt;/ul>
+&lt;h2 id="как-мы-запускали-национальную-bugbounty-платформу">Как мы запускали Национальную BugBounty платформу&lt;/h2>
+&lt;p>Казахстан - одна из немногих стран (работающая программа есть в Сингапуре. И, кажется, это всё), запустивших государственную программу багбаунти. Багбаунти - это официальная выплата исследователям (читай - хакерам), нашедшим уязвимости. В случае с национальным bugbounty выплата полагается за уязвимости на государственных/муниципальных ресурсах.
+Один из принятых и оплаченных багов - пароль admin на систему управления водоснабжением столицы государства. Подробнее можно почитать на &lt;a href="https://habr.com/ru/post/666072/">хабре&lt;/a>&lt;/p></description></item></channel></rss>

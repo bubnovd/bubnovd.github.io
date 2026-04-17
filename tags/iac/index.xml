@@ -1,5 +1,428 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Iac on Админская фамилия</title><link>https://bubnovd.net/tags/iac/</link><description>Recent content in Iac on Админская фамилия</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Wed, 22 Nov 2023 04:02:52 +0000</lastBuildDate><atom:link href="https://bubnovd.net/tags/iac/index.xml" rel="self" type="application/rss+xml"/><item><title>Keycloak. Configuration as Code</title><link>https://bubnovd.net/post/keycloak-iac/</link><pubDate>Wed, 22 Nov 2023 04:02:52 +0000</pubDate><guid>https://bubnovd.net/post/keycloak-iac/</guid><description>Представленная конфигурация keycloak создает федерацию LDAP для подключения к Active Directory и клиента k8s-client для взаимодействия с kubernetes по OIDC. В федерацию добавлен маппинг групп AD.
-Конфигурацию производит job keycloak-config-cli после деплоя хелм чарта (post-install hook). Детальное описание, примеры конфигурации
-В kube-apiserver нужно добавить аргументы:
---oidc-client-id=k8s-client --oidc-issuer-url=https://your.keycloak.url/realms/realmWithLdap --oidc-groups-claim=groups --oidc-username-claim=name следующие аргументы необязательны --oidc-username-prefix=&amp;quot;keycloak:&amp;quot; --oidc-groups-prefix=&amp;quot;keycloak:&amp;quot; Конфигурация работает с чартом https://github.com/bitnami/charts/tree/main/bitnami/keycloak версии 17.1.0
-Secret keycloak-config-cli must contain CLIENT_SECRET and LDAP_BIND_CREDS IMPORT_VARSUBSTITUTION_ENABLED needs for substitute data from secret like &amp;quot;$(env:LDAP_BIND_CREDS)&amp;quot; keycloakConfigCli: enabled: true image: registry: docker.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Iac on Админская фамилия</title><link>https://bubnovd.net/tags/iac/</link><description>Recent content in Iac on Админская фамилия</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Wed, 22 Nov 2023 04:02:52 +0000</lastBuildDate><atom:link href="https://bubnovd.net/tags/iac/index.xml" rel="self" type="application/rss+xml"/><item><title>Keycloak. Configuration as Code</title><link>https://bubnovd.net/post/keycloak-iac/</link><pubDate>Wed, 22 Nov 2023 04:02:52 +0000</pubDate><guid>https://bubnovd.net/post/keycloak-iac/</guid><description>&lt;p>Представленная конфигурация keycloak создает федерацию LDAP для подключения к Active Directory и клиента k8s-client для взаимодействия с kubernetes по OIDC. В федерацию добавлен маппинг групп AD.&lt;/p>
+&lt;p>Конфигурацию производит job &lt;code>keycloak-config-cli&lt;/code> после деплоя хелм чарта (post-install hook). &lt;a href="https://github.com/adorsys/keycloak-config-cli">Детальное описание&lt;/a>, &lt;a href="https://github.com/adorsys/keycloak-config-cli/tree/main/src/test/resources/import-files">примеры конфигурации&lt;/a>&lt;/p>
+&lt;p>В kube-apiserver нужно добавить аргументы:&lt;/p>
+&lt;pre>&lt;code>--oidc-client-id=k8s-client
+--oidc-issuer-url=https://your.keycloak.url/realms/realmWithLdap
+--oidc-groups-claim=groups
+--oidc-username-claim=name
+
+следующие аргументы необязательны
+--oidc-username-prefix=&amp;quot;keycloak:&amp;quot;
+--oidc-groups-prefix=&amp;quot;keycloak:&amp;quot;
+&lt;/code>&lt;/pre>
+&lt;p>Конфигурация работает с чартом &lt;a href="https://github.com/bitnami/charts/tree/main/bitnami/keycloak">https://github.com/bitnami/charts/tree/main/bitnami/keycloak&lt;/a> версии 17.1.0&lt;/p>
+&lt;ul>
+&lt;li>Secret &lt;code>keycloak-config-cli&lt;/code> must contain CLIENT_SECRET and LDAP_BIND_CREDS&lt;/li>
+&lt;li>&lt;code>IMPORT_VARSUBSTITUTION_ENABLED&lt;/code> needs for substitute data from secret like &lt;code>&amp;quot;$(env:LDAP_BIND_CREDS)&amp;quot;&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;pre tabindex="0">&lt;code>keycloakConfigCli:
+ enabled: true
+ image:
+ registry: docker.io
+ repository: bitnami/keycloak-config-cli
+ tag: 5.9.0-debian-11-r0
+ 
+ extraEnvVars:
+ - name: IMPORT_VARSUBSTITUTION_ENABLED
+ value: &amp;#39;true&amp;#39;
+ 
+ # secret must contain: CLIENT_SECRET and LDAP_BIND_CREDS
+ extraEnvVarsSecret: &amp;#34;keycloak-config-cli&amp;#34;
+ configuration:
+ realm1.json: |
+ {
+ &amp;#34;enabled&amp;#34;: true,
+ &amp;#34;realm&amp;#34;: &amp;#34;realmWithLdap&amp;#34;,
+ &amp;#34;components&amp;#34;: {
+ &amp;#34;org.keycloak.storage.UserStorageProvider&amp;#34;: [
+ {
+ &amp;#34;id&amp;#34;: &amp;#34;ldap&amp;#34;,
+ &amp;#34;name&amp;#34;: &amp;#34;ldap&amp;#34;,
+ &amp;#34;providerId&amp;#34;: &amp;#34;ldap&amp;#34;,
+ &amp;#34;subComponents&amp;#34;: {
+ &amp;#34;org.keycloak.storage.ldap.mappers.LDAPStorageMapper&amp;#34;: [
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;last name&amp;#34;,
+ &amp;#34;providerId&amp;#34;: &amp;#34;user-attribute-ldap-mapper&amp;#34;,
+ &amp;#34;subComponents&amp;#34;: {},
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;is.mandatory.in.ldap&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;read.only&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;always.read.value.from.ldap&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;user.model.attribute&amp;#34;: [
+ &amp;#34;lastName&amp;#34;
+ ]
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;first name&amp;#34;,
+ &amp;#34;providerId&amp;#34;: &amp;#34;user-attribute-ldap-mapper&amp;#34;,
+ &amp;#34;subComponents&amp;#34;: {},
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;ldap.attribute&amp;#34;: [
+ &amp;#34;cn&amp;#34;
+ ],
+ &amp;#34;is.mandatory.in.ldap&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;always.read.value.from.ldap&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;read.only&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;user.model.attribute&amp;#34;: [
+ &amp;#34;firstName&amp;#34;
+ ]
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;creation date&amp;#34;,
+ &amp;#34;providerId&amp;#34;: &amp;#34;user-attribute-ldap-mapper&amp;#34;,
+ &amp;#34;subComponents&amp;#34;: {},
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;ldap.attribute&amp;#34;: [
+ &amp;#34;createTimestamp&amp;#34;
+ ],
+ &amp;#34;is.mandatory.in.ldap&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;always.read.value.from.ldap&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;read.only&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;user.model.attribute&amp;#34;: [
+ &amp;#34;createTimestamp&amp;#34;
+ ]
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;username&amp;#34;,
+ &amp;#34;providerId&amp;#34;: &amp;#34;user-attribute-ldap-mapper&amp;#34;,
+ &amp;#34;subComponents&amp;#34;: {},
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;ldap.attribute&amp;#34;: [
+ &amp;#34;cn&amp;#34;
+ ],
+ &amp;#34;is.mandatory.in.ldap&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;always.read.value.from.ldap&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;read.only&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;user.model.attribute&amp;#34;: [
+ &amp;#34;username&amp;#34;
+ ]
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;modify date&amp;#34;,
+ &amp;#34;providerId&amp;#34;: &amp;#34;user-attribute-ldap-mapper&amp;#34;,
+ &amp;#34;subComponents&amp;#34;: {},
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;ldap.attribute&amp;#34;: [
+ &amp;#34;modifyTimestamp&amp;#34;
+ ],
+ &amp;#34;is.mandatory.in.ldap&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;read.only&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;always.read.value.from.ldap&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;user.model.attribute&amp;#34;: [
+ &amp;#34;modifyTimestamp&amp;#34;
+ ]
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;email&amp;#34;,
+ &amp;#34;providerId&amp;#34;: &amp;#34;user-attribute-ldap-mapper&amp;#34;,
+ &amp;#34;subComponents&amp;#34;: {},
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;ldap.attribute&amp;#34;: [
+ &amp;#34;mail&amp;#34;
+ ],
+ &amp;#34;is.mandatory.in.ldap&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;always.read.value.from.ldap&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;read.only&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;user.model.attribute&amp;#34;: [
+ &amp;#34;email&amp;#34;
+ ]
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;ldap-groups&amp;#34;,
+ &amp;#34;providerId&amp;#34;: &amp;#34;group-ldap-mapper&amp;#34;,
+ &amp;#34;subComponents&amp;#34;: {},
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;membership.attribute.type&amp;#34;: [
+ &amp;#34;DN&amp;#34;
+ ],
+ &amp;#34;group.name.ldap.attribute&amp;#34;: [
+ &amp;#34;cn&amp;#34;
+ ],
+ &amp;#34;membership.user.ldap.attribute&amp;#34;: [
+ &amp;#34;cn&amp;#34;
+ ],
+ &amp;#34;preserve.group.inheritance&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;groups.dn&amp;#34;: [
+ &amp;#34;ou=YOUR_GROUPS_DN,dc=YOUR_DOMAIN,dc=YOUR_LOCAL&amp;#34;
+ ],
+ &amp;#34;mode&amp;#34;: [
+ &amp;#34;READ_ONLY&amp;#34;
+ ],
+ &amp;#34;user.roles.retrieve.strategy&amp;#34;: [
+ &amp;#34;GET_GROUPS_FROM_USER_MEMBEROF_ATTRIBUTE&amp;#34;
+ ],
+ &amp;#34;membership.ldap.attribute&amp;#34;: [
+ &amp;#34;member&amp;#34;
+ ],
+ &amp;#34;ignore.missing.groups&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;group.object.classes&amp;#34;: [
+ &amp;#34;group&amp;#34;
+ ],
+ &amp;#34;memberof.ldap.attribute&amp;#34;: [
+ &amp;#34;memberOf&amp;#34;
+ ],
+ &amp;#34;groups.path&amp;#34;: [
+ &amp;#34;/&amp;#34;
+ ],
+ &amp;#34;drop.non.existing.groups.during.sync&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ]
+ }
+ }
+ ]
+ },
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;pagination&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;fullSyncPeriod&amp;#34;: [
+ &amp;#34;30000&amp;#34;
+ ],
+ &amp;#34;connectionPooling&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;usersDn&amp;#34;: [
+ &amp;#34;ou=YOUR_USERS_DN,dc=YOUR_DOMAIN,dc=YOUR_LOCAL&amp;#34;
+ ],
+ &amp;#34;cachePolicy&amp;#34;: [
+ &amp;#34;DEFAULT&amp;#34;
+ ],
+ &amp;#34;useKerberosForPasswordAuthentication&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;importEnabled&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;enabled&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;usernameLDAPAttribute&amp;#34;: [
+ &amp;#34;cn&amp;#34;
+ ],
+ &amp;#34;bindDn&amp;#34;: [
+ &amp;#34;cn=YOUR_CN,ou=YOUR_SERVICE_ACCOUNT_OU,dc=YOUR_DOMAIN,dc=YOUR_LOCAL&amp;#34;
+ ],
+ &amp;#34;bindCredential&amp;#34;: [
+ &amp;#34;$(env:LDAP_BIND_CREDS)&amp;#34;
+ ],
+ &amp;#34;changedSyncPeriod&amp;#34;: [
+ &amp;#34;-1&amp;#34;
+ ],
+ &amp;#34;lastSync&amp;#34;: [
+ &amp;#34;1622010092&amp;#34;
+ ],
+ &amp;#34;vendor&amp;#34;: [
+ &amp;#34;ad&amp;#34;
+ ],
+ &amp;#34;uuidLDAPAttribute&amp;#34;: [
+ &amp;#34;objectGUID&amp;#34;
+ ],
+ &amp;#34;connectionUrl&amp;#34;: [
+ &amp;#34;ldaps://LDAPS.YOUR.DOMAIN&amp;#34;
+ ],
+ &amp;#34;allowKerberosAuthentication&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;syncRegistrations&amp;#34;: [
+ &amp;#34;true&amp;#34;
+ ],
+ &amp;#34;authType&amp;#34;: [
+ &amp;#34;simple&amp;#34;
+ ],
+ &amp;#34;debug&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;searchScope&amp;#34;: [
+ &amp;#34;2&amp;#34;
+ ],
+ &amp;#34;useTruststoreSpi&amp;#34;: [
+ &amp;#34;always&amp;#34;
+ ],
+ &amp;#34;priority&amp;#34;: [
+ &amp;#34;0&amp;#34;
+ ],
+ &amp;#34;trustEmail&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;userObjectClasses&amp;#34;: [
+ &amp;#34;person, organizationalPerson, user&amp;#34;
+ ],
+ &amp;#34;rdnLDAPAttribute&amp;#34;: [
+ &amp;#34;cn&amp;#34;
+ ],
+ &amp;#34;editMode&amp;#34;: [
+ &amp;#34;READ_ONLY&amp;#34;
+ ],
+ &amp;#34;validatePasswordPolicy&amp;#34;: [
+ &amp;#34;false&amp;#34;
+ ],
+ &amp;#34;batchSizeForSync&amp;#34;: [
+ &amp;#34;0&amp;#34;
+ ]
+ }
+ }
+ ]
+ },
+ &amp;#34;clients&amp;#34;: [
+ {
+ &amp;#34;clientId&amp;#34;: &amp;#34;k8s-client&amp;#34;,
+ &amp;#34;name&amp;#34;: &amp;#34;k8s-client&amp;#34;,
+ &amp;#34;description&amp;#34;: &amp;#34;k8s-Client&amp;#34;,
+ &amp;#34;enabled&amp;#34;: true,
+ &amp;#34;protocol&amp;#34;: &amp;#34;openid-connect&amp;#34;,
+ &amp;#34;clientAuthenticatorType&amp;#34;: &amp;#34;client-secret&amp;#34;,
+ &amp;#34;secret&amp;#34;: &amp;#34;$(env:CLIENT_SECRET)&amp;#34;,
+ &amp;#34;directAccessGrantsEnabled&amp;#34;: true,
+ &amp;#34;authorizationServicesEnabled&amp;#34;: true,
+ &amp;#34;serviceAccountsEnabled&amp;#34;: true,
+ &amp;#34;protocolMappers&amp;#34;: [
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;Client IP Address&amp;#34;,
+ &amp;#34;protocol&amp;#34;: &amp;#34;openid-connect&amp;#34;,
+ &amp;#34;protocolMapper&amp;#34;: &amp;#34;oidc-usersessionmodel-note-mapper&amp;#34;,
+ &amp;#34;consentRequired&amp;#34;: false,
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;user.session.note&amp;#34;: &amp;#34;clientAddress&amp;#34;,
+ &amp;#34;id.token.claim&amp;#34;: &amp;#34;true&amp;#34;,
+ &amp;#34;access.token.claim&amp;#34;: &amp;#34;true&amp;#34;,
+ &amp;#34;claim.name&amp;#34;: &amp;#34;clientAddress&amp;#34;,
+ &amp;#34;jsonType.label&amp;#34;: &amp;#34;String&amp;#34;
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;Client ID&amp;#34;,
+ &amp;#34;protocol&amp;#34;: &amp;#34;openid-connect&amp;#34;,
+ &amp;#34;protocolMapper&amp;#34;: &amp;#34;oidc-usersessionmodel-note-mapper&amp;#34;,
+ &amp;#34;consentRequired&amp;#34;: false,
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;user.session.note&amp;#34;: &amp;#34;clientId&amp;#34;,
+ &amp;#34;id.token.claim&amp;#34;: &amp;#34;true&amp;#34;,
+ &amp;#34;access.token.claim&amp;#34;: &amp;#34;true&amp;#34;,
+ &amp;#34;claim.name&amp;#34;: &amp;#34;clientId&amp;#34;,
+ &amp;#34;jsonType.label&amp;#34;: &amp;#34;String&amp;#34;
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;groups&amp;#34;,
+ &amp;#34;protocol&amp;#34;: &amp;#34;openid-connect&amp;#34;,
+ &amp;#34;protocolMapper&amp;#34;: &amp;#34;oidc-group-membership-mapper&amp;#34;,
+ &amp;#34;consentRequired&amp;#34;: false,
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;full.path&amp;#34;: &amp;#34;true&amp;#34;,
+ &amp;#34;id.token.claim&amp;#34;: &amp;#34;true&amp;#34;,
+ &amp;#34;access.token.claim&amp;#34;: &amp;#34;true&amp;#34;,
+ &amp;#34;claim.name&amp;#34;: &amp;#34;groups&amp;#34;,
+ &amp;#34;userinfo.token.claim&amp;#34;: &amp;#34;true&amp;#34;
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;Client Host&amp;#34;,
+ &amp;#34;protocol&amp;#34;: &amp;#34;openid-connect&amp;#34;,
+ &amp;#34;protocolMapper&amp;#34;: &amp;#34;oidc-usersessionmodel-note-mapper&amp;#34;,
+ &amp;#34;consentRequired&amp;#34;: false,
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;user.session.note&amp;#34;: &amp;#34;clientHost&amp;#34;,
+ &amp;#34;id.token.claim&amp;#34;: &amp;#34;true&amp;#34;,
+ &amp;#34;access.token.claim&amp;#34;: &amp;#34;true&amp;#34;,
+ &amp;#34;claim.name&amp;#34;: &amp;#34;clientHost&amp;#34;,
+ &amp;#34;jsonType.label&amp;#34;: &amp;#34;String&amp;#34;
+ }
+ }
+ ],
+ &amp;#34;authorizationSettings&amp;#34;: {
+ &amp;#34;allowRemoteResourceManagement&amp;#34;: true,
+ &amp;#34;policyEnforcementMode&amp;#34;: &amp;#34;ENFORCING&amp;#34;,
+ &amp;#34;resources&amp;#34;: [
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;Default Resource&amp;#34;,
+ &amp;#34;type&amp;#34;: &amp;#34;urn:k8s-client:resources:default&amp;#34;,
+ &amp;#34;ownerManagedAccess&amp;#34;: false,
+ &amp;#34;attributes&amp;#34;: {},
+ &amp;#34;uris&amp;#34;: [
+ &amp;#34;/*&amp;#34;
+ ]
+ }
+ ],
+ &amp;#34;policies&amp;#34;: [
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;Default Policy&amp;#34;,
+ &amp;#34;description&amp;#34;: &amp;#34;A policy that grants access only for users within this realm&amp;#34;,
+ &amp;#34;type&amp;#34;: &amp;#34;js&amp;#34;,
+ &amp;#34;logic&amp;#34;: &amp;#34;POSITIVE&amp;#34;,
+ &amp;#34;decisionStrategy&amp;#34;: &amp;#34;AFFIRMATIVE&amp;#34;,
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;code&amp;#34;: &amp;#34;// by default, grants any permission associated with this policy\n$evaluation.grant();\n&amp;#34;
+ }
+ },
+ {
+ &amp;#34;name&amp;#34;: &amp;#34;Default Permission&amp;#34;,
+ &amp;#34;description&amp;#34;: &amp;#34;A permission that applies to the default resource type&amp;#34;,
+ &amp;#34;type&amp;#34;: &amp;#34;resource&amp;#34;,
+ &amp;#34;logic&amp;#34;: &amp;#34;POSITIVE&amp;#34;,
+ &amp;#34;decisionStrategy&amp;#34;: &amp;#34;UNANIMOUS&amp;#34;,
+ &amp;#34;config&amp;#34;: {
+ &amp;#34;defaultResourceType&amp;#34;: &amp;#34;urn:k8s-client:resources:default&amp;#34;,
+ &amp;#34;applyPolicies&amp;#34;: &amp;#34;[\&amp;#34;Default Policy\&amp;#34;]&amp;#34;
+ }
+ }
+ ],
+ &amp;#34;scopes&amp;#34;: [],
+ &amp;#34;decisionStrategy&amp;#34;: &amp;#34;UNANIMOUS&amp;#34;
+ },
+ &amp;#34;redirectUris&amp;#34;: [
+ &amp;#34;*&amp;#34;
+ ],
+ &amp;#34;webOrigins&amp;#34;: [
+ &amp;#34;*&amp;#34;
+ ]
+ }
+ ]
+ }
+&lt;/code>&lt;/pre></description></item></channel></rss>

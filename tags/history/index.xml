@@ -1,3 +1,81 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>History on Админская фамилия</title><link>https://bubnovd.net/tags/history/</link><description>Recent content in History on Админская фамилия</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Fri, 02 Sep 2022 04:02:52 +0000</lastBuildDate><atom:link href="https://bubnovd.net/tags/history/index.xml" rel="self" type="application/rss+xml"/><item><title>About</title><link>https://bubnovd.net/about/</link><pubDate>Fri, 02 Sep 2022 04:02:52 +0000</pubDate><guid>https://bubnovd.net/about/</guid><description>История Этот блог начинался как записная книжка сисадмина Первое сообщение было опубликовано 26 сентября 2010 Посты были обо всем, касающемся ИТ: Windows, Linux, сети, безопасность, ссылки на интересности, найденные в сети С 2013 неожиданно повалил трафик. Причиной этому внезапно стал pikabu В 2015 я апгрейднулся до сетевика и стал плотно работать с Mikrotik. Большинство постов стало о сетях и RouterOS В среднем в месяц на блог заходили 15 тысяч человек (или роботов.</description></item><item><title>Блог переехал</title><link>https://bubnovd.net/post/initpost/</link><pubDate>Fri, 02 Sep 2022 04:02:52 +0000</pubDate><guid>https://bubnovd.net/post/initpost/</guid><description>Блог переехал на платформу GitHub с гугловского Blogger. Кажется, что Blogger безнадежно устарел или я просто поленился с ним разбираться. Сейчас сайт работает на Hugo с темой cleanwhite.
-Все статьи старого блога переехали сюда в секцию blogger. Самые популярные из них остались на прежних адресах, то есть ссылки на них и закладки продолжат работать.
-История Этот блог начинался как записная книжка сисадмина Первое сообщение было опубликовано 26 сентября 2010 Посты были обо всем, касающемся ИТ: Windows, Linux, сети, безопасность, ссылки на интересности, найденные в сети С 2013 неожиданно повалил трафик.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>History on Админская фамилия</title><link>https://bubnovd.net/tags/history/</link><description>Recent content in History on Админская фамилия</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Fri, 02 Sep 2022 04:02:52 +0000</lastBuildDate><atom:link href="https://bubnovd.net/tags/history/index.xml" rel="self" type="application/rss+xml"/><item><title>About</title><link>https://bubnovd.net/about/</link><pubDate>Fri, 02 Sep 2022 04:02:52 +0000</pubDate><guid>https://bubnovd.net/about/</guid><description>&lt;h2 id="история">История&lt;/h2>
+&lt;ul>
+&lt;li>Этот блог начинался как записная книжка сисадмина&lt;/li>
+&lt;li>Первое сообщение было опубликовано 26 сентября 2010&lt;/li>
+&lt;li>Посты были обо всем, касающемся ИТ: Windows, Linux, сети, безопасность, ссылки на интересности, найденные в сети&lt;/li>
+&lt;li>С 2013 неожиданно повалил трафик. Причиной этому &lt;em>внезапно&lt;/em> стал &lt;a href="https://pikabu.ru/story/salyut_burzhua_1577076?cid=16396660">pikabu&lt;/a>&lt;/li>
+&lt;li>В 2015 я апгрейднулся до сетевика и стал плотно работать с Mikrotik. Большинство постов стало о сетях и RouterOS&lt;/li>
+&lt;li>В среднем в месяц на блог заходили 15 тысяч человек (или роботов. Я не пытался разбираться откуда трафик)&lt;/li>
+&lt;li>В сентябре 2022 блог переехал на платформу GitHub с гугловского Blogger&lt;/li>
+&lt;li>Сейчас сайт работает на &lt;a href="https://gohugo.io/">Hugo&lt;/a> с темой &lt;a href="https://github.com/zhaohuabing/hugo-theme-cleanwhite.git">cleanwhite&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h3 id="популярные-посты">Популярные посты&lt;/h3>
+&lt;ul>
+&lt;li>&lt;a href="http://www.bubnovd.net/2016/10/ipsec-over-l2tp-routeros-apple-ios-10.html">IPSec over L2TP между RouterOS и Apple iOS 10 &lt;/a> - почти 40000 просмотров&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2016/01/eoip-over-openvpn.html">Почему за EoIP over OpenVPN нужно отрубать руки. И почему обе.&lt;/a> - 32400 просмотров&lt;/li>
+&lt;li>Пост &lt;a href="http://www.bubnovd.net/2016/03/ospf-mikrotik-routeros.html">Маршрутизация. OSPF в Mikrotik RouterOS&lt;/a> просмотрело почти 29 тысяч человек&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2017/10/oxidized.html">Система управления конфигурациями Oxidized &lt;/a> - 23000 просмотров&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2017/07/dhcp-failover-with-routeros.html">DHCP Failover with RouterOS &lt;/a> - 9000 просмотров&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2015/12/mikrotik-d-link.html">Сегментация сети с использованием оборудования Mikrotik и D-Link &lt;/a> 6000 просмотров&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2015/03/mikrotik-routeros.html">Самый полный мануал по резервированию интернета на Mikrotik RouterOS&lt;/a>&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2015/11/dhcp-option-82.html">DHCP, Option 82&lt;/a>&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2017/11/ikrotik-routeros-configuration.html"> Мikrotik RouterOS Configuration Management с помощью скриптов и какой-то там матери &lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2 id="что-изменилось">Что изменилось&lt;/h2>
+&lt;ul>
+&lt;li>С 2020 года я всё реже работаю с сетями и постов о них почти не стало&lt;/li>
+&lt;li>Да и вообще с 2020 года в блоге перестали появляться новые статьи. Это связано с тем, что на платформе Blogger неудобно писать - сложно форматировать текст, код выглядит максимально ублюдско, а нормально вставить картинку почти невозможно&lt;/li>
+&lt;li>С того времени я периодически задумывался о переезде, но ничего не делал для этого&lt;/li>
+&lt;li>Отчасти это связано со сменой направления работы. Из сетевика я окуклился в девопса. А разбираться в новом направлении, да ещё и с важными продакшн задачами и намного более компетентными коллегами, оказалось сложно. Времени и желания на блог просто не оставалось&lt;/li>
+&lt;li>В 2017 я завел канал в &lt;a href="https://mikrotikninja.t.me">Telegram&lt;/a>. Короткие посты и ссылки стали публиковаться там. За неимением своих статей блог стал не нужен&lt;/li>
+&lt;li>А те редкие статьи, которые появлялись, уходили в &lt;a href="https://medium.com/@dbubnov">Medium&lt;/a>, &lt;a href="https://xakep.ru/author/bubnovd/">Xakep&lt;/a> и &lt;a href="https://telegra.ph/Pik-Uchitel-Ala-Archa-08-12">Telegra.ph&lt;/a>&lt;/li>
+&lt;li>Сейчас тут очень мало нового про Mikrotik, но всё ещё бывает про сети&lt;/li>
+&lt;/ul></description></item><item><title>Блог переехал</title><link>https://bubnovd.net/post/initpost/</link><pubDate>Fri, 02 Sep 2022 04:02:52 +0000</pubDate><guid>https://bubnovd.net/post/initpost/</guid><description>&lt;p>Блог переехал на платформу GitHub с гугловского Blogger. Кажется, что Blogger безнадежно устарел или я просто поленился с ним разбираться.
+Сейчас сайт работает на &lt;a href="https://gohugo.io/">Hugo&lt;/a> с темой &lt;a href="https://github.com/zhaohuabing/hugo-theme-cleanwhite.git">cleanwhite&lt;/a>.&lt;/p>
+&lt;p>Все статьи старого блога переехали сюда в секцию &lt;a href="https://bubnovd.net/blogger">blogger&lt;/a>. Самые популярные из них остались на прежних адресах, то есть ссылки на них и закладки продолжат работать.&lt;/p>
+&lt;h2 id="история">История&lt;/h2>
+&lt;ul>
+&lt;li>Этот блог начинался как записная книжка сисадмина&lt;/li>
+&lt;li>Первое сообщение было опубликовано 26 сентября 2010&lt;/li>
+&lt;li>Посты были обо всем, касающемся ИТ: Windows, Linux, сети, безопасность, ссылки на интересности, найденные в сети&lt;/li>
+&lt;li>С 2013 неожиданно повалил трафик. Причиной этому &lt;em>внезапно&lt;/em> стал &lt;a href="https://pikabu.ru/story/salyut_burzhua_1577076?cid=16396660">pikabu&lt;/a>&lt;/li>
+&lt;li>В 2015 я апгрейднулся до сетевика и стал плотно работать с Mikrotik. Большинство постов стало о сетях и RouterOS&lt;/li>
+&lt;li>В среднем в месяц на блог заходили 15 тысяч человек (или роботов. Я не пытался разбираться откуда трафик)&lt;/li>
+&lt;/ul>
+&lt;h3 id="популярные-посты">Популярные посты&lt;/h3>
+&lt;ul>
+&lt;li>&lt;a href="http://www.bubnovd.net/2016/10/ipsec-over-l2tp-routeros-apple-ios-10.html">IPSec over L2TP между RouterOS и Apple iOS 10 &lt;/a> - почти 40000 просмотров&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2016/01/eoip-over-openvpn.html">Почему за EoIP over OpenVPN нужно отрубать руки. И почему обе.&lt;/a> - 32400 просмотров&lt;/li>
+&lt;li>Пост &lt;a href="http://www.bubnovd.net/2016/03/ospf-mikrotik-routeros.html">Маршрутизация. OSPF в Mikrotik RouterOS&lt;/a> просмотрело почти 29 тысяч человек&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2017/10/oxidized.html">Система управления конфигурациями Oxidized &lt;/a> - 23000 просмотров&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2017/07/dhcp-failover-with-routeros.html">DHCP Failover with RouterOS &lt;/a> - 9000 просмотров&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2015/12/mikrotik-d-link.html">Сегментация сети с использованием оборудования Mikrotik и D-Link &lt;/a> 6000 просмотров&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2015/03/mikrotik-routeros.html">Самый полный мануал по резервированию интернета на Mikrotik RouterOS&lt;/a>&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2015/11/dhcp-option-82.html">DHCP, Option 82&lt;/a>&lt;/li>
+&lt;li>&lt;a href="http://www.bubnovd.net/2017/11/ikrotik-routeros-configuration.html"> Мikrotik RouterOS Configuration Management с помощью скриптов и какой-то там матери &lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2 id="что-изменилось">Что изменилось&lt;/h2>
+&lt;ul>
+&lt;li>С 2020 года я всё реже работаю с сетями и постов о них почти не стало&lt;/li>
+&lt;li>Да и вообще с 2020 года в блоге перестали появляться новые статьи. Это связано с тем, что на платформе Blogger неудобно писать - сложно форматировать текст, код выглядит максимально ублюдско, а нормально вставить картинку почти невозможно&lt;/li>
+&lt;li>С того времени я периодически задумывался о переезде, но ничего не делал для этого&lt;/li>
+&lt;li>Отчасти это связано со сменой направления работы. Из сетевика я окуклился в девопса. А разбираться в новом направлении, да ещё и с важными продакшн задачами и намного более компетентными коллегами, оказалось сложно. Времени и желания на блог просто не оставалось&lt;/li>
+&lt;li>В 2017 я завел канал в &lt;a href="https://mikrotikninja.t.me">Telegram&lt;/a>. Короткие посты и ссылки стали публиковаться там. За неимением своих статей блог стал не нужен&lt;/li>
+&lt;li>А те редкие статьи, которые появлялись, уходили в &lt;a href="https://medium.com/@dbubnov">Medium&lt;/a>, &lt;a href="https://xakep.ru/author/bubnovd/">Xakep&lt;/a> и &lt;a href="https://telegra.ph/Pik-Uchitel-Ala-Archa-08-12">Telegra.ph&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2 id="планы">Планы&lt;/h2>
+&lt;ul>
+&lt;li>&lt;input disabled="" type="checkbox"> Перенести сюда статьи из &lt;a href="https://medium.com/@dbubnov">Medium&lt;/a>, &lt;a href="https://xakep.ru/author/bubnovd/">Xakep&lt;/a> и &lt;a href="https://telegra.ph/Pik-Uchitel-Ala-Archa-08-12">Telegra.ph&lt;/a>&lt;/li>
+&lt;li>&lt;input disabled="" type="checkbox"> Внедрить полезные фичи c &lt;a href="https://digitaldrummerj.me/series/blogging-with-hugo/">этого&lt;/a> ресурса&lt;/li>
+&lt;li>&lt;input checked="" disabled="" type="checkbox"> Сделать облако тегов&lt;/li>
+&lt;li>&lt;input disabled="" type="checkbox"> Добавить readTime в предпросмотр&lt;/li>
+&lt;li>&lt;input disabled="" type="checkbox"> Добавить related страницы&lt;/li>
+&lt;li>&lt;input disabled="" type="checkbox"> Впилить грамотный CI/CD с линтерами, проверкой орфографии и пережатием и сохранением картинок&lt;/li>
+&lt;li>Писать один пост в два месяца. Публиковать его в блоге или на платных платформахх&lt;/li>
+&lt;li>Возможно, появится раздел о путешествиях и походах&lt;/li>
+&lt;li>Добавить английскую версию блога&lt;/li>
+&lt;li>&lt;input checked="" disabled="" type="checkbox"> Добавить секцию со ссылками на &lt;a href="https://bubnovd.net/blogger">blogger&lt;/a> на главную&lt;/li>
+&lt;li>&lt;input checked="" disabled="" type="checkbox"> Добавить верификацию поддомена&lt;/li>
+&lt;li>&lt;input checked="" disabled="" type="checkbox"> Прикрутить RSS&lt;/li>
+&lt;li>&lt;input checked="" disabled="" type="checkbox"> Допилить CI/CD - блог деплоится не всегда, слетает домен&lt;/li>
+&lt;/ul></description></item></channel></rss>
