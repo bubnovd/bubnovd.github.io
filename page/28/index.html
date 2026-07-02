@@ -8,7 +8,19 @@
 col-md-8 col-md-offset-1
 col-sm-12
 col-xs-12
-post-container"><div data-pagefind-ignore=all><div class=post-preview><a href=https://bubnovd.net/post/k8s-impersonate-en/><h2 class=post-title></h2><div class=post-content-preview><p>На первый взляд система RBAC в k8s достаточно простая и безопасная, но многие забывают или не знают некоторых осоюенностей
+post-container"><div data-pagefind-ignore=all><div class=post-preview><a href=https://bubnovd.net/post/ideas/><h2 class=post-title></h2><div class=post-content-preview><p>Azure AD, PAM, OVPN plugins
+<a href=https://medium.com/@jkroepke/openvpn-sso-via-oauth2-ab2583ee8477>https://medium.com/@jkroepke/openvpn-sso-via-oauth2-ab2583ee8477</a>
+<a href=https://blog.please-open.it/openvpn-keycloak/>https://blog.please-open.it/openvpn-keycloak/</a>
+<a href=https://medium.com/@hiranadikari993/openvpn-active-directory-authentication-726f3bac3546>https://medium.com/@hiranadikari993/openvpn-active-directory-authentication-726f3bac3546</a>
+<a href=https://github.com/threerings/openvpn-auth-ldap>https://github.com/threerings/openvpn-auth-ldap</a>
+<a href=https://community.openvpn.net/openvpn/wiki/PluginOverview>https://community.openvpn.net/openvpn/wiki/PluginOverview</a>
+<a href=https://github.com/OpenVPN/openvpn/blob/master/src/plugins/auth-pam/README.auth-pam>https://github.com/OpenVPN/openvpn/blob/master/src/plugins/auth-pam/README.auth-pam</a>
+<a href=https://github.com/ubuntu/aad-auth>https://github.com/ubuntu/aad-auth</a>
+<a href=https://github.com/aad-for-linux/openvpn-auth-aad>https://github.com/aad-for-linux/openvpn-auth-aad</a>
+И PDF PAM Guide &mldr;</p><p>пост про bastion/bastillion</p><p>keycloak - мониторинг, kuberos, сборрка kuberos без CVE
+&ldquo;serviceaccounts&rdquo; - запросить id_token
+TOKEN=$(curl<br>-d &ldquo;client_id=CLIENT_ID&rdquo; -d &ldquo;client_secret=CLIENT_SECRET&rdquo;<br>-d &ldquo;username=bserviceaccount&rdquo; -d &ldquo;password=1234567890&rdquo;<br>-d &ldquo;grant_type=password&rdquo;<br>-d &ldquo;scope=openid&rdquo;<br>&ldquo;https://KEYCLOAK/realms/master/protocol/openid-connect/token&rdquo; | jq -r &lsquo;.id_token&rsquo;)</p><p>Потом пойти с этим токеном в куб KUBECONFIG=~/Downloads/dev1.conf k &ndash;token $TOKEN get pod
+в выводе токена должен быть поле name - то поле, которое указали аписерверу oidc-username-claim: name</p></div></a><p class=post-meta>Posted by Админская фамилия on Monday, January 1, 0001</p></div><hr><div class=post-preview><a href=https://bubnovd.net/post/k8s-impersonate-en/><h2 class=post-title></h2><div class=post-content-preview><p>На первый взляд система RBAC в k8s достаточно простая и безопасная, но многие забывают или не знают некоторых осоюенностей
 В kubernetes есть аналог sudo, благодаря которому можно обойти ограничения в назначенных ролях и получить доступ туда, куда не предполагалось и прочитать скеретные данные или даже получить полный контроль над кластером. И эта возможность есть у любого юзера с дефолтной кластерролью edit. В этой статье попробуем разобраться что это такое и как защититься от такого легального повышения привилегий.</p></div></a><p class=post-meta>Posted by Админская фамилия on Monday, January 1, 0001</p></div><hr></div><ul class=pager data-pagefind-ignore=all><li class=previous><a href=/page/27/>&larr; Newer Posts</a></li></ul></div><div class="col-lg-3 col-lg-offset-0
 col-md-3 col-md-offset-0
 col-sm-12
